@@ -17,7 +17,7 @@ kotlin = "2.2.10"
 # KotlinX
 kotlinxCoroutines = "1.10.2"
 kotlinxDatetime = "0.7.1"
-kotlinxSerializationJson = "1.8.1"
+kotlinxSerializationJson = "1.9.0"
 kotlinxImmutable = "0.4.0"
 
 # KMP
@@ -27,24 +27,24 @@ kmpLifecycle = "2.9.6"
 kmpNavigation = "2.9.1"
 kmpPurchase = "2.2.14+17.24.0"
 kmpPurchaseCommon = "14.0.2"
-adaptive = "1.1.2"
+adaptive = "1.2.0"
 
 # AndroidX
 androidxCore = "1.17.0"
-androidxCoreSplash = "1.0.1"
+androidxCoreSplash = "1.2.0"
 androidxAppCompat = "1.7.1"
-androidxActivity = "1.11.0"
+androidxActivity = "1.12.2"
 androidxFragment = "1.8.9"
-androidxDataStore = "1.1.7"
+androidxDataStore = "1.2.0"
 androidxAnnotation = "1.9.1"
 compose = "2025.09.00"
 
 # Google
 playReview = "2.0.2"
 playUpdate = "2.1.0"
-playServiceAds = "24.5.0"
+playServiceAds = "24.9.0"
 ksp = "2.2.10-2.0.2"
-gms = "4.4.3"
+gms = "4.4.4"
 
 # Firebase
 firebase = "34.7.0"
