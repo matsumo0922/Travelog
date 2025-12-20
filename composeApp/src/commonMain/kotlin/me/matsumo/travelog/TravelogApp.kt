@@ -1,0 +1,32 @@
+package me.matsumo.travelog
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
+import io.github.vinceglb.filekit.coil.addPlatformFileSupport
+import me.matsumo.travelog.core.model.AppSetting
+import me.matsumo.travelog.core.ui.theme.TravelogTheme
+
+@Composable
+internal fun TravelogApp(
+    setting: AppSetting,
+    modifier: Modifier = Modifier,
+) {
+    SetupCoil()
+
+    TravelogTheme(setting) {
+        AppNavHost(modifier)
+    }
+}
+
+@Composable
+private fun SetupCoil() {
+    setSingletonImageLoaderFactory { context ->
+        ImageLoader.Builder(context)
+            .components {
+                addPlatformFileSupport()
+            }
+            .build()
+    }
+}
