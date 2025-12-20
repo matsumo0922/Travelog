@@ -12,7 +12,7 @@ compileSdk = "36"
 gradle = "8.13.2"
 
 # Kotlin
-kotlin = "2.2.10"
+kotlin = "2.3.0"
 
 # KotlinX
 kotlinxCoroutines = "1.10.2"
@@ -37,13 +37,12 @@ androidxActivity = "1.12.2"
 androidxFragment = "1.8.9"
 androidxDataStore = "1.2.0"
 androidxAnnotation = "1.9.1"
-compose = "2025.09.00"
 
 # Google
 playReview = "2.0.2"
 playUpdate = "2.1.0"
 playServiceAds = "24.9.0"
-ksp = "2.2.10-2.0.2"
+ksp = "2.3.4"
 gms = "4.4.4"
 
 # Firebase
@@ -117,18 +116,13 @@ androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "a
 androidx-datastore-proto = { module = "androidx.datastore:datastore-core", version.ref = "androidxDataStore" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences-core", version.ref = "androidxDataStore" }
 
-# Compose
-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose" }
-compose-runtime = { module = "androidx.compose.runtime:runtime" }
-compose-ui = { module = "androidx.compose.ui:ui" }
-compose-ui-binding = { module = "androidx.compose.ui:ui-viewbinding" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
-
 # KMP
 kmp-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "kmpLifecycle" }
 kmp-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "kmpLifecycle" }
 kmp-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "kmpNavigation" }
+
+# Compose
+compose-runtime = { module = "androidx.compose.runtime:runtime", version = "1.10.0" }
 
 # Material3 Expressive
 material3 = { module = "org.jetbrains.compose.material3:material3", version = "1.10.0-alpha05" }
@@ -211,12 +205,10 @@ ui-android = [
     "androidx-activity",
     "androidx-activity-compose",
     "androidx-fragment",
-    "compose-runtime",
-    "compose-ui",
-    "compose-ui-binding",
 ]
 
 ui-common = [
+    "compose-runtime",
     "kmp-lifecycle-runtime-compose",
     "kmp-lifecycle-viewmodel-compose",
     "kmp-navigation-compose",
