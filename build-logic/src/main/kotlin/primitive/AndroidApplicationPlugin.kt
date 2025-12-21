@@ -22,6 +22,12 @@ class AndroidApplicationPlugin : Plugin<Project> {
                 apply("com.codingfeline.buildkonfig")
             }
 
+            kotlin {
+                compilerOptions {
+                    jvmToolchain(17)
+                }
+            }
+
             androidApplication {
                 setupAndroid()
 

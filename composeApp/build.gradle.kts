@@ -8,7 +8,6 @@ plugins {
     id("matsumo.primitive.kmp.common")
     id("matsumo.primitive.android.application")
     id("matsumo.primitive.kmp.compose")
-    id("matsumo.primitive.kmp.android")
     id("matsumo.primitive.kmp.ios")
     id("matsumo.primitive.detekt")
 }
@@ -91,6 +90,11 @@ android {
 }
 
 kotlin {
+    // com.android.application の KMPモジュール用プラグインは提供されていないので個別に設定
+    // FYI: https://developer.android.com/kotlin/multiplatform/plugin?hl=ja#migrate
+    @Suppress("DEPRECATION")
+    androidTarget()
+
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core:common"))

@@ -5,6 +5,7 @@ import me.matsumo.travelog.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
+import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 class KmpCommonPlugin : Plugin<Project> {
@@ -31,5 +32,9 @@ class KmpCommonPlugin : Plugin<Project> {
 }
 
 fun Project.kotlin(action: KotlinMultiplatformExtension.() -> Unit) {
+    extensions.configure(action)
+}
+
+fun Project.kotlinAndroid(action: KotlinAndroidProjectExtension.() -> Unit) {
     extensions.configure(action)
 }
