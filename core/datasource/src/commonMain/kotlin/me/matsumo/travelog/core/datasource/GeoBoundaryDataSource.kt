@@ -1,10 +1,12 @@
 package me.matsumo.travelog.core.datasource
 
+import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import me.matsumo.travelog.core.common.formatter
 import me.matsumo.travelog.core.model.GeoBoundaryInfo
@@ -13,6 +15,8 @@ import me.matsumo.travelog.core.model.GeoJsonData
 
 class GeoBoundaryDataSource(
     private val httpClient: HttpClient,
+    private val geoBoundaryCacheDataSource: GeoBoundaryCacheDataSource,
+    private val appSettingDataSource: AppSettingDataSource,
     private val ioDispatcher: CoroutineDispatcher,
 ) {
     /**
@@ -43,9 +47,33 @@ class GeoBoundaryDataSource(
      * @param geoJsonUrl URL to GeoJSON file (typically from GeoBoundaryInfo.gjDownloadURL)
      */
     suspend fun downloadGeoJson(geoJsonUrl: String): GeoJsonData = withContext(ioDispatcher) {
-        // application/octet-stream で返却されるので Ktor 側で変換不可
-        val response = httpClient.get(geoJsonUrl).bodyAsText()
+        val useCache = appSettingDataSource.setting.first().useGeoJsonCache
+        val cacheKey = generateCacheKey(geoJsonUrl)
+        val cachedData = if (useCache) geoBoundaryCacheDataSource.load(cacheKey) else null
+
+        val response = if (cachedData != null) {
+            Napier.d("Cache hit for $geoJsonUrl")
+            cachedData
+        } else {
+            Napier.d("Cache miss for $geoJsonUrl, downloading...")
+            // application/octet-stream で返却されるので Ktor 側で変換不可
+            val result = httpClient.get(geoJsonUrl).bodyAsText()
+            if (useCache) {
+                geoBoundaryCacheDataSource.save(cacheKey, result)
+            }
+            result
+        }
+
         formatter.decodeFromString(response)
+    }
+
+    suspend fun clearCache() {
+        geoBoundaryCacheDataSource.clear()
+    }
+
+    private fun generateCacheKey(url: String): String {
+        val hash = url.hashCode().toString(16)
+        return "geojson_$hash.json"
     }
 
     companion object {

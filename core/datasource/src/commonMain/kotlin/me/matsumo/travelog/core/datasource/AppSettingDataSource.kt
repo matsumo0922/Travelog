@@ -81,4 +81,12 @@ class AppSettingDataSource(
             it[booleanPreferencesKey(AppSetting::developerMode.name)] = developerMode
         }
     }
+
+    suspend fun setUseGeoJsonCache(useGeoJsonCache: Boolean) = withContext(ioDispatcher) {
+        if (setting.first().useGeoJsonCache == useGeoJsonCache) return@withContext
+
+        preference.edit {
+            it[booleanPreferencesKey(AppSetting::useGeoJsonCache.name)] = useGeoJsonCache
+        }
+    }
 }

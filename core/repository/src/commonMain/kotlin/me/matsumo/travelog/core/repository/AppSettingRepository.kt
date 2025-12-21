@@ -22,4 +22,6 @@ class AppSettingRepository(
     suspend fun setPlusMode(plusMode: Boolean) = dataSource.setPlusMode(plusMode)
 
     suspend fun setDeveloperMode(developerMode: Boolean) = dataSource.setDeveloperMode(developerMode)
+
+    suspend fun setUseGeoJsonCache(useGeoJsonCache: Boolean) = dataSource.setUseGeoJsonCache(useGeoJsonCache)
 }
