@@ -7,9 +7,16 @@ class KmpIosPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             kotlin {
-                iosX64()
-                iosArm64()
-                iosSimulatorArm64()
+                listOf(
+                    iosX64(),
+                    iosArm64(),
+                    iosSimulatorArm64(),
+                ).forEach { iosTarget ->
+                    iosTarget.binaries.framework {
+                        baseName = "ComposeApp"
+                        isStatic = true
+                    }
+                }
 
                 sourceSets.named { it.lowercase().startsWith("ios") }.configureEach {
                     languageSettings {

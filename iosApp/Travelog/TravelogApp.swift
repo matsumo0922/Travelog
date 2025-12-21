@@ -11,7 +11,8 @@ import SwiftUI
 struct TravelogApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ComposeViewController()
+                .ignoresSafeArea(.all)
         }
     }
 }
