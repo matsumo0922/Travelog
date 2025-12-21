@@ -1,5 +1,6 @@
 package me.matsumo.travelog.core.datasource
 
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -8,6 +9,7 @@ import platform.Foundation.NSFileManager
 import platform.Foundation.NSString
 import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.NSUserDomainMask
+import platform.Foundation.create
 import platform.Foundation.stringWithContentsOfFile
 import platform.Foundation.writeToFile
 
@@ -15,14 +17,14 @@ class GeoBoundaryCacheDataSourceImpl(
     private val ioDispatcher: CoroutineDispatcher,
 ) : GeoBoundaryCacheDataSource {
 
-    @OptIn(ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     override suspend fun save(key: String, text: String) = withContext(ioDispatcher) {
         val path = getFilePath(key)
-        (text as NSString).writeToFile(path, true, NSUTF8StringEncoding, null)
+        NSString.create(string = text).writeToFile(path, true, NSUTF8StringEncoding, null)
         Unit
     }
 
-    @OptIn(ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     override suspend fun load(key: String): String? = withContext(ioDispatcher) {
         val path = getFilePath(key)
         if (NSFileManager.defaultManager.fileExistsAtPath(path)) {
@@ -46,7 +48,7 @@ class GeoBoundaryCacheDataSourceImpl(
             create = false,
             error = null,
         )
-        val dirPath = "${cacheDir!!.path}/geojson_cache"
+        val dirPath = "${cacheDir!!.path}/geoboundary_cache"
         if (NSFileManager.defaultManager.fileExistsAtPath(dirPath)) {
             NSFileManager.defaultManager.removeItemAtPath(dirPath, null)
         }
@@ -62,7 +64,7 @@ class GeoBoundaryCacheDataSourceImpl(
             create = true,
             error = null,
         )
-        val dirPath = "${cacheDir!!.path}/geojson_cache"
+        val dirPath = "${cacheDir!!.path}/geoboundary_cache"
         if (!NSFileManager.defaultManager.fileExistsAtPath(dirPath)) {
             NSFileManager.defaultManager.createDirectoryAtPath(
                 path = dirPath,

@@ -29,7 +29,7 @@ class GeoBoundaryCacheDataSourceImpl(
     }
 
     override suspend fun clear() = withContext(ioDispatcher) {
-        val cacheDir = File(context.cacheDir, "geojson_cache")
+        val cacheDir = File(context.cacheDir, "geoboundary_cache")
         if (cacheDir.exists()) {
             cacheDir.deleteRecursively()
         }
@@ -37,7 +37,7 @@ class GeoBoundaryCacheDataSourceImpl(
     }
 
     private fun getFile(key: String): File {
-        val cacheDir = File(context.cacheDir, "geojson_cache")
+        val cacheDir = File(context.cacheDir, "geoboundary_cache")
         if (!cacheDir.exists()) {
             cacheDir.mkdirs()
         }

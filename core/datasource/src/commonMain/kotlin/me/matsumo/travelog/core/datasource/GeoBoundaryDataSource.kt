@@ -2,7 +2,6 @@ package me.matsumo.travelog.core.datasource
 
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CoroutineDispatcher
@@ -24,7 +23,7 @@ class GeoBoundaryDataSource(
      */
     suspend fun fetchAllCountries(): List<GeoBoundaryInfo> = withContext(ioDispatcher) {
         val url = "$BASE_URL/gbOpen/ALL/ADM0/"
-        httpClient.get(url).body<List<GeoBoundaryInfo>>()
+        formatter.decodeFromString(fetchText(url))
     }
 
     /**
@@ -38,7 +37,7 @@ class GeoBoundaryDataSource(
         level: GeoBoundaryLevel,
     ): GeoBoundaryInfo = withContext(ioDispatcher) {
         val url = "$BASE_URL/gbOpen/$countryIso/${level.name}/"
-        httpClient.get(url).body<GeoBoundaryInfo>()
+        formatter.decodeFromString(fetchText(url))
     }
 
     /**
@@ -47,33 +46,35 @@ class GeoBoundaryDataSource(
      * @param geoJsonUrl URL to GeoJSON file (typically from GeoBoundaryInfo.gjDownloadURL)
      */
     suspend fun downloadGeoJson(geoJsonUrl: String): GeoJsonData = withContext(ioDispatcher) {
-        val useCache = appSettingDataSource.setting.first().useGeoJsonCache
-        val cacheKey = generateCacheKey(geoJsonUrl)
-        val cachedData = if (useCache) geoBoundaryCacheDataSource.load(cacheKey) else null
-
-        val response = if (cachedData != null) {
-            Napier.d("Cache hit for $geoJsonUrl")
-            cachedData
-        } else {
-            Napier.d("Cache miss for $geoJsonUrl, downloading...")
-            // application/octet-stream で返却されるので Ktor 側で変換不可
-            val result = httpClient.get(geoJsonUrl).bodyAsText()
-            if (useCache) {
-                geoBoundaryCacheDataSource.save(cacheKey, result)
-            }
-            result
-        }
-
-        formatter.decodeFromString(response)
+        formatter.decodeFromString(fetchText(geoJsonUrl))
     }
 
     suspend fun clearCache() {
         geoBoundaryCacheDataSource.clear()
     }
 
+    private suspend fun fetchText(url: String): String {
+        val useCache = appSettingDataSource.setting.first().useGeoJsonCache
+        val cacheKey = generateCacheKey(url)
+        val cachedData = if (useCache) geoBoundaryCacheDataSource.load(cacheKey) else null
+
+        return if (cachedData != null) {
+            Napier.d("Cache hit for $url")
+            cachedData
+        } else {
+            Napier.d("Cache miss for $url, downloading...")
+            // application/octet-stream で返却される場合があるため bodyAsText() を使用
+            val result = httpClient.get(url).bodyAsText()
+            if (useCache) {
+                geoBoundaryCacheDataSource.save(cacheKey, result)
+            }
+            result
+        }
+    }
+
     private fun generateCacheKey(url: String): String {
         val hash = url.hashCode().toString(16)
-        return "geojson_$hash.json"
+        return "gb_$hash.json"
     }
 
     companion object {
