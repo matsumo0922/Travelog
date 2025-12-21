@@ -33,10 +33,6 @@ gradlePlugin {
             id = "matsumo.primitive.android.application"
             implementationClass = "primitive.AndroidApplicationPlugin"
         }
-        register("AndroidLibraryPlugin") {
-            id = "matsumo.primitive.android.library"
-            implementationClass = "primitive.AndroidLibraryPlugin"
-        }
         register("KmpPlugin") {
             id = "matsumo.primitive.kmp.common"
             implementationClass = "primitive.KmpCommonPlugin"
