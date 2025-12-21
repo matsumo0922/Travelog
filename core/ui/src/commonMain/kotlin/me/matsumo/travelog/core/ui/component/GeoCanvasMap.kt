@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import me.matsumo.travelog.core.model.GeoJsonData
@@ -41,16 +40,38 @@ fun GeoCanvasMap(
     val zoomState = rememberZoomState()
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
+    // Calculate bounding box from GeoJSON data
+    val bounds = remember(geoJsonData) {
+        GeoJsonRenderer.calculateBounds(geoJsonData)
+    }
+
+    // Calculate viewport transform to maintain aspect ratio
+    val viewportTransform = remember(bounds, canvasSize) {
+        if (bounds == null || canvasSize.width == 0 || canvasSize.height == 0) {
+            null
+        } else {
+            GeoJsonRenderer.calculateViewportTransform(
+                bounds = bounds,
+                canvasWidth = canvasSize.width.toFloat(),
+                canvasHeight = canvasSize.height.toFloat(),
+            )
+        }
+    }
+
     // Pre-compute paths for better performance
-    val paths by remember(geoJsonData, canvasSize) {
+    val paths by remember(geoJsonData, bounds, viewportTransform) {
         derivedStateOf {
-            if (canvasSize.width == 0 || canvasSize.height == 0) return@derivedStateOf emptyList()
+            if (bounds == null || viewportTransform == null) {
+                return@derivedStateOf emptyList()
+            }
             geoJsonData.features.flatMap { feature ->
                 GeoJsonRenderer.createPath(
                     geometry = feature.geometry,
                     width = canvasSize.width.toFloat(),
                     height = canvasSize.height.toFloat(),
-                ).map { path -> path }
+                    bounds = bounds,
+                    transform = viewportTransform,
+                )
             }
         }
     }
@@ -61,15 +82,13 @@ fun GeoCanvasMap(
             .onSizeChanged { canvasSize = it }
             .zoomable(zoomState),
     ) {
-        translate(zoomState.offsetX, zoomState.offsetY) {
-            scale(zoomState.scale) {
-                drawGeoJson(
-                    paths = paths,
-                    strokeColor = strokeColor,
-                    fillColor = fillColor,
-                    strokeWidth = strokeWidth,
-                )
-            }
+        scale(zoomState.scale) {
+            drawGeoJson(
+                paths = paths,
+                strokeColor = strokeColor,
+                fillColor = fillColor,
+                strokeWidth = strokeWidth,
+            )
         }
     }
 }

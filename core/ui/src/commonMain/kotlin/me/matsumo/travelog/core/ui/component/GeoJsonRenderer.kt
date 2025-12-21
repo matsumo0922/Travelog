@@ -5,49 +5,139 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.double
+import me.matsumo.travelog.core.model.GeoJsonData
 import me.matsumo.travelog.core.model.GeoJsonGeometry
 import kotlin.math.PI
-import kotlin.math.ln
-import kotlin.math.tan
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Helper class for rendering GeoJSON data on Canvas
  */
 internal object GeoJsonRenderer {
-    /**
-     * Convert longitude to X coordinate using Mercator projection
-     */
-    fun longitudeToX(longitude: Double, width: Float): Float {
-        return ((longitude + 180.0) / 360.0 * width).toFloat()
+    data class Bounds(
+        val minLon: Double,
+        val maxLon: Double,
+        val minLat: Double,
+        val maxLat: Double,
+    ) {
+        val lonRange: Double get() = maxLon - minLon
+        val latRange: Double get() = maxLat - minLat
     }
 
     /**
-     * Convert latitude to Y coordinate using Mercator projection
+     * Calculate the bounding box of the GeoJSON data
      */
-    fun latitudeToY(latitude: Double, height: Float): Float {
-        val latRad = latitude * PI / 180.0
-        val mercN = ln(tan(PI / 4.0 + latRad / 2.0))
-        return (height / 2.0 - (mercN * height / (2.0 * PI))).toFloat()
+    fun calculateBounds(geoJsonData: GeoJsonData): Bounds? {
+        var minLon = Double.MAX_VALUE
+        var maxLon = -Double.MAX_VALUE
+        var minLat = Double.MAX_VALUE
+        var maxLat = -Double.MAX_VALUE
+        var hasCoordinates = false
+
+        geoJsonData.features.forEach { feature ->
+            val coordinates = extractAllCoordinates(feature.geometry)
+            coordinates.forEach { (lon, lat) ->
+                hasCoordinates = true
+                minLon = min(minLon, lon)
+                maxLon = max(maxLon, lon)
+                minLat = min(minLat, lat)
+                maxLat = max(maxLat, lat)
+            }
+        }
+
+        return if (hasCoordinates) {
+            Bounds(minLon, maxLon, minLat, maxLat)
+        } else {
+            null
+        }
     }
 
     /**
-     * Parse coordinates from GeoJSON and create a Path
+     * Extract all coordinates from geometry
+     */
+    private fun extractAllCoordinates(geometry: GeoJsonGeometry): List<Pair<Double, Double>> {
+        return when (geometry.type) {
+            "Polygon" -> {
+                parsePolygonCoordinates(geometry.coordinates)?.flatten() ?: emptyList()
+            }
+
+            "MultiPolygon" -> {
+                parseMultiPolygonCoordinates(geometry.coordinates).flatten().flatten()
+            }
+
+            else -> emptyList()
+        }
+    }
+
+
+    /**
+     * Calculate the scale factor and offset to maintain aspect ratio
+     */
+    data class ViewportTransform(
+        val scale: Float,
+        val offsetX: Float,
+        val offsetY: Float,
+    )
+
+    private fun latToMercator(lat: Double): Double {
+        val latRad = lat * PI / 180.0
+        return kotlin.math.ln(kotlin.math.tan(PI / 4.0 + latRad / 2.0)) * 180.0 / PI
+    }
+
+    /**
+     * Calculate viewport transform to maintain aspect ratio
+     * Uses Mercator projection for accurate scaling
+     */
+    fun calculateViewportTransform(
+        bounds: Bounds,
+        canvasWidth: Float,
+        canvasHeight: Float,
+        padding: Float = 0.05f,
+    ): ViewportTransform {
+        val paddedWidth = canvasWidth * (1f - padding * 2)
+        val paddedHeight = canvasHeight * (1f - padding * 2)
+
+        val minLatMerc = latToMercator(bounds.minLat)
+        val maxLatMerc = latToMercator(bounds.maxLat)
+        val latRangeMerc = maxLatMerc - minLatMerc
+
+        // Calculate scale to fit bounds while maintaining aspect ratio
+        val scaleX = paddedWidth / bounds.lonRange.toFloat()
+        val scaleY = paddedHeight / latRangeMerc.toFloat()
+        val scale = minOf(scaleX, scaleY)
+
+        // Calculate content size with uniform scale
+        val contentWidth = (bounds.lonRange * scale).toFloat()
+        val contentHeight = (latRangeMerc * scale).toFloat()
+
+        // Center the content
+        val offsetX = (canvasWidth - contentWidth) / 2f
+        val offsetY = (canvasHeight - contentHeight) / 2f
+
+        return ViewportTransform(scale, offsetX, offsetY)
+    }
+
+    /**
+     * Parse coordinates from GeoJSON and create a Path with dynamic bounds
      */
     fun createPath(
         geometry: GeoJsonGeometry,
         width: Float,
         height: Float,
+        bounds: Bounds,
+        transform: ViewportTransform,
     ): List<Path> {
         return when (geometry.type) {
             "Polygon" -> {
                 val coordinates = parsePolygonCoordinates(geometry.coordinates)
-                coordinates?.let { listOf(createPolygonPath(it, width, height)) } ?: emptyList()
+                coordinates?.let { listOf(createPolygonPath(it, bounds, transform)) } ?: emptyList()
             }
 
             "MultiPolygon" -> {
                 val polygons = parseMultiPolygonCoordinates(geometry.coordinates)
                 polygons.map { polygon ->
-                    createPolygonPath(polygon, width, height)
+                    createPolygonPath(polygon, bounds, transform)
                 }
             }
 
@@ -57,22 +147,23 @@ internal object GeoJsonRenderer {
 
     private fun createPolygonPath(
         coordinates: List<List<Pair<Double, Double>>>,
-        width: Float,
-        height: Float,
+        bounds: Bounds,
+        transform: ViewportTransform,
     ): Path {
         val path = Path()
+        val maxLatMerc = latToMercator(bounds.maxLat)
 
         coordinates.forEachIndexed { ringIndex, ring ->
             if (ring.isEmpty()) return@forEachIndexed
 
             val first = ring.first()
-            val startX = longitudeToX(first.first, width)
-            val startY = latitudeToY(first.second, height)
+            val startX = transform.offsetX + ((first.first - bounds.minLon) * transform.scale).toFloat()
+            val startY = transform.offsetY + ((maxLatMerc - latToMercator(first.second)) * transform.scale).toFloat()
             path.moveTo(startX, startY)
 
             ring.drop(1).forEach { (lon, lat) ->
-                val x = longitudeToX(lon, width)
-                val y = latitudeToY(lat, height)
+                val x = transform.offsetX + ((lon - bounds.minLon) * transform.scale).toFloat()
+                val y = transform.offsetY + ((maxLatMerc - latToMercator(lat)) * transform.scale).toFloat()
                 path.lineTo(x, y)
             }
 
