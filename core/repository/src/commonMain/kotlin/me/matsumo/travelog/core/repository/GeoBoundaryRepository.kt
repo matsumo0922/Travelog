@@ -24,7 +24,7 @@ class GeoBoundaryRepository(
     suspend fun getBoundaryInfo(
         countryIso: String,
         level: GeoBoundaryLevel,
-    ): List<GeoBoundaryInfo> {
+    ): GeoBoundaryInfo {
         return dataSource.fetchBoundaryInfo(countryIso, level)
     }
 
