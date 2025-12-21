@@ -5,12 +5,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
 import me.matsumo.travelog.core.model.GeoJsonData
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
@@ -30,18 +36,20 @@ fun GeoCanvasMap(
     modifier: Modifier = Modifier,
     strokeColor: Color = Color.Black,
     fillColor: Color = Color.Gray.copy(alpha = 0.3f),
-    strokeWidth: Float = 2f,
+    strokeWidth: Float = 0.1f,
 ) {
     val zoomState = rememberZoomState()
+    var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
     // Pre-compute paths for better performance
-    val paths by remember(geoJsonData) {
+    val paths by remember(geoJsonData, canvasSize) {
         derivedStateOf {
+            if (canvasSize.width == 0 || canvasSize.height == 0) return@derivedStateOf emptyList()
             geoJsonData.features.flatMap { feature ->
                 GeoJsonRenderer.createPath(
                     geometry = feature.geometry,
-                    width = 1000f, // Base canvas width
-                    height = 600f, // Base canvas height
+                    width = canvasSize.width.toFloat(),
+                    height = canvasSize.height.toFloat(),
                 ).map { path -> path }
             }
         }
@@ -50,6 +58,7 @@ fun GeoCanvasMap(
     Canvas(
         modifier = modifier
             .fillMaxSize()
+            .onSizeChanged { canvasSize = it }
             .zoomable(zoomState),
     ) {
         translate(zoomState.offsetX, zoomState.offsetY) {
@@ -85,7 +94,11 @@ private fun DrawScope.drawGeoJson(
         drawPath(
             path = path,
             color = strokeColor,
-            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(
+                width = strokeWidth,
+                cap = StrokeCap.Round,
+                join = StrokeJoin.Round,
+            ),
         )
     }
 }
