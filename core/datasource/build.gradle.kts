@@ -21,7 +21,9 @@ kotlin {
             implementation(project(":core:model"))
             implementation(project(":core:resource"))
 
-            implementation(libs.bundles.ktor)
+            api(project.dependencies.platform(libs.supabase.bom))
+            api(libs.bundles.supabase)
+            api(libs.bundles.ktor)
             api(libs.bundles.filekit)
             api(libs.androidx.datastore.preferences)
         }

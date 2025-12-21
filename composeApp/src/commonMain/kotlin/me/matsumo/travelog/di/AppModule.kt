@@ -49,6 +49,9 @@ val appModule = module {
             adMobAppId = adMobAppId,
             adMobBannerAdUnitId = adMobBannerAdUnitId,
             adMobInterstitialAdUnitId = adMobInterstitialAdUnitId,
+            supabaseUrl = BuildKonfig.SUPABASE_URL,
+            supabaseKey = BuildKonfig.SUPABASE_KEY,
+            googleClientId = BuildKonfig.GOOGLE_CLIENT_ID,
         )
     }
 

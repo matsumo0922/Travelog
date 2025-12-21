@@ -9,4 +9,7 @@ data class AppConfig(
     val adMobBannerAdUnitId: String,
     val purchaseAndroidApiKey: String?,
     val purchaseIosApiKey: String?,
+    val supabaseUrl: String,
+    val supabaseKey: String,
+    val googleClientId: String,
 )

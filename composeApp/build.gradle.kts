@@ -136,6 +136,10 @@ buildkonfig {
         setField("PURCHASE_ANDROID_API_KEY")
         setField("PURCHASE_IOS_API_KEY")
 
+        setField("SUPABASE_URL")
+        setField("SUPABASE_KEY")
+        setField("GOOGLE_CLIENT_ID")
+
         setField("ADMOB_ANDROID_APP_ID", admobTestAppId)
         setField("ADMOB_ANDROID_BANNER_AD_UNIT_ID", admobTestAppId)
         setField("ADMOB_ANDROID_INTERSTITIAL_AD_UNIT_ID", bannerAdTestId)

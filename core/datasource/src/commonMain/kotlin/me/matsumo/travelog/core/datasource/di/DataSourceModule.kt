@@ -1,6 +1,16 @@
 package me.matsumo.travelog.core.datasource.di
 
 import io.github.aakira.napier.Napier
+import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.FlowType
+import io.github.jan.supabase.compose.auth.ComposeAuth
+import io.github.jan.supabase.compose.auth.appleNativeLogin
+import io.github.jan.supabase.compose.auth.googleNativeLogin
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.logging.LogLevel
+import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.realtime.Realtime
+import io.github.jan.supabase.serializer.KotlinXSerializer
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -9,6 +19,7 @@ import io.ktor.serialization.kotlinx.json.json
 import me.matsumo.travelog.core.common.formatter
 import me.matsumo.travelog.core.datasource.AppSettingDataSource
 import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
+import me.matsumo.travelog.core.model.AppConfig
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -32,6 +43,29 @@ val dataSourceModule = module {
             }
 
             install(HttpCache)
+        }
+    }
+
+    single {
+        val appConfig = get<AppConfig>()
+
+        createSupabaseClient(
+            supabaseUrl = appConfig.supabaseUrl,
+            supabaseKey = appConfig.supabaseKey,
+        ) {
+            defaultLogLevel = LogLevel.DEBUG
+            defaultSerializer = KotlinXSerializer(formatter)
+
+            install(Postgrest)
+            install(Realtime)
+            install(Auth) {
+                flowType = FlowType.PKCE
+                sessionManager = get()
+            }
+            install(ComposeAuth) {
+                googleNativeLogin(appConfig.googleClientId)
+                appleNativeLogin()
+            }
         }
     }
 
