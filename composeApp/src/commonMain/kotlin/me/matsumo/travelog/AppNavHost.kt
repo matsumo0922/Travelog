@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import me.matsumo.travelog.core.model.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavController
 import me.matsumo.travelog.feature.home.homeScreen
+import me.matsumo.travelog.feature.login.loginScreen
 import me.matsumo.travelog.feature.setting.oss.settingLicenseScreen
 import me.matsumo.travelog.feature.setting.settingScreen
 
@@ -21,6 +22,7 @@ internal fun AppNavHost(
         startDestination = Destination.Home,
     ) {
         homeScreen()
+        loginScreen()
         settingScreen()
         settingLicenseScreen()
     }
