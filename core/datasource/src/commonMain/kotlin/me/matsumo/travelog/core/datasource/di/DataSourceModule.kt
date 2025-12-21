@@ -1,10 +1,12 @@
 package me.matsumo.travelog.core.datasource.di
 
 import io.github.aakira.napier.Napier
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.FlowType
 import io.github.jan.supabase.compose.auth.ComposeAuth
 import io.github.jan.supabase.compose.auth.appleNativeLogin
+import io.github.jan.supabase.compose.auth.composeAuth
 import io.github.jan.supabase.compose.auth.googleNativeLogin
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.logging.LogLevel
@@ -60,13 +62,16 @@ val dataSourceModule = module {
             install(Realtime)
             install(Auth) {
                 flowType = FlowType.PKCE
-                sessionManager = get()
             }
             install(ComposeAuth) {
                 googleNativeLogin(appConfig.googleClientId)
                 appleNativeLogin()
             }
         }
+    }
+
+    single {
+        get<SupabaseClient>().composeAuth
     }
 
     singleOf(::AppSettingDataSource)

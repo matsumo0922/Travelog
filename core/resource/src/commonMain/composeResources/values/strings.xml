@@ -61,6 +61,24 @@
     <string name="home_purchase_expired">プラン失効</string>
     <string name="home_purchase_expired_description">プランが失効したため、通常ユーザーに戻りました。\n\n意図していない場合は支払いに失敗している可能性があります。ストアアプリより、プランの状況をご確認ください。</string>
 
+    <!-- Account -->
+    <string name="account_title">アカウント</string>
+    <string name="account_display_name">ニックネーム</string>
+    <string name="account_display_name_anonymous">匿名</string>
+    <string name="account_display_name_edit_title">ニックネームを設定</string>
+    <string name="account_display_name_edit_description">レビューなどで表示されるニックネームを設定します。%1$s文字以下で設定してください。</string>
+    <string name="account_display_name_edit_error">文字数がオーバーしています。</string>
+    <string name="account_display_name_edit_set">設定</string>
+    <string name="account_uid">UID</string>
+    <string name="account_continue_with_google">Googleアカウントで続ける</string>
+    <string name="account_continue_with_apple">Appleアカウントで続ける</string>
+    <string name="account_auth_success">認証に成功しました。</string>
+    <string name="account_auth_error">認証に失敗しました。</string>
+    <string name="account_logout">ログアウト</string>
+    <string name="account_policy_agreement">サインインすることで\n利用規約とプライバシーポリシー\nに同意したことになります。</string>
+    <string name="account_team_of_service">利用規約</string>
+    <string name="account_privacy_policy">プライバシーポリシー</string>
+
     <!-- Billing -->
     <string name="billing_title">Buy Plus+</string>
     <string name="billing_message">Travelog+ は、月々コーヒー一杯程度の金額で全ての機能にアクセスできるようになる、特別なプランです。</string>

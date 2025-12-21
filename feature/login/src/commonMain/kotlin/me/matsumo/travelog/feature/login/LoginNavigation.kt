@@ -8,7 +8,7 @@ import me.matsumo.travelog.core.model.Destination
 
 fun NavGraphBuilder.loginScreen() {
     composable<Destination.Login> {
-        LoginScreen(
+        LoginRoute(
             modifier = Modifier.fillMaxSize(),
         )
     }

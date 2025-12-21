@@ -25,6 +25,7 @@ class KmpAndroidPlugin : Plugin<Project> {
 
                 androidLibrary {
                     compileSdk = libs.version("compileSdk").toInt()
+                    androidResources.enable = true
                 }
             }
         }

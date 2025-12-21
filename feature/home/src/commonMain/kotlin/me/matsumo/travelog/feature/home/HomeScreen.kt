@@ -12,8 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.matsumo.travelog.core.model.Destination
+import me.matsumo.travelog.core.resource.Res
+import me.matsumo.travelog.core.resource.common_allow
 import me.matsumo.travelog.core.ui.component.GeoCanvasMap
 import me.matsumo.travelog.core.ui.theme.LocalNavController
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -39,9 +42,9 @@ internal fun HomeScreen(
         }
 
         Button(
-            onClick = { navController.navigate(Destination.Setting.Root) },
+            onClick = { navController.navigate(Destination.Login) },
         ) {
-            Text("Setting")
+            Text(stringResource(Res.string.common_allow))
         }
     }
 }

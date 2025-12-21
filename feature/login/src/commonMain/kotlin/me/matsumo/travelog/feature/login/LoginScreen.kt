@@ -1,26 +1,117 @@
 package me.matsumo.travelog.feature.login
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.aakira.napier.Napier
+import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.compose.auth.ComposeAuth
+import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
+import io.github.jan.supabase.compose.auth.composable.rememberSignInWithApple
+import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
+import kotlinx.coroutines.launch
+import me.matsumo.travelog.core.resource.Res
+import me.matsumo.travelog.core.resource.account_auth_error
+import me.matsumo.travelog.core.resource.account_auth_success
+import me.matsumo.travelog.core.resource.error_network
+import me.matsumo.travelog.core.ui.screen.view.LoadingView
+import me.matsumo.travelog.core.ui.theme.LocalNavController
+import me.matsumo.travelog.feature.login.components.LoginButtonSection
+import org.jetbrains.compose.resources.getString
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-internal fun LoginScreen(
+internal fun LoginRoute(
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val navController = LocalNavController.current
+    val sessionStatus by viewModel.sessionStatus.collectAsStateWithLifecycle()
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = "Login Screen Placeholder")
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val composeAuth = koinInject<ComposeAuth>()
+
+    val authCallback: (NativeSignInResult) -> Unit = { result ->
+        scope.launch {
+            when (result) {
+                is NativeSignInResult.Success -> getString(Res.string.account_auth_success)
+                is NativeSignInResult.NetworkError -> getString(Res.string.error_network)
+                is NativeSignInResult.ClosedByUser -> null
+                is NativeSignInResult.Error -> {
+                    Napier.w("Native login failed.", result.exception)
+                    getString(Res.string.account_auth_error)
+                }
+            }?.also {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                snackbarHostState.showSnackbar(it)
+            }
+        }
+    }
+
+    val googleAuthState = composeAuth.rememberSignInWithGoogle(authCallback)
+    val appleAuthState = composeAuth.rememberSignInWithApple(authCallback)
+
+    Scaffold(
+        modifier = modifier,
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
+        }
+    ) { contentPadding ->
+        AnimatedContent(
+            modifier = Modifier
+                .padding(contentPadding)
+                .fillMaxSize(),
+            targetState = sessionStatus,
+            transitionSpec = { fadeIn().togetherWith(fadeOut()) },
+            label = "AccountRoute",
+        ) {
+            when (it) {
+                is SessionStatus.Authenticated -> {
+
+                }
+
+                is SessionStatus.NotAuthenticated -> {
+                    LoginScreen(
+                        onGoogleLogin = { googleAuthState.startFlow() },
+                        onAppleLogin = { appleAuthState.startFlow() },
+                    )
+                }
+
+                else -> {
+                    LoadingView(
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LoginScreen(
+    onGoogleLogin: () -> Unit,
+    onAppleLogin: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        LoginButtonSection(
+            onGoogleLogin = onGoogleLogin,
+            onAppleLogin = onAppleLogin,
+        )
     }
 }
