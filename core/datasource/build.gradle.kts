@@ -21,6 +21,7 @@ kotlin {
             implementation(project(":core:model"))
             implementation(project(":core:resource"))
 
+            implementation(libs.bundles.ktor)
             api(libs.bundles.filekit)
             api(libs.androidx.datastore.preferences)
         }
