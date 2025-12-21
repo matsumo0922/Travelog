@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import me.matsumo.travelog.core.model.GeoJsonData
@@ -82,14 +81,12 @@ fun GeoCanvasMap(
             .onSizeChanged { canvasSize = it }
             .zoomable(zoomState),
     ) {
-        scale(zoomState.scale) {
-            drawGeoJson(
-                paths = paths,
-                strokeColor = strokeColor,
-                fillColor = fillColor,
-                strokeWidth = strokeWidth,
-            )
-        }
+        drawGeoJson(
+            paths = paths,
+            strokeColor = strokeColor,
+            fillColor = fillColor,
+            strokeWidth = strokeWidth,
+        )
     }
 }
 
