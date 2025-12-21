@@ -18,12 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.account_continue_with_apple
 import me.matsumo.travelog.core.resource.account_continue_with_google
 import me.matsumo.travelog.core.resource.account_policy_agreement
 import me.matsumo.travelog.core.resource.account_privacy_policy
 import me.matsumo.travelog.core.resource.account_team_of_service
+import me.matsumo.travelog.core.ui.theme.center
+import me.matsumo.travelog.core.ui.theme.semiBold
 import me.matsumo.zencall.core.ui.icon.Apple
 import me.matsumo.zencall.core.ui.icon.Google
 import org.jetbrains.compose.resources.stringResource
@@ -35,10 +38,15 @@ internal fun LoginButtonSection(
     onAppleLogin: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val height = ButtonDefaults.MediumContainerHeight
+
     Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier.padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(
+            space = 16.dp,
+            alignment = Alignment.CenterVertically,
+        ),
     ) {
         OutlinedButton(
             modifier = Modifier.fillMaxWidth(),
@@ -46,7 +54,7 @@ internal fun LoginButtonSection(
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = MaterialTheme.colorScheme.surface
             ),
-            contentPadding = ButtonDefaults.SmallContentPadding
+            contentPadding = ButtonDefaults.contentPaddingFor(height)
         ) {
             Image(
                 modifier = Modifier.size(20.dp),
@@ -57,7 +65,7 @@ internal fun LoginButtonSection(
             Text(
                 modifier = Modifier.padding(start = 8.dp),
                 text = stringResource(Res.string.account_continue_with_google),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.semiBold(),
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
@@ -68,7 +76,7 @@ internal fun LoginButtonSection(
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = MaterialTheme.colorScheme.surface
             ),
-            contentPadding = ButtonDefaults.SmallContentPadding,
+            contentPadding = ButtonDefaults.contentPaddingFor(height)
         ) {
             Image(
                 modifier = Modifier.size(20.dp),
@@ -79,12 +87,13 @@ internal fun LoginButtonSection(
             Text(
                 modifier = Modifier.padding(start = 8.dp),
                 text = stringResource(Res.string.account_continue_with_apple),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.semiBold(),
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
 
         Text(
+            modifier = Modifier.padding(top = 16.dp),
             text = buildAnnotatedString {
                 val policyAgreement = stringResource(Res.string.account_policy_agreement)
                 val teamOfService = stringResource(Res.string.account_team_of_service)
@@ -107,7 +116,10 @@ internal fun LoginButtonSection(
                         end = it + privacyPolicy.length,
                     )
                 }
-            }
+            },
+            style = MaterialTheme.typography.bodyMedium.center(),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            lineHeight = 24.sp
         )
     }
 }

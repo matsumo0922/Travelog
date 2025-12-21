@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">思い出マップ</string>
 
     <!-- Common -->
     <string name="common_ok">OK</string>
@@ -75,7 +76,7 @@
     <string name="account_auth_success">認証に成功しました。</string>
     <string name="account_auth_error">認証に失敗しました。</string>
     <string name="account_logout">ログアウト</string>
-    <string name="account_policy_agreement">サインインすることで\n利用規約とプライバシーポリシー\nに同意したことになります。</string>
+    <string name="account_policy_agreement">サインインすることで\n 利用規約 と プライバシーポリシー \nに同意したことになります</string>
     <string name="account_team_of_service">利用規約</string>
     <string name="account_privacy_policy">プライバシーポリシー</string>
 
