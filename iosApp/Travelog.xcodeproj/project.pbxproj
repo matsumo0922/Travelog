@@ -7,9 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		ADC72E652EF85BCC0096627F /* exportedNativeBridge in Frameworks */ = {isa = PBXBuildFile; productRef = ADC72E642EF85BCC0096627F /* exportedNativeBridge */; };
-		ADC72E682EF85C950096627F /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = ADC72E672EF85C950096627F /* GoogleSignIn */; };
-		ADC72E6A2EF85C950096627F /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = ADC72E692EF85C950096627F /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,19 +33,6 @@
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		AD09BC9D2EF84EA3005F5A77 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				ADC72E6A2EF85C950096627F /* GoogleSignInSwift in Frameworks */,
-				ADC72E652EF85BCC0096627F /* exportedNativeBridge in Frameworks */,
-				ADC72E682EF85C950096627F /* GoogleSignIn in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		AD09BC972EF84EA3005F5A77 = {
@@ -88,9 +72,6 @@
 			);
 			name = Travelog;
 			packageProductDependencies = (
-				ADC72E642EF85BCC0096627F /* exportedNativeBridge */,
-				ADC72E672EF85C950096627F /* GoogleSignIn */,
-				ADC72E692EF85C950096627F /* GoogleSignInSwift */,
 			);
 			productName = Travelog;
 			productReference = AD09BCA02EF84EA3005F5A77 /* Travelog.app */;
@@ -121,7 +102,6 @@
 			mainGroup = AD09BC972EF84EA3005F5A77;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				ADC72E662EF85C950096627F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AD09BCA12EF84EA3005F5A77 /* Products */;
@@ -415,33 +395,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		ADC72E662EF85C950096627F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/google/GoogleSignIn-iOS?tab=readme-ov-file";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 9.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		ADC72E642EF85BCC0096627F /* exportedNativeBridge */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = exportedNativeBridge;
-		};
-		ADC72E672EF85C950096627F /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ADC72E662EF85C950096627F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
-		};
-		ADC72E692EF85C950096627F /* GoogleSignInSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ADC72E662EF85C950096627F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignInSwift;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AD09BC982EF84EA3005F5A77 /* Project object */;
 }

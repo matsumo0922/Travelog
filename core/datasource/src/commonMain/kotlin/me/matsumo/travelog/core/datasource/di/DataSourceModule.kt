@@ -62,6 +62,8 @@ val dataSourceModule = module {
             install(Realtime)
             install(Auth) {
                 flowType = FlowType.PKCE
+                scheme = "me.matsumo.travelog"
+                host = "login"
             }
             install(ComposeAuth) {
                 googleNativeLogin(appConfig.googleClientId)

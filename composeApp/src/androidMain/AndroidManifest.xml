@@ -20,11 +20,22 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="standard"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.Matsumo.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="login"
+                    android:scheme="me.matsumo.travelog" />
             </intent-filter>
         </activity>
 

@@ -34,6 +34,8 @@ import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
 import io.github.jan.supabase.compose.auth.composable.rememberSignInWithApple
 import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
 import kotlinx.coroutines.launch
+import me.matsumo.travelog.core.model.Platform
+import me.matsumo.travelog.core.model.currentPlatform
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.account_auth_error
 import me.matsumo.travelog.core.resource.account_auth_success
@@ -102,8 +104,20 @@ internal fun LoginRoute(
 
                 is SessionStatus.NotAuthenticated -> {
                     LoginScreen(
-                        onGoogleLogin = { googleAuthState.startFlow() },
-                        onAppleLogin = { appleAuthState.startFlow() },
+                        onGoogleLogin = {
+                            if (currentPlatform == Platform.Android) {
+                                googleAuthState.startFlow()
+                            } else {
+                                viewModel.signInWithGoogleOAuth()
+                            }
+                        },
+                        onAppleLogin = {
+                            if (currentPlatform == Platform.IOS) {
+                                appleAuthState.startFlow()
+                            } else {
+                                viewModel.signInWithAppleOAuth()
+                            }
+                        },
                     )
                 }
 

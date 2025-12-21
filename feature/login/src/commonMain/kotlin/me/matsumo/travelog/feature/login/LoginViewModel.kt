@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.repository.SessionRepository
 
 internal class LoginViewModel(
@@ -15,4 +16,16 @@ internal class LoginViewModel(
         started = SharingStarted.Eagerly,
         initialValue = SessionStatus.NotAuthenticated(false),
     )
+
+    fun signInWithGoogleOAuth() {
+        viewModelScope.launch {
+            sessionRepository.signInWithGoogleOAuth()
+        }
+    }
+
+    fun signInWithAppleOAuth() {
+        viewModelScope.launch {
+            sessionRepository.signInWithAppleOAuth()
+        }
+    }
 }

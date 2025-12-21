@@ -2,6 +2,7 @@ package me.matsumo.travelog.core.repository
 
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.Apple
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.github.jan.supabase.auth.status.SessionStatus
@@ -21,6 +22,14 @@ class SessionRepository(
             this.idToken = idToken
             this.provider = Google
         }
+    }
+
+    suspend fun signInWithGoogleOAuth() {
+        supabaseClient.auth.signInWith(Google)
+    }
+
+    suspend fun signInWithAppleOAuth() {
+        supabaseClient.auth.signInWith(Apple)
     }
 
     suspend fun signOut() {

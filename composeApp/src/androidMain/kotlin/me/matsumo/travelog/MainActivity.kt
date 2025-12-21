@@ -1,5 +1,6 @@
 package me.matsumo.travelog
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,19 +14,26 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.ads.MobileAds
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.handleDeeplinks
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.init
 import me.matsumo.travelog.core.model.Theme
 import me.matsumo.travelog.core.ui.theme.shouldUseDarkTheme
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
 
     private val viewModel by viewModel<MainViewModel>()
+    private val supabaseClient by inject<SupabaseClient>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        supabaseClient.handleDeeplinks(intent)
+
         enableEdgeToEdge()
         setContent {
             val userData by viewModel.setting.collectAsStateWithLifecycle(null)
@@ -54,6 +62,11 @@ class MainActivity : ComponentActivity() {
 
         FileKit.init(this)
         initAdsSdk()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        supabaseClient.handleDeeplinks(intent)
     }
 
     private fun initAdsSdk() {

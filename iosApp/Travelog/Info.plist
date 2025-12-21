@@ -1,20 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
-        <key>GIDClientID</key>
-        <string>869647052400-ui94bqdibbim8bfedu1076g15c0h91vv.apps.googleusercontent.com</string>
         <key>CADisableMinimumFrameDurationOnPhone</key>
         <true />
-        <key>CFBundleURLTypes</key>
-        <array>
-            <dict>
-                <key>CFBundleTypeRole</key>
-                <string>Editor</string>
-                <key>CFBundleURLSchemes</key>
-                <array>
-                    <string>com.googleusercontent.apps.869647052400-a79k7tt8plmli7np4q60n1dp4ev0ecan</string>
-                </array>
-            </dict>
-        </array>
     </dict>
 </plist>
