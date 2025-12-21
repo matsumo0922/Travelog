@@ -15,6 +15,8 @@ class KmpCommonPlugin : Plugin<Project> {
             }
 
             kotlin {
+                applyDefaultHierarchyTemplate()
+
                 sourceSets.all {
                     languageSettings.enableLanguageFeature("ExplicitBackingFields")
                 }

@@ -6,11 +6,11 @@ plugins {
     id("matsumo.primitive.detekt")
 }
 
-android {
-    namespace = "me.matsumo.travelog.core.datasource"
-}
-
 kotlin {
+    android {
+        namespace = "me.matsumo.travelog.core.datasource"
+    }
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.androidx.datastore)

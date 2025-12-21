@@ -7,11 +7,11 @@ plugins {
     id("matsumo.primitive.detekt")
 }
 
-android {
-    namespace = "me.matsumo.travelog.core.ui"
-}
-
 kotlin {
+    android {
+        namespace = "me.matsumo.travelog.core.ui"
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core:model"))

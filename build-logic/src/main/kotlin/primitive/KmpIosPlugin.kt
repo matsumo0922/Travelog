@@ -7,8 +7,6 @@ class KmpIosPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             kotlin {
-                applyDefaultHierarchyTemplate()
-
                 iosX64()
                 iosArm64()
                 iosSimulatorArm64()

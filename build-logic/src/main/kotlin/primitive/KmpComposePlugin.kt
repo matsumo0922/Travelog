@@ -1,6 +1,5 @@
 package primitive
 
-import me.matsumo.travelog.android
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -10,10 +9,6 @@ class KmpComposePlugin : Plugin<Project> {
             with(pluginManager) {
                 apply("org.jetbrains.compose")
                 apply("org.jetbrains.kotlin.plugin.compose")
-            }
-
-            android {
-                buildFeatures.compose = true
             }
         }
     }
