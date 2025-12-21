@@ -21,8 +21,7 @@ kotlinxSerializationJson = "1.9.0"
 kotlinxImmutable = "0.4.0"
 
 # KMP
-kmpCompose = "1.9.3"
-kmpComplete = "1.1.0"
+kmpCompose = "1.10.0-rc02"
 kmpLifecycle = "2.9.6"
 kmpNavigation = "2.9.1"
 kmpPurchase = "2.2.14+17.24.0"
@@ -72,17 +71,19 @@ napier = "2.7.1"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "gradle" }
-android-library = { id = "com.android.library", version.ref = "gradle" }
+android-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "gradle" }
+
 kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 gms = { id = "com.google.gms.google-services", version.ref = "gms" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlytics" }
 libraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "libraries" }
+
 kmp = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kmpCompose = { id = "org.jetbrains.compose", version.ref = "kmpCompose" }
-kmpComplete = { id = "com.louiscad.complete-kotlin", version.ref = "kmpComplete" }
+kmp-compose = { id = "org.jetbrains.compose", version.ref = "kmpCompose" }
 
 [libraries]
 ## Dependency of the include build-logic
@@ -122,10 +123,18 @@ kmp-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:l
 kmp-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "kmpNavigation" }
 
 # Compose
-compose-runtime = { module = "androidx.compose.runtime:runtime", version = "1.10.0" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "kmpCompose" }
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "kmpCompose" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "kmpCompose" }
+compose-animation = { module = "org.jetbrains.compose.animation:animation", version.ref = "kmpCompose" }
+compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "kmpCompose" }
+compose-saveable = { module = "org.jetbrains.compose.runtime:runtime-saveable", version.ref = "kmpCompose" }
+compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "kmpCompose" }
+compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "kmpCompose" }
 
-# Material3 Expressive
-material3 = { module = "org.jetbrains.compose.material3:material3", version = "1.10.0-alpha05" }
+# Material
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version = "1.10.0-alpha05" }
+compose-material-icons = { module = "org.jetbrains.compose.material:material-icons-extended", version = "1.7.3" }
 
 # Purchase
 purchases-core = { module = "com.revenuecat.purchases:purchases-kmp-core", version.ref = "kmpPurchase" }
@@ -208,14 +217,23 @@ ui-android = [
 ]
 
 ui-common = [
-    "compose-runtime",
     "kmp-lifecycle-runtime-compose",
     "kmp-lifecycle-viewmodel-compose",
     "kmp-navigation-compose",
     "coil3-compose",
     "coil3-network",
-    "material3",
     "kolor",
+]
+
+compose = [
+    "compose-runtime",
+    "compose-ui",
+    "compose-foundation",
+    "compose-animation",
+    "compose-saveable",
+    "compose-ui-tooling-preview",
+    "compose-material3",
+    "compose-material-icons",
 ]
 
 purchase = [

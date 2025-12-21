@@ -21,16 +21,8 @@ kotlin {
             implementation(project(":core:resource"))
 
             api(libs.bundles.ui.common)
+            api(libs.bundles.compose)
             api(libs.bundles.calf)
-
-            api(compose.runtime)
-            api(compose.runtimeSaveable)
-            api(compose.foundation)
-            api(compose.animation)
-            api(compose.animationGraphics)
-            api(compose.ui)
-            api(compose.materialIconsExtended)
-            api(compose.components.uiToolingPreview)
 
             api(libs.adaptive)
             api(libs.adaptive.layout)
@@ -40,6 +32,7 @@ kotlin {
         androidMain.dependencies {
             api(libs.bundles.ui.android)
             api(libs.play.service.ads)
+            api(libs.compose.ui.tooling)
         }
     }
 }
