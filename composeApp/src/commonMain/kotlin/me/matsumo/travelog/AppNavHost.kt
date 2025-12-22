@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import me.matsumo.travelog.core.ui.screen.Destination2
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.home.homeEntry
 import me.matsumo.travelog.feature.login.loginEntry
@@ -17,7 +17,7 @@ import me.matsumo.travelog.feature.setting.settingEntry
 internal fun AppNavHost(
     modifier: Modifier = Modifier,
 ) {
-    val navBackStack = rememberNavBackStack(Destination2.config, Destination2.Home)
+    val navBackStack = rememberNavBackStack(Destination.config, Destination.Home)
 
     CompositionLocalProvider(
         LocalNavBackStack provides navBackStack,

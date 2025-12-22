@@ -7,15 +7,15 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
 @Serializable
-sealed interface Destination2 : NavKey {
+sealed interface Destination : NavKey {
     @Serializable
-    data object Home : Destination2
+    data object Home : Destination
 
     @Serializable
-    data object Login : Destination2
+    data object Login : Destination
 
     @Serializable
-    sealed interface Setting : Destination2 {
+    sealed interface Setting : Destination {
         @Serializable
         data object Root : Setting
 
@@ -23,10 +23,10 @@ sealed interface Destination2 : NavKey {
         data object License : Setting
     }
 
-    companion object {
+    companion object Companion {
         val config = SavedStateConfiguration {
             serializersModule = SerializersModule {
-                polymorphic(Destination2::class) {
+                polymorphic(NavKey::class) {
                     subclass(Home::class, Home.serializer())
                     subclass(Login::class, Login.serializer())
                     subclass(Setting.Root::class, Setting.Root.serializer())

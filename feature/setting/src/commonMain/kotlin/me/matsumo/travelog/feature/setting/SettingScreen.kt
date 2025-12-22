@@ -9,7 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.matsumo.travelog.core.ui.screen.Destination2
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.setting.components.SettingTopAppBar
 import me.matsumo.travelog.feature.setting.components.section.SettingInfoSection
@@ -67,7 +67,7 @@ internal fun SettingScreen(
                         uriHandler.openUri("https://www.matsumo.me/application/all/privacy_policy")
                     },
                     onOpenSourceLicenseClicked = {
-                        navBackStack.add(Destination2.Setting.License)
+                        navBackStack.add(Destination.Setting.License)
                     },
                     onDeveloperModeChanged = viewModel::setDeveloperMode,
                 )

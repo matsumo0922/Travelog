@@ -23,7 +23,6 @@ kotlinxImmutable = "0.4.0"
 # KMP
 kmpCompose = "1.10.0-rc02"
 kmpLifecycle = "2.9.6"
-kmpNavigation = "2.9.1"
 kmpPurchase = "2.2.14+17.24.0"
 kmpPurchaseCommon = "14.0.2"
 adaptive = "1.2.0"
@@ -121,7 +120,6 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 # KMP
 kmp-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "kmpLifecycle" }
 kmp-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "kmpLifecycle" }
-kmp-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "kmpNavigation" }
 
 # Compose
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "kmpCompose" }
@@ -232,7 +230,6 @@ ui-android = [
 ui-common = [
     "kmp-lifecycle-runtime-compose",
     "kmp-lifecycle-viewmodel-compose",
-    "kmp-navigation-compose",
     "coil3-compose",
     "coil3-network",
     "kolor",

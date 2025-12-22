@@ -14,7 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.common_allow
 import me.matsumo.travelog.core.ui.component.GeoCanvasMap
-import me.matsumo.travelog.core.ui.screen.Destination2
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -42,7 +42,7 @@ internal fun HomeScreen(
         }
 
         Button(
-            onClick = { navBackStack.add(Destination2.Setting.Root) },
+            onClick = { navBackStack.add(Destination.Setting.Root) },
         ) {
             Text(stringResource(Res.string.common_allow))
         }
