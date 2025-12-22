@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import ComposeApp
 
 @main
 struct TravelogApp: App {
@@ -13,6 +14,9 @@ struct TravelogApp: App {
         WindowGroup {
             ComposeViewController()
                 .ignoresSafeArea(.all)
+                .onOpenURL { url in
+                    SupabaseAuthHandler.shared.handleDeeplink(url: url)
+                }
         }
     }
 }
