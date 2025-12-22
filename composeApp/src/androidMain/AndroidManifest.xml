@@ -29,13 +29,12 @@
 
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="login"
-                    android:scheme="me.matsumo.travelog" />
+                    android:host="travelog.dev"
+                    android:scheme="https" />
             </intent-filter>
         </activity>
 

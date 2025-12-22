@@ -14,6 +14,7 @@ import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.serializer.KotlinXSerializer
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.Logging
@@ -25,6 +26,7 @@ import me.matsumo.travelog.core.model.AppConfig
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
+import kotlin.time.Duration.Companion.seconds
 import io.ktor.client.plugins.logging.LogLevel as KtorLogLevel
 import io.ktor.client.plugins.logging.Logger as KtorLogger
 
@@ -42,6 +44,12 @@ val dataSourceModule = module {
 
             install(ContentNegotiation) {
                 json(formatter)
+            }
+
+            install(HttpTimeout) {
+                requestTimeoutMillis = 30.seconds.inWholeMilliseconds
+                connectTimeoutMillis = 30.seconds.inWholeMilliseconds
+                socketTimeoutMillis = 30.seconds.inWholeMilliseconds
             }
 
             install(HttpCache)
@@ -62,8 +70,8 @@ val dataSourceModule = module {
             install(Realtime)
             install(Auth) {
                 flowType = FlowType.PKCE
-                scheme = "travelog.dev"
-                host = "https"
+                scheme = "https"
+                host = "travelog.dev"
             }
             install(ComposeAuth) {
                 googleNativeLogin(appConfig.googleClientId)

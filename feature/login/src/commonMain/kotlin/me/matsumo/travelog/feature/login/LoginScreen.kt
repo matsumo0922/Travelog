@@ -105,7 +105,7 @@ internal fun LoginRoute(
                 is SessionStatus.NotAuthenticated -> {
                     LoginScreen(
                         onGoogleLogin = {
-                            if (currentPlatform == Platform.Android) {
+                            if (currentPlatform != Platform.Android) {
                                 googleAuthState.startFlow()
                             } else {
                                 viewModel.signInWithGoogleOAuth()

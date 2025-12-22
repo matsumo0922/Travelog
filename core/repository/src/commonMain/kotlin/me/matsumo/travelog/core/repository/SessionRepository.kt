@@ -4,7 +4,6 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Apple
 import io.github.jan.supabase.auth.providers.Google
-import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.Flow
 
@@ -17,25 +16,12 @@ class SessionRepository(
         return supabaseClient.auth.loadFromStorage()
     }
 
-    suspend fun signInWithGoogle(idToken: String) {
-        supabaseClient.auth.signInWith(IDToken) {
-            this.idToken = idToken
-            this.provider = Google
-        }
-    }
-
     suspend fun signInWithGoogleOAuth() {
-        supabaseClient.auth.signInWith(
-            provider = Google,
-            redirectUrl = REDIRECT_URL
-        )
+        supabaseClient.auth.signInWith(Google)
     }
 
     suspend fun signInWithAppleOAuth() {
-        supabaseClient.auth.signInWith(
-            provider = Apple,
-            redirectUrl = REDIRECT_URL
-        )
+        supabaseClient.auth.signInWith(Apple)
     }
 
     suspend fun signOut() {
