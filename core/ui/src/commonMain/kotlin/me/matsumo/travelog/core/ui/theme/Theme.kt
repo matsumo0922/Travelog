@@ -7,8 +7,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import me.matsumo.travelog.core.model.AppConfig
 import me.matsumo.travelog.core.model.AppSetting
 import me.matsumo.travelog.core.model.Theme
@@ -20,7 +18,6 @@ import org.koin.compose.koinInject
 @Composable
 fun TravelogTheme(
     appSetting: AppSetting = AppSetting.DEFAULT,
-    navController: NavHostController = rememberNavController(),
     appConfig: AppConfig = koinInject(),
     content: @Composable () -> Unit,
 ) {
@@ -31,7 +28,6 @@ fun TravelogTheme(
     )
 
     CompositionLocalProvider(
-        LocalNavController provides navController,
         LocalAppSetting provides appSetting,
         LocalAppConfig provides appConfig,
     ) {

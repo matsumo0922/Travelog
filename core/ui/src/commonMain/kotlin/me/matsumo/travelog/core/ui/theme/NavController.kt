@@ -1,8 +1,8 @@
 package me.matsumo.travelog.core.ui.theme
 
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.navigation.NavHostController
+import androidx.navigation3.runtime.NavKey
 
-val LocalNavController = staticCompositionLocalOf<NavHostController> {
-    error("No NavController provided")
+val LocalNavBackStack = staticCompositionLocalOf<MutableList<NavKey>> {
+    error("No NavBackStack provided")
 }

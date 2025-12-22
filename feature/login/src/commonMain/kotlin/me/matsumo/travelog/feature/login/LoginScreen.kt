@@ -42,7 +42,6 @@ import me.matsumo.travelog.core.resource.account_auth_success
 import me.matsumo.travelog.core.resource.app_name
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.screen.view.LoadingView
-import me.matsumo.travelog.core.ui.theme.LocalNavController
 import me.matsumo.travelog.core.ui.theme.center
 import me.matsumo.travelog.feature.login.components.LoginButtonSection
 import org.jetbrains.compose.resources.getString
@@ -55,7 +54,6 @@ internal fun LoginRoute(
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = koinViewModel(),
 ) {
-    val navController = LocalNavController.current
     val sessionStatus by viewModel.sessionStatus.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()

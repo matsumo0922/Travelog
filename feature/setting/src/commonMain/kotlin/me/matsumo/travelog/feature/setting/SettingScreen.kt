@@ -9,8 +9,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.matsumo.travelog.core.model.Destination
-import me.matsumo.travelog.core.ui.theme.LocalNavController
+import me.matsumo.travelog.core.ui.screen.Destination2
+import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.setting.components.SettingTopAppBar
 import me.matsumo.travelog.feature.setting.components.section.SettingInfoSection
 import me.matsumo.travelog.feature.setting.components.section.SettingOthersSection
@@ -22,7 +22,7 @@ internal fun SettingScreen(
     modifier: Modifier = Modifier,
     viewModel: SettingViewModel = koinViewModel(),
 ) {
-    val navController = LocalNavController.current
+    val navBackStack = LocalNavBackStack.current
     val uriHandler = LocalUriHandler.current
     val setting by viewModel.setting.collectAsStateWithLifecycle()
 
@@ -30,7 +30,7 @@ internal fun SettingScreen(
         modifier = modifier,
         topBar = {
             SettingTopAppBar(
-                onBackClicked = navController::popBackStack,
+                onBackClicked = { navBackStack.removeAt(navBackStack.size - 1) },
                 modifier = Modifier,
             )
         },
@@ -67,7 +67,7 @@ internal fun SettingScreen(
                         uriHandler.openUri("https://www.matsumo.me/application/all/privacy_policy")
                     },
                     onOpenSourceLicenseClicked = {
-                        navController.navigate(Destination.Setting.License)
+                        navBackStack.add(Destination2.Setting.License)
                     },
                     onDeveloperModeChanged = viewModel::setDeveloperMode,
                 )

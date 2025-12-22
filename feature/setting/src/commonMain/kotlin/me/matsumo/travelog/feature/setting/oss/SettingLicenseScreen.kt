@@ -34,7 +34,7 @@ import com.mikepenz.aboutlibraries.ui.compose.rememberLibraries
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.setting_other_open_source_license
 import me.matsumo.travelog.core.ui.screen.view.LoadingView
-import me.matsumo.travelog.core.ui.theme.LocalNavController
+import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.setting.oss.components.LibraryItem
 import me.matsumo.travelog.feature.setting.oss.components.LicenseDialog
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -71,7 +71,7 @@ private fun SettingLicenseScreen(
     libs: Libs,
     modifier: Modifier = Modifier,
 ) {
-    val navController = LocalNavController.current
+    val navBackStack = LocalNavBackStack.current
     val state = rememberTopAppBarState()
     val behavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(state)
 
@@ -86,7 +86,7 @@ private fun SettingLicenseScreen(
                     Text(stringResource(Res.string.setting_other_open_source_license))
                 },
                 navigationIcon = {
-                    IconButton(navController::popBackStack) {
+                    IconButton({ navBackStack.removeAt(navBackStack.size - 1) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,
                             contentDescription = null,
