@@ -23,7 +23,7 @@ internal data class HomeNavDestination(
                 label = Res.string.home_navigation_map,
                 icon = Icons.Outlined.Map,
                 iconSelected = Icons.Filled.Map,
-                route = HomeRoute.Map,
+                route = HomeRoute.Maps,
             ),
             HomeNavDestination(
                 label = Res.string.home_navigation_photos,

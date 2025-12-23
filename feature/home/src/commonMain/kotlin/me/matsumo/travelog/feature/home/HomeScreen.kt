@@ -66,7 +66,7 @@ internal fun HomeScreen(
         ) { index ->
             saveableStateHolder.SaveableStateProvider(index) {
                 when (HomeNavDestination.all[index].route) {
-                    HomeRoute.Map -> {
+                    HomeRoute.Maps -> {
                         HomeMapsScreen(
                             modifier = Modifier.fillMaxSize(),
                         )

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface HomeRoute {
     @Serializable
-    data object Map : HomeRoute
+    data object Maps : HomeRoute
 
     @Serializable
     data object Photos : HomeRoute
