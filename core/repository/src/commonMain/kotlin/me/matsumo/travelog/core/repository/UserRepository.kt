@@ -17,4 +17,8 @@ class UserRepository(
     suspend fun getUser(id: String): User? {
         return userApi.getUser(id)
     }
+
+    suspend fun deleteUser(id: String) {
+        userApi.deleteUser(id)
+    }
 }

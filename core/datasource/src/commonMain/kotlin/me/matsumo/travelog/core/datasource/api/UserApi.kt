@@ -25,6 +25,13 @@ class UserApi internal constructor(
             .decodeSingleOrNull()
     }
 
+    suspend fun deleteUser(id: String) {
+        supabaseClient.from(TABLE_NAME)
+            .delete {
+                filter { User::id eq id }
+            }
+    }
+
     companion object {
         private const val TABLE_NAME = "users"
     }

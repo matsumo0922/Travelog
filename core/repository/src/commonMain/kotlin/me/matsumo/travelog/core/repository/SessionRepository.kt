@@ -12,6 +12,10 @@ class SessionRepository(
 ) {
     val sessionStatus: Flow<SessionStatus> = supabaseClient.auth.sessionStatus
 
+    fun getCurrentUserId(): String? {
+        return supabaseClient.auth.currentUserOrNull()?.id
+    }
+
     suspend fun hasValidSession(): Boolean {
         return supabaseClient.auth.loadFromStorage()
     }
@@ -26,9 +30,5 @@ class SessionRepository(
 
     suspend fun signOut() {
         supabaseClient.auth.signOut()
-    }
-
-    companion object {
-        private const val REDIRECT_URL = "https://travelog.dev/auth/v1/callback"
     }
 }

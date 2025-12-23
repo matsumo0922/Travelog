@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.jan.supabase.auth.status.SessionStatus
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.setting.components.SettingTopAppBar
@@ -26,6 +28,16 @@ internal fun SettingScreen(
     val navBackStack = LocalNavBackStack.current
     val uriHandler = LocalUriHandler.current
     val setting by viewModel.setting.collectAsStateWithLifecycle()
+    val sessionStatus by viewModel.sessionStatus.collectAsStateWithLifecycle()
+
+    LaunchedEffect(sessionStatus) {
+        if ((sessionStatus as? SessionStatus.NotAuthenticated)?.isSignOut == true) {
+            if (navBackStack.lastOrNull() != Destination.Login) {
+                navBackStack.clear()
+                navBackStack.add(Destination.Login)
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier,
