@@ -1,21 +1,23 @@
 package me.matsumo.travelog.feature.home
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.SaveableStateHolder
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.matsumo.travelog.core.resource.Res
-import me.matsumo.travelog.core.resource.common_allow
-import me.matsumo.travelog.core.ui.component.GeoCanvasMap
-import me.matsumo.travelog.core.ui.screen.Destination
-import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
+import me.matsumo.travelog.feature.home.maps.HomeMapsScreen
+import me.matsumo.travelog.feature.home.photos.HomePhotosScreen
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -24,27 +26,59 @@ internal fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
-    val navBackStack = LocalNavBackStack.current
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var currentIndex by rememberSaveable { mutableIntStateOf(0) }
 
-    Column(
+    val saveableStateHolder: SaveableStateHolder = rememberSaveableStateHolder()
+
+    if (currentIndex > 0) {
+        NavigationBackHandler(
+            state = rememberNavigationEventState(NavigationEventInfo.None),
+            isBackEnabled = true,
+            onBackCompleted = { currentIndex = 0 },
+        )
+    }
+
+    NavigationSuiteScaffold(
         modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        uiState.geoJsonData?.let {
-            GeoCanvasMap(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f),
-                geoJsonData = it,
-            )
+        navigationSuiteItems = {
+            for ((index, destination) in HomeNavDestination.all.withIndex()) {
+                item(
+                    selected = currentIndex == index,
+                    onClick = { currentIndex = index },
+                    icon = {
+                        Icon(
+                            imageVector = if (currentIndex == index) destination.iconSelected else destination.icon,
+                            contentDescription = stringResource(destination.label)
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = stringResource(destination.label),
+                        )
+                    }
+                )
+            }
         }
+    ) {
+        AnimatedContent(
+            modifier = Modifier.fillMaxSize(),
+            targetState = currentIndex,
+        ) { index ->
+            saveableStateHolder.SaveableStateProvider(index) {
+                when (HomeNavDestination.all[index].route) {
+                    HomeRoute.Map -> {
+                        HomeMapsScreen(
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
 
-        Button(
-            onClick = { navBackStack.add(Destination.Setting.Root) },
-        ) {
-            Text(stringResource(Res.string.common_allow))
+                    HomeRoute.Photos -> {
+                        HomePhotosScreen(
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+            }
         }
     }
 }
