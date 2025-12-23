@@ -94,7 +94,10 @@ internal fun LoginRoute(
     Scaffold(
         modifier = modifier,
         snackbarHost = {
-            SnackbarHost(snackbarHostState)
+            SnackbarHost(
+                modifier = Modifier.navigationBarsPadding(),
+                hostState = snackbarHostState,
+            )
         },
         contentWindowInsets = WindowInsets()
     ) { contentPadding ->
@@ -108,13 +111,13 @@ internal fun LoginRoute(
         ) {
             when (it) {
                 is SessionStatus.Authenticated -> {
-                    // Do nothing, handled by LaunchedEffect
+                    Text(stringResource(Res.string.account_auth_success))
                 }
 
                 is SessionStatus.NotAuthenticated -> {
                     LoginScreen(
                         onGoogleLogin = {
-                            if (currentPlatform != Platform.Android) {
+                            if (currentPlatform == Platform.Android) {
                                 googleAuthState.startFlow()
                             } else {
                                 viewModel.signInWithGoogleOAuth()

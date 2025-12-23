@@ -17,8 +17,9 @@ internal class HomeViewModel(
     val sessionStatus = sessionRepository.sessionStatus.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = SessionStatus.NotAuthenticated(false),
+        initialValue = SessionStatus.Initializing,
     )
+
     init {
         viewModelScope.launch {
             val country = geoBoundaryRepository.getBoundaryInfo("JPN", GeoBoundaryLevel.ADM1)
