@@ -244,7 +244,11 @@ WITH CHECK (author_user_id = auth.uid());
 
 ### UI（Compose Multiplatform）
 
-- TODO:
+- **依存関係の注入**: 特別な事情がない限り Composable 内で Repository などを inject するのは禁止。ViewModel などを経由すること（
+  `supabaseClient.composeAuth` などは例外）。
+- **Modifier の扱い**:
+    - **呼び出し時**: `modifier` は常に先頭の引数として渡すこと。
+    - **定義時**: デフォルト値として `Modifier` を指定し、デフォルト引数が存在する引数の中で先頭の引数として定義すること。
 
 ---
 
