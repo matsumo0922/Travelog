@@ -4,16 +4,10 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import me.matsumo.travelog.core.model.db.User
 
-class UserApi(
+class UserApi internal constructor(
     private val supabaseClient: SupabaseClient,
 ) {
-    suspend fun createUser(displayName: String) {
-        val user = User(
-            displayName = displayName,
-            handle = "",
-            iconImageId = null,
-        )
-
+    suspend fun createUser(user: User) {
         supabaseClient.from(TABLE_NAME)
             .insert(user)
     }

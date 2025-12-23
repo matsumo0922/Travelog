@@ -22,6 +22,10 @@ import io.ktor.serialization.kotlinx.json.json
 import me.matsumo.travelog.core.common.formatter
 import me.matsumo.travelog.core.datasource.AppSettingDataSource
 import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
+import me.matsumo.travelog.core.datasource.api.ImageApi
+import me.matsumo.travelog.core.datasource.api.ImageCommentApi
+import me.matsumo.travelog.core.datasource.api.MapApi
+import me.matsumo.travelog.core.datasource.api.MapRegionApi
 import me.matsumo.travelog.core.datasource.api.UserApi
 import me.matsumo.travelog.core.model.AppConfig
 import org.koin.core.module.Module
@@ -85,7 +89,11 @@ val dataSourceModule = module {
         get<SupabaseClient>().composeAuth
     }
 
-    singleOf(::UserApi)
+    single { UserApi(get()) }
+    single { MapApi(get()) }
+    single { MapRegionApi(get()) }
+    single { ImageApi(get()) }
+    single { ImageCommentApi(get()) }
 
     singleOf(::AppSettingDataSource)
     singleOf(::GeoBoundaryDataSource)
