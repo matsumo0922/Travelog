@@ -19,6 +19,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -41,7 +42,9 @@ import me.matsumo.travelog.core.resource.account_auth_error
 import me.matsumo.travelog.core.resource.account_auth_success
 import me.matsumo.travelog.core.resource.app_name
 import me.matsumo.travelog.core.resource.error_network
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.screen.view.LoadingView
+import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.theme.center
 import me.matsumo.travelog.feature.login.components.LoginButtonSection
 import org.jetbrains.compose.resources.getString
@@ -56,6 +59,7 @@ internal fun LoginRoute(
 ) {
     val sessionStatus by viewModel.sessionStatus.collectAsStateWithLifecycle()
 
+    val navBackStack = LocalNavBackStack.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val composeAuth = koinInject<ComposeAuth>()
@@ -80,6 +84,13 @@ internal fun LoginRoute(
     val googleAuthState = composeAuth.rememberSignInWithGoogle(authCallback)
     val appleAuthState = composeAuth.rememberSignInWithApple(authCallback)
 
+    LaunchedEffect(sessionStatus) {
+        if (sessionStatus is SessionStatus.Authenticated) {
+            navBackStack.clear()
+            navBackStack.add(Destination.Home)
+        }
+    }
+
     Scaffold(
         modifier = modifier,
         snackbarHost = {
@@ -97,7 +108,7 @@ internal fun LoginRoute(
         ) {
             when (it) {
                 is SessionStatus.Authenticated -> {
-
+                    // Do nothing, handled by LaunchedEffect
                 }
 
                 is SessionStatus.NotAuthenticated -> {
