@@ -5,8 +5,8 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.double
-import me.matsumo.travelog.core.model.GeoJsonData
-import me.matsumo.travelog.core.model.GeoJsonGeometry
+import me.matsumo.travelog.core.model.geo.GeoJsonData
+import me.matsumo.travelog.core.model.geo.GeoJsonGeometry
 import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min

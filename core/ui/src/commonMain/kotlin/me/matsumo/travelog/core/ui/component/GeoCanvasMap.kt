@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
-import me.matsumo.travelog.core.model.GeoJsonData
+import me.matsumo.travelog.core.model.geo.GeoJsonData
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 

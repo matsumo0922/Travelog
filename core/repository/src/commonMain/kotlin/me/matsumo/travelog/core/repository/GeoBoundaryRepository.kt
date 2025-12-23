@@ -3,9 +3,9 @@ package me.matsumo.travelog.core.repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
-import me.matsumo.travelog.core.model.GeoBoundaryInfo
-import me.matsumo.travelog.core.model.GeoBoundaryLevel
-import me.matsumo.travelog.core.model.GeoJsonData
+import me.matsumo.travelog.core.model.geo.GeoBoundaryInfo
+import me.matsumo.travelog.core.model.geo.GeoBoundaryLevel
+import me.matsumo.travelog.core.model.geo.GeoJsonData
 
 class GeoBoundaryRepository(
     private val dataSource: GeoBoundaryDataSource,

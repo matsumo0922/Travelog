@@ -8,9 +8,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import me.matsumo.travelog.core.common.formatter
-import me.matsumo.travelog.core.model.GeoBoundaryInfo
-import me.matsumo.travelog.core.model.GeoBoundaryLevel
-import me.matsumo.travelog.core.model.GeoJsonData
+import me.matsumo.travelog.core.model.geo.GeoBoundaryInfo
+import me.matsumo.travelog.core.model.geo.GeoBoundaryLevel
+import me.matsumo.travelog.core.model.geo.GeoJsonData
 
 class GeoBoundaryDataSource(
     private val httpClient: HttpClient,

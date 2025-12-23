@@ -3,7 +3,7 @@ package me.matsumo.travelog.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import me.matsumo.travelog.core.model.GeoBoundaryLevel
+import me.matsumo.travelog.core.model.geo.GeoBoundaryLevel
 import me.matsumo.travelog.core.repository.GeoBoundaryRepository
 
 internal class HomeViewModel(

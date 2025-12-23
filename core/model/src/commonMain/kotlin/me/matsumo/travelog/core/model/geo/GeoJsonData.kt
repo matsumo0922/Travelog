@@ -1,4 +1,4 @@
-package me.matsumo.travelog.core.model
+package me.matsumo.travelog.core.model.geo
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
