@@ -123,6 +123,15 @@
     <string name="setting_dynamic_color_system">Your System</string>
     <string name="setting_dynamic_color_user">User Picked</string>
     <string name="setting_general">一般</string>
+    <string name="setting_account">アカウント</string>
+    <string name="setting_account_logout">ログアウト</string>
+    <string name="setting_account_logout_description">現在のアカウントからログアウトします。</string>
+    <string name="setting_account_logout_confirm_title">ログアウト</string>
+    <string name="setting_account_logout_confirm_message">現在のアカウントからログアウトしますか？</string>
+    <string name="setting_account_delete">アカウントの削除</string>
+    <string name="setting_account_delete_description">アカウントとすべてのデータを削除します。</string>
+    <string name="setting_account_delete_confirm_title">アカウントの削除</string>
+    <string name="setting_account_delete_confirm_message">アカウントを削除するとすべてのマップ、写真、課金状態が削除されます。\n\n本当にアカウントを削除しますか？\nこの操作は取り消しできません。</string>
     <string name="setting_information">情報</string>
     <string name="setting_information_app_id">アプリID</string>
     <string name="setting_information_app_version">アプリバージョン</string>

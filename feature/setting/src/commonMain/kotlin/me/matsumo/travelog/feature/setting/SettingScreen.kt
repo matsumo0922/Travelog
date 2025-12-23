@@ -12,6 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.setting.components.SettingTopAppBar
+import me.matsumo.travelog.feature.setting.components.section.SettingAccountSection
 import me.matsumo.travelog.feature.setting.components.section.SettingInfoSection
 import me.matsumo.travelog.feature.setting.components.section.SettingOthersSection
 import me.matsumo.travelog.feature.setting.components.section.SettingThemeSection
@@ -46,6 +47,14 @@ internal fun SettingScreen(
                     onThemeChanged = viewModel::setTheme,
                     onUseDynamicColorChanged = viewModel::setUseDynamicColor,
                     onSeedColorChanged = viewModel::setSeedColor,
+                )
+            }
+
+            item {
+                SettingAccountSection(
+                    modifier = Modifier.fillMaxWidth(),
+                    onLogoutClicked = viewModel::logout,
+                    onDeleteAccountClicked = viewModel::deleteAccount,
                 )
             }
 

@@ -35,4 +35,12 @@ class SettingViewModel(
             repository.setDeveloperMode(developerMode)
         }
     }
+
+    fun logout() {
+        // TODO: Implement logout
+    }
+
+    fun deleteAccount() {
+        // TODO: Implement delete account
+    }
 }
