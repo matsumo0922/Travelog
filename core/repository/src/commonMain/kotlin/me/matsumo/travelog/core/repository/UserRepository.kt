@@ -6,12 +6,8 @@ import me.matsumo.travelog.core.model.db.User
 class UserRepository(
     private val userApi: UserApi,
 ) {
-    suspend fun createUser(user: User) {
-        userApi.createUser(user)
-    }
-
-    suspend fun updateUser(user: User) {
-        userApi.updateUser(user)
+    suspend fun upsertUser(user: User) {
+        userApi.upsertUser(user)
     }
 
     suspend fun getUser(id: String): User? {

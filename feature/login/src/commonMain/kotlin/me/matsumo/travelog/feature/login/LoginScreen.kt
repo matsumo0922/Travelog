@@ -39,10 +39,8 @@ import me.matsumo.travelog.core.model.Platform
 import me.matsumo.travelog.core.model.currentPlatform
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.account_auth_error
-import me.matsumo.travelog.core.resource.account_auth_success
 import me.matsumo.travelog.core.resource.app_name
 import me.matsumo.travelog.core.resource.error_network
-import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.screen.view.LoadingView
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.theme.center
@@ -67,7 +65,7 @@ internal fun LoginRoute(
     val authCallback: (NativeSignInResult) -> Unit = { result ->
         scope.launch {
             when (result) {
-                is NativeSignInResult.Success -> getString(Res.string.account_auth_success)
+                is NativeSignInResult.Success -> null
                 is NativeSignInResult.NetworkError -> getString(Res.string.error_network)
                 is NativeSignInResult.ClosedByUser -> null
                 is NativeSignInResult.Error -> {
@@ -84,10 +82,15 @@ internal fun LoginRoute(
     val googleAuthState = composeAuth.rememberSignInWithGoogle(authCallback)
     val appleAuthState = composeAuth.rememberSignInWithApple(authCallback)
 
-    LaunchedEffect(sessionStatus) {
-        if (sessionStatus is SessionStatus.Authenticated) {
-            navBackStack.clear()
-            navBackStack.add(Destination.Home)
+    LaunchedEffect(Unit) {
+        viewModel.authenticatedTrigger.collect {
+            navBackStack.removeLastOrNull()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.authenticationFailedTrigger.collect {
+            snackbarHostState.showSnackbar(getString(Res.string.account_auth_error))
         }
     }
 
@@ -110,10 +113,7 @@ internal fun LoginRoute(
             label = "AccountRoute",
         ) {
             when (it) {
-                is SessionStatus.Authenticated -> {
-                    Text(stringResource(Res.string.account_auth_success))
-                }
-
+                is SessionStatus.Authenticated,
                 is SessionStatus.NotAuthenticated -> {
                     LoginScreen(
                         onGoogleLogin = {

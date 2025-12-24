@@ -7,14 +7,9 @@ import me.matsumo.travelog.core.model.db.User
 class UserApi internal constructor(
     private val supabaseClient: SupabaseClient,
 ) {
-    suspend fun createUser(user: User) {
+    suspend fun upsertUser(user: User) {
         supabaseClient.from(TABLE_NAME)
-            .insert(user)
-    }
-
-    suspend fun updateUser(user: User) {
-        supabaseClient.from(TABLE_NAME)
-            .update(user)
+            .upsert(user)
     }
 
     suspend fun getUser(id: String): User? {

@@ -11,6 +11,11 @@ CREATE TABLE users (
 -- RLS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
+CREATE POLICY users_insert_own
+ON users
+FOR INSERT
+WITH CHECK (id = auth.uid());
+
 CREATE POLICY users_select_own
 ON users
 FOR SELECT
