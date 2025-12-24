@@ -10,7 +10,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.aakira.napier.Napier
 import io.github.jan.supabase.auth.status.SessionStatus
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
@@ -36,7 +35,6 @@ internal fun SettingScreen(
             if (navBackStack.lastOrNull() != Destination.Login) {
                 navBackStack.clear()
                 navBackStack.addAll(listOf(Destination.Home, Destination.Login))
-                Napier.d("SettingScreen: logout")
             }
         }
     }

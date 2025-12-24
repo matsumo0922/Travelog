@@ -7,6 +7,7 @@ import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.model.Theme
 import me.matsumo.travelog.core.repository.AppSettingRepository
 import me.matsumo.travelog.core.repository.SessionRepository
@@ -50,7 +51,9 @@ class SettingViewModel(
 
     fun logout() {
         viewModelScope.launch {
-            sessionRepository.signOut()
+            suspendRunCatching {
+                sessionRepository.signOut()
+            }
         }
     }
 
