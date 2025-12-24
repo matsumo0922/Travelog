@@ -39,6 +39,7 @@ import me.matsumo.travelog.core.model.Platform
 import me.matsumo.travelog.core.model.currentPlatform
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.account_auth_error
+import me.matsumo.travelog.core.resource.account_auth_success
 import me.matsumo.travelog.core.resource.app_name
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.screen.view.LoadingView
@@ -65,7 +66,7 @@ internal fun LoginRoute(
     val authCallback: (NativeSignInResult) -> Unit = { result ->
         scope.launch {
             when (result) {
-                is NativeSignInResult.Success -> null
+                is NativeSignInResult.Success -> getString(Res.string.account_auth_success)
                 is NativeSignInResult.NetworkError -> getString(Res.string.error_network)
                 is NativeSignInResult.ClosedByUser -> null
                 is NativeSignInResult.Error -> {
@@ -108,36 +109,31 @@ internal fun LoginRoute(
             modifier = Modifier
                 .padding(contentPadding)
                 .fillMaxSize(),
-            targetState = sessionStatus,
+            targetState = (sessionStatus is SessionStatus.NotAuthenticated || sessionStatus is SessionStatus.Authenticated),
             transitionSpec = { fadeIn().togetherWith(fadeOut()) },
             label = "AccountRoute",
-        ) {
-            when (it) {
-                is SessionStatus.Authenticated,
-                is SessionStatus.NotAuthenticated -> {
-                    LoginScreen(
-                        onGoogleLogin = {
-                            if (currentPlatform == Platform.Android) {
-                                googleAuthState.startFlow()
-                            } else {
-                                viewModel.signInWithGoogleOAuth()
-                            }
-                        },
-                        onAppleLogin = {
-                            if (currentPlatform == Platform.IOS) {
-                                appleAuthState.startFlow()
-                            } else {
-                                viewModel.signInWithAppleOAuth()
-                            }
-                        },
-                    )
-                }
-
-                else -> {
-                    LoadingView(
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
+        ) { isInitialized ->
+            if (isInitialized) {
+                LoginScreen(
+                    onGoogleLogin = {
+                        if (currentPlatform == Platform.Android) {
+                            googleAuthState.startFlow()
+                        } else {
+                            viewModel.signInWithGoogleOAuth()
+                        }
+                    },
+                    onAppleLogin = {
+                        if (currentPlatform == Platform.IOS) {
+                            appleAuthState.startFlow()
+                        } else {
+                            viewModel.signInWithAppleOAuth()
+                        }
+                    },
+                )
+            } else {
+                LoadingView(
+                    modifier = Modifier.fillMaxSize(),
+                )
             }
         }
     }
