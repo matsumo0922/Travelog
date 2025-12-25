@@ -13,12 +13,12 @@ class OverpassDataSource(
     private val httpClient: HttpClient,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
-    suspend fun getAdmins(osmId: String): OverpassResult = withContext(ioDispatcher) {
+    suspend fun getAdmins(osmId: Long, adminLevel: Int): OverpassResult = withContext(ioDispatcher) {
         val query = """
             [out:json];
              area($osmId)->.searchArea;
-             relation["admin_level"~"7|8"](area.searchArea);
-             out tags;
+             relation["admin_level"~"${if (adminLevel <= 4) "4" else "7|8"}"](area.searchArea);
+             out tags center;
         """.trimIndent()
 
         httpClient.get("$BASE_URL?data=$query").body()

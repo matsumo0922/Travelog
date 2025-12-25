@@ -19,9 +19,11 @@ data class NominatimResult(
     @SerialName("name")
     val name: String,
     @SerialName("osm_id")
-    val osmId: Int,
+    val osmId: Long,
     @SerialName("place_id")
-    val placeId: Int,
+    val placeId: Long,
+    @SerialName("place_rank")
+    val placeRank: Int,
     @SerialName("type")
     val type: String
 )

@@ -16,11 +16,13 @@ data class OverpassResult(
     @Serializable
     data class Element(
         @SerialName("id")
-        val id: Int,
+        val id: Long,
         @SerialName("tags")
         val tags: Tags,
         @SerialName("type")
-        val type: String
+        val type: String,
+        @SerialName("center")
+        val center: Center,
     ) {
         @Serializable
         data class Tags(
@@ -32,6 +34,14 @@ data class OverpassResult(
             val nameEn: String?,
             @SerialName("name:ja")
             val nameJa: String?,
+        )
+
+        @Serializable
+        data class Center(
+            @SerialName("lat")
+            val lat: Double,
+            @SerialName("lon")
+            val lon: Double,
         )
     }
 }
