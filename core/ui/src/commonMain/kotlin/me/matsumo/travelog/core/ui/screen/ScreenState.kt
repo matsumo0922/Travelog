@@ -5,7 +5,9 @@ import org.jetbrains.compose.resources.StringResource
 
 @Stable
 sealed class ScreenState<out T> {
-    data object Loading : ScreenState<Nothing>()
+    data class Loading(
+        val message: StringResource? = null,
+    ) : ScreenState<Nothing>()
 
     data class Error(
         val message: StringResource,

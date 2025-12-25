@@ -19,7 +19,7 @@ class HomeMapsViewModel(
     private val mapRepository: MapRepository,
 ) : ViewModel() {
     val screenState: StateFlow<ScreenState<HomeMapsUiState>>
-        field : MutableStateFlow<ScreenState<HomeMapsUiState>> = MutableStateFlow(ScreenState.Loading)
+        field : MutableStateFlow<ScreenState<HomeMapsUiState>> = MutableStateFlow(ScreenState.Loading())
 
     init {
         fetch()

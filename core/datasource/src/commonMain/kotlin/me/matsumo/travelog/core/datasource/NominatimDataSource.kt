@@ -3,7 +3,7 @@ package me.matsumo.travelog.core.datasource
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.http.parameters
+import io.ktor.client.request.parameter
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -16,16 +16,13 @@ class NominatimDataSource(
 ) {
     suspend fun search(query: String) = withContext(ioDispatcher) {
         httpClient.get("$BASE_URL/search") {
-            parameters {
-                append("q", query)
-                append("format", "jsonv2")
-                append("polygon_geojson", "1")
-                append("polygon_threshold", "0.01")
-            }
+            parameter("q", query)
+            parameter("format", "jsonv2")
+            parameter("limit", "1")
         }.body<List<NominatimResult>>().first()
     }
 
     companion object {
-        const val BASE_URL = "https://nominatim.openstreetmap.org/"
+        const val BASE_URL = "https://nominatim.openstreetmap.org"
     }
 }

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.core.resource.Res
+import me.matsumo.travelog.core.resource.home_map_select_country_hint
 import me.matsumo.travelog.core.resource.unit_region
 import me.matsumo.travelog.core.ui.theme.semiBold
 import org.jetbrains.compose.resources.stringResource
@@ -31,22 +32,31 @@ internal fun MapCreateSelectCountryContent(
     onCountrySelected: (SupportedRegion) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyVerticalGrid(
-        modifier = modifier,
-        columns = GridCells.Fixed(3),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(16.dp),
-    ) {
-        for (region in SupportedRegion.all) {
-            item(key = region.code) {
-                RegionItem(
-                    modifier = Modifier.fillMaxWidth(),
-                    region = region,
-                    onClick = { onCountrySelected(region) },
-                )
+    Column(modifier) {
+        LazyVerticalGrid(
+            modifier = Modifier.weight(1f),
+            columns = GridCells.Fixed(3),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(16.dp),
+        ) {
+            for (region in SupportedRegion.all) {
+                item(key = region.code) {
+                    RegionItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        region = region,
+                        onClick = { onCountrySelected(region) },
+                    )
+                }
             }
         }
+
+        MapCreateHintItem(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            hint = stringResource(Res.string.home_map_select_country_hint),
+        )
     }
 }
 

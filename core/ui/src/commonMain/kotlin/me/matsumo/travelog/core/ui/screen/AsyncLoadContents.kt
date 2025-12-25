@@ -47,6 +47,7 @@ fun <T> AsyncLoadContents(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.Black.copy(alpha = 0.2f)),
+                    message = state.message,
                 )
             }
 

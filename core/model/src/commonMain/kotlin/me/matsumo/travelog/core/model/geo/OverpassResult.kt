@@ -27,7 +27,7 @@ data class OverpassResult(
         @Serializable
         data class Tags(
             @SerialName("admin_level")
-            val adminLevel: String,
+            val adminLevel: String?,
             @SerialName("name")
             val name: String,
             @SerialName("name:en")
@@ -35,7 +35,7 @@ data class OverpassResult(
             @SerialName("name:ja")
             val nameJa: String?,
             @SerialName("wikipedia")
-            val wikipedia: String,
+            val wikipedia: String?,
         )
 
         @Serializable
