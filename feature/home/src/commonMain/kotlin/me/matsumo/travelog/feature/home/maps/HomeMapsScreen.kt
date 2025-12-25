@@ -12,9 +12,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,7 +21,6 @@ import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.home.maps.components.HomeMapsTopAppBar
-import me.matsumo.travelog.feature.home.maps.region.HomeMapsSelectRegionDialog
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -38,6 +34,7 @@ internal fun HomeMapsScreen(
     AsyncLoadContents(
         modifier = modifier,
         screenState = screenState,
+        retryAction = viewModel::fetch,
     ) {
         IdleScreen(
             modifier = Modifier.fillMaxSize(),
@@ -50,7 +47,6 @@ private fun IdleScreen(
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
-    var showSelectRegionDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
@@ -62,7 +58,7 @@ private fun IdleScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { showSelectRegionDialog = true },
+                onClick = { navBackStack.add(Destination.MapCreate) },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer
             ) {
                 Icon(
@@ -78,11 +74,5 @@ private fun IdleScreen(
         }
     ) {
 
-    }
-
-    if (showSelectRegionDialog) {
-        HomeMapsSelectRegionDialog(
-            onDismissRequest = { showSelectRegionDialog = false },
-        )
     }
 }

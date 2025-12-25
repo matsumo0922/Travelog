@@ -15,6 +15,9 @@ sealed interface Destination : NavKey {
     data object Login : Destination
 
     @Serializable
+    data object MapCreate : Destination
+
+    @Serializable
     sealed interface Setting : Destination {
         @Serializable
         data object Root : Setting
@@ -23,12 +26,13 @@ sealed interface Destination : NavKey {
         data object License : Setting
     }
 
-    companion object Companion {
+    companion object {
         val config = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
                     subclass(Home::class, Home.serializer())
                     subclass(Login::class, Login.serializer())
+                    subclass(MapCreate::class, MapCreate.serializer())
                     subclass(Setting.Root::class, Setting.Root.serializer())
                     subclass(Setting.License::class, Setting.License.serializer())
                 }

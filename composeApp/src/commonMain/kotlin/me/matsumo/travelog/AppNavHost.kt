@@ -8,6 +8,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
+import me.matsumo.travelog.feature.home.create.mapCreateEntry
 import me.matsumo.travelog.feature.home.homeEntry
 import me.matsumo.travelog.feature.login.loginEntry
 import me.matsumo.travelog.feature.setting.oss.settingLicenseEntry
@@ -28,6 +29,7 @@ internal fun AppNavHost(
             entryProvider = entryProvider {
                 homeEntry()
                 loginEntry()
+                mapCreateEntry()
                 settingEntry()
                 settingLicenseEntry()
             },
