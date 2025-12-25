@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
+import coil3.svg.SvgDecoder
 import io.github.vinceglb.filekit.coil.addPlatformFileSupport
 import me.matsumo.travelog.core.model.AppSetting
 import me.matsumo.travelog.core.ui.theme.TravelogTheme
@@ -25,6 +26,7 @@ private fun SetupCoil() {
     setSingletonImageLoaderFactory { context ->
         ImageLoader.Builder(context)
             .components {
+                add(SvgDecoder.Factory())
                 addPlatformFileSupport()
             }
             .build()

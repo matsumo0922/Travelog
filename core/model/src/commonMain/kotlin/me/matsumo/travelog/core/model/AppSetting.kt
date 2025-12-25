@@ -1,9 +1,11 @@
 package me.matsumo.travelog.core.model
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import kotlinx.serialization.Serializable
 import me.matsumo.travelog.core.common.serializer.ColorSerializer
 
+@Stable
 @Serializable
 data class AppSetting(
     val id: String,

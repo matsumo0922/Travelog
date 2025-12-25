@@ -69,7 +69,7 @@ internal fun MapCreateSelectRegionContent(
                     item(key = element.id) {
                         MapCreateRegionItem(
                             modifier = Modifier.fillMaxWidth(),
-                            imageUrl = "",
+                            imageUrl = "https://raw.githubusercontent.com/amckenna41/iso3166-flags/main/iso3166-2-flags/${uiState.region.code}/${element.tags.iso31662}.svg",
                             title = element.tags.name,
                             description = "admin level: ${element.tags.adminLevel}",
                             onClick = { },
