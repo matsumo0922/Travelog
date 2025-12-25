@@ -18,7 +18,7 @@ class OverpassDataSource(
         val query = """
             [out:json][timeout:60];
              area(${osmId + 3_600_000_000})->.searchArea;
-             relation["admin_level"~"${if (adminLevel <= 4) "4" else "7|8"}"](area.searchArea);
+             relation["boundary"="administrative"]["admin_level"~"${if (adminLevel <= 4) "4" else "7|8"}"](area.searchArea);
              out tags center;
         """.trimIndent()
 

@@ -29,6 +29,7 @@ class MapCreateViewModel(
             selectRegionScreenState.value = ScreenState.Loading(Res.string.home_map_select_region_loading_message)
             selectRegionScreenState.value = suspendRunCatching {
                 MapCreateSelectRegionUiState(
+                    region = region,
                     elements = geoBoundaryRepository.getAdmins(region.code).toImmutableList()
                 )
             }.fold(
@@ -41,5 +42,6 @@ class MapCreateViewModel(
 
 @Stable
 data class MapCreateSelectRegionUiState(
+    val region: SupportedRegion,
     val elements: ImmutableList<OverpassResult.Element>
 )

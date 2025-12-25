@@ -25,7 +25,7 @@ class GeoBoundaryRepository(
         val nominatimResult = nominatimDataSource.search(location)
         val overpassResult = overpassDataSource.getAdmins(nominatimResult.osmId, nominatimResult.placeRank)
 
-        return overpassResult.elements
+        return overpassResult.elements.sortedBy { it.tags.iso31662?.substringAfter("-") ?: "9999" }
     }
 
     suspend fun getThumbnailUrl(wikipedia: String): String? {

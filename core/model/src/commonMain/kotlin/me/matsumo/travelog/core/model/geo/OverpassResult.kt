@@ -26,8 +26,12 @@ data class OverpassResult(
     ) {
         @Serializable
         data class Tags(
+            @SerialName("ISO3166-2")
+            val iso31662: String?,
             @SerialName("admin_level")
             val adminLevel: String?,
+            @SerialName("boundary")
+            val boundary: String?,
             @SerialName("name")
             val name: String,
             @SerialName("name:en")

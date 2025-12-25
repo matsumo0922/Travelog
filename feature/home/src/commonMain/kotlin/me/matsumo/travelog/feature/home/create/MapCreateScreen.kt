@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -30,7 +31,7 @@ internal fun MapCreateScreen(
     val navBackStack = LocalNavBackStack.current
 
     val selectRegionScreenState by viewModel.selectRegionScreenState.collectAsStateWithLifecycle()
-    var selectedRegion by rememberSaveable { mutableStateOf<SupportedRegion?>(null) }
+    var selectedRegion by remember { mutableStateOf<SupportedRegion?>(null) }
     var index by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
