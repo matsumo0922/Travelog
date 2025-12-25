@@ -24,6 +24,7 @@ import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.home.maps.components.HomeMapsTopAppBar
+import me.matsumo.travelog.feature.home.maps.region.HomeMapsSelectRegionDialog
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -80,6 +81,8 @@ private fun IdleScreen(
     }
 
     if (showSelectRegionDialog) {
-
+        HomeMapsSelectRegionDialog(
+            onDismissRequest = { showSelectRegionDialog = false },
+        )
     }
 }

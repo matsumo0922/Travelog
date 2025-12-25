@@ -16,17 +16,20 @@ import org.jetbrains.compose.resources.StringResource
 data class SupportedRegion(
     val code: String,
     val nameRes: StringResource,
+    val subRegionCount: Int,
 ) {
+    val flagUrl = "https://flagcdn.com/h240/${code.lowercase()}.webp"
+
     companion object {
         val all = listOf(
-            SupportedRegion("JP", Res.string.location_jp),
-            SupportedRegion("KR", Res.string.location_kr),
-            SupportedRegion("TW", Res.string.location_tw),
-            SupportedRegion("CN", Res.string.location_cn),
-            SupportedRegion("US", Res.string.location_us),
-            SupportedRegion("GB", Res.string.location_gb),
-            SupportedRegion("FR", Res.string.location_fr),
-            SupportedRegion("DE", Res.string.location_de),
+            SupportedRegion("JP", Res.string.location_jp, 47), // 47都道府県
+            SupportedRegion("KR", Res.string.location_kr, 17), // 17広域自治体（1特別市、6広域市、8道、1特別自治道、1特別自治市）
+            SupportedRegion("TW", Res.string.location_tw, 22), // 22市縣（6直轄市、11県、3市、2離島）
+            SupportedRegion("CN", Res.string.location_cn, 34), // 34一級行政区（23省、5自治区、4直轄市、2特別行政区）
+            SupportedRegion("US", Res.string.location_us, 50), // 50州（※首都DCを含める場合は51）
+            SupportedRegion("GB", Res.string.location_gb, 4),  // 4カントリー（イングランド、スコットランド、ウェールズ、北アイルランド）
+            SupportedRegion("FR", Res.string.location_fr, 18), // 18レジョン（本土13 + 海外5）
+            SupportedRegion("DE", Res.string.location_de, 16), // 16連邦州
         )
     }
 }
