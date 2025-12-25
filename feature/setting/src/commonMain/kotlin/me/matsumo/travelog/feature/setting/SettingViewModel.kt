@@ -59,7 +59,7 @@ class SettingViewModel(
 
     fun deleteAccount() {
         viewModelScope.launch {
-            val userId = sessionRepository.getCurrentUserId()
+            val userId = sessionRepository.getCurrentUserInfo()?.id
             if (userId != null) {
                 userRepository.deleteUser(userId)
                 sessionRepository.signOut()

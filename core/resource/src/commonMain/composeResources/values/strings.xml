@@ -24,6 +24,7 @@
     <string name="common_details">詳細</string>
     <string name="common_delete">削除</string>
     <string name="common_completed">完了</string>
+    <string name="common_tap_to_select">タップして選択</string>
 
     <!-- Common Error -->
     <string name="error_executed">エラーが発生しました</string>
@@ -56,10 +57,19 @@
     <string name="home_title">証明写真</string>
     <string name="home_navigation_map">マップ</string>
     <string name="home_navigation_photos">写真</string>
+    <string name="home_map_add">マップの追加</string>
+    <string name="home_map_icon_title">アイコン</string>
+    <string name="home_map_icon_description">マップを代表する画像を選ぼう！</string>
+    <string name="home_map_title_title">タイトル</string>
+    <string name="home_map_title_description">マップや思い出を表すタイトルをつけよう！</string>
+    <string name="home_map_title_placeholder">思い出の旅行</string>
+    <string name="home_map_description_title">説明</string>
+    <string name="home_map_description_description">マップや思い出を紹介しよう！</string>
+    <string name="home_map_description_placeholder">2025年の新婚旅行の思い出</string>
+    <string name="home_map_create">この内容で作成</string>
 
     <!-- Login -->
     <string name="login_title">ログイン</string>
-
 
     <!-- Account -->
     <string name="account_title">アカウント</string>

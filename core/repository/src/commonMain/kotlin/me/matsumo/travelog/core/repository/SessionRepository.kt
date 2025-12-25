@@ -5,6 +5,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Apple
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.auth.user.UserInfo
 import kotlinx.coroutines.flow.Flow
 
 class SessionRepository(
@@ -12,8 +13,8 @@ class SessionRepository(
 ) {
     val sessionStatus: Flow<SessionStatus> = supabaseClient.auth.sessionStatus
 
-    fun getCurrentUserId(): String? {
-        return supabaseClient.auth.currentUserOrNull()?.id
+    fun getCurrentUserInfo(): UserInfo? {
+        return supabaseClient.auth.currentUserOrNull()
     }
 
     suspend fun hasValidSession(): Boolean {
