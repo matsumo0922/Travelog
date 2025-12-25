@@ -22,6 +22,8 @@ import io.ktor.serialization.kotlinx.json.json
 import me.matsumo.travelog.core.common.formatter
 import me.matsumo.travelog.core.datasource.AppSettingDataSource
 import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
+import me.matsumo.travelog.core.datasource.NominatimDataSource
+import me.matsumo.travelog.core.datasource.OverpassDataSource
 import me.matsumo.travelog.core.datasource.api.ImageApi
 import me.matsumo.travelog.core.datasource.api.ImageCommentApi
 import me.matsumo.travelog.core.datasource.api.MapApi
@@ -97,6 +99,8 @@ val dataSourceModule = module {
 
     singleOf(::AppSettingDataSource)
     singleOf(::GeoBoundaryDataSource)
+    singleOf(::OverpassDataSource)
+    singleOf(::NominatimDataSource)
 
     includes(dataSourcePlatformModule)
 }

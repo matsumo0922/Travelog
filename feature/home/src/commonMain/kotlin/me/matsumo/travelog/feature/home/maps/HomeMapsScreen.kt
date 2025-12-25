@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -49,7 +49,7 @@ private fun IdleScreen(
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
-    var showAddMapDialog by remember { mutableStateOf(false) }
+    var showSelectRegionDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
@@ -61,11 +61,11 @@ private fun IdleScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { showAddMapDialog = true },
+                onClick = { showSelectRegionDialog = true },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Chat,
+                    imageVector = Icons.Default.Edit,
                     contentDescription = "Reviews"
                 )
 
@@ -76,6 +76,10 @@ private fun IdleScreen(
             }
         }
     ) {
+
+    }
+
+    if (showSelectRegionDialog) {
 
     }
 }

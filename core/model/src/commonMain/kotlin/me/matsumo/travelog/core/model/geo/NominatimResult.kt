@@ -1,0 +1,27 @@
+package me.matsumo.travelog.core.model.geo
+
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class NominatimResult(
+    @SerialName("boundingbox")
+    val boundingbox: List<String>,
+    @SerialName("category")
+    val category: String,
+    @SerialName("display_name")
+    val displayName: String,
+    @SerialName("lat")
+    val lat: String,
+    @SerialName("lon")
+    val lon: String,
+    @SerialName("name")
+    val name: String,
+    @SerialName("osm_id")
+    val osmId: Int,
+    @SerialName("place_id")
+    val placeId: Int,
+    @SerialName("type")
+    val type: String
+)
