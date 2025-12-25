@@ -15,8 +15,8 @@ class OverpassDataSource(
 ) {
     suspend fun getAdmins(osmId: Long, adminLevel: Int): OverpassResult = withContext(ioDispatcher) {
         val query = """
-            [out:json];
-             area($osmId)->.searchArea;
+            [out:json][timeout:25];
+             area(${osmId + 3_600_000_000})->.searchArea;
              relation["admin_level"~"${if (adminLevel <= 4) "4" else "7|8"}"](area.searchArea);
              out tags center;
         """.trimIndent()

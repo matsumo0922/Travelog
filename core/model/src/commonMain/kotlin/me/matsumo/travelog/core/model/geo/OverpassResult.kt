@@ -34,6 +34,8 @@ data class OverpassResult(
             val nameEn: String?,
             @SerialName("name:ja")
             val nameJa: String?,
+            @SerialName("wikipedia")
+            val wikipedia: String,
         )
 
         @Serializable
