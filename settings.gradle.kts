@@ -22,6 +22,7 @@ dependencyResolutionManagement {
     }
 }
 
+include(":backend")
 include(":composeApp")
 include(":core:common")
 include(":core:ui")
