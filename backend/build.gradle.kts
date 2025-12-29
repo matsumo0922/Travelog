@@ -20,13 +20,14 @@ application {
     applicationDefaultJvmArgs = listOfNotNull(
         localProperties.getJvmArg("SUPABASE_URL"),
         localProperties.getJvmArg("SUPABASE_KEY"),
-        localProperties.getJvmArg("PORT", propertyKey = "BACKEND_PORT"),
+        localProperties.getJvmArg("PORT"),
         localProperties.getJvmArg("REVISION", defaultValue = "UNKNOWN"),
     )
 }
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:model"))
 
     implementation(libs.bundles.infra)
     implementation(libs.bundles.koin.server)

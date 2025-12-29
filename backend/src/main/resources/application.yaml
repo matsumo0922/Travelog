@@ -1,0 +1,10 @@
+ktor:
+  application:
+    modules:
+      - ApplicationKt.module
+  deployment:
+    port: $PORT
+  security:
+    supabaseUrl: $SUPABASE_URL
+    supabaseKey: $SUPABASE_KEY
+    revision: $REVISION
