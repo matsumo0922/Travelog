@@ -38,6 +38,12 @@ val appModule = module {
                 adMobBannerAdUnitId = BuildKonfig.ADMOB_IOS_BANNER_AD_UNIT_ID
                 adMobInterstitialAdUnitId = BuildKonfig.ADMOB_IOS_INTERSTITIAL_AD_UNIT_ID
             }
+
+            Platform.JVM -> {
+                adMobAppId = ""
+                adMobBannerAdUnitId = ""
+                adMobInterstitialAdUnitId = ""
+            }
         }
 
         AppConfig(

@@ -20,7 +20,7 @@ application {
     applicationDefaultJvmArgs = listOfNotNull(
         localProperties.getJvmArg("SUPABASE_URL"),
         localProperties.getJvmArg("SUPABASE_KEY"),
-        localProperties.getJvmArg("PORT"),
+        localProperties.getJvmArg("PORT", defaultValue = "8080"),
         localProperties.getJvmArg("REVISION", defaultValue = "UNKNOWN"),
     )
 }
@@ -28,6 +28,8 @@ application {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:model"))
+
+    implementation(project.dependencies.platform(libs.kotlin.bom))
 
     implementation(libs.bundles.infra)
     implementation(libs.bundles.koin.server)
