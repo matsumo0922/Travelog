@@ -18,6 +18,10 @@ class KmpCommonPlugin : Plugin<Project> {
             kotlin {
                 applyDefaultHierarchyTemplate()
 
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexplicit-backing-fields")
+                }
+
                 sourceSets.commonMain.dependencies {
                     val kotlinBom = libs.library("kotlin-bom")
                     implementation(project.dependencies.platform(kotlinBom))

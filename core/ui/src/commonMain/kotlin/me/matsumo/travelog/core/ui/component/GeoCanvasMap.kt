@@ -15,14 +15,14 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
-import me.matsumo.travelog.core.model.geo.GeoJsonData
+import me.matsumo.travelog.core.model.geo.EnrichedRegion
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 
 /**
- * A Composable that displays GeoJSON polygon data with zoom and pan capabilities
+ * A Composable that displays enriched region polygon data with zoom and pan capabilities
  *
- * @param geoJsonData The GeoJSON data to display
+ * @param regions The region polygons to display
  * @param modifier Modifier for the canvas
  * @param strokeColor Color for polygon borders
  * @param fillColor Color for polygon fill
@@ -30,7 +30,7 @@ import net.engawapg.lib.zoomable.zoomable
  */
 @Composable
 fun GeoCanvasMap(
-    geoJsonData: GeoJsonData,
+    regions: List<EnrichedRegion>,
     modifier: Modifier = Modifier,
     strokeColor: Color = Color.Black,
     fillColor: Color = Color.Gray.copy(alpha = 0.3f),
@@ -39,9 +39,9 @@ fun GeoCanvasMap(
     val zoomState = rememberZoomState()
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
-    // Calculate bounding box from GeoJSON data
-    val bounds = remember(geoJsonData) {
-        GeoJsonRenderer.calculateBounds(geoJsonData)
+    // Calculate bounding box from region polygons
+    val bounds = remember(regions) {
+        GeoJsonRenderer.calculateBounds(regions)
     }
 
     // Calculate viewport transform to maintain aspect ratio
@@ -58,20 +58,16 @@ fun GeoCanvasMap(
     }
 
     // Pre-compute paths for better performance
-    val paths by remember(geoJsonData, bounds, viewportTransform) {
+    val paths by remember(regions, bounds, viewportTransform) {
         derivedStateOf {
             if (bounds == null || viewportTransform == null) {
                 return@derivedStateOf emptyList()
             }
-            geoJsonData.features.flatMap { feature ->
-                GeoJsonRenderer.createPath(
-                    geometry = feature.geometry,
-                    width = canvasSize.width.toFloat(),
-                    height = canvasSize.height.toFloat(),
-                    bounds = bounds,
-                    transform = viewportTransform,
-                )
-            }
+            GeoJsonRenderer.createPaths(
+                regions = regions,
+                bounds = bounds,
+                transform = viewportTransform,
+            )
         }
     }
 
@@ -91,7 +87,7 @@ fun GeoCanvasMap(
 }
 
 /**
- * Draw GeoJSON paths on the canvas
+ * Draw region paths on the canvas
  */
 private fun DrawScope.drawGeoJson(
     paths: List<androidx.compose.ui.graphics.Path>,

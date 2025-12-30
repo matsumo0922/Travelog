@@ -5,8 +5,10 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.double
+import me.matsumo.travelog.core.model.geo.EnrichedRegion
 import me.matsumo.travelog.core.model.geo.GeoJsonData
 import me.matsumo.travelog.core.model.geo.GeoJsonGeometry
+import me.matsumo.travelog.core.model.geo.PolygonWithHoles
 import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min
@@ -23,6 +25,32 @@ internal object GeoJsonRenderer {
     ) {
         val lonRange: Double get() = maxLon - minLon
         val latRange: Double get() = maxLat - minLat
+    }
+
+    fun calculateBounds(regions: List<EnrichedRegion>): Bounds? {
+        var minLon = Double.MAX_VALUE
+        var maxLon = -Double.MAX_VALUE
+        var minLat = Double.MAX_VALUE
+        var maxLat = -Double.MAX_VALUE
+        var hasCoordinates = false
+
+        regions.forEach { region ->
+            region.polygon.forEach { ring ->
+                ring.forEach { coordinate ->
+                    hasCoordinates = true
+                    minLon = min(minLon, coordinate.lon)
+                    maxLon = max(maxLon, coordinate.lon)
+                    minLat = min(minLat, coordinate.lat)
+                    maxLat = max(maxLat, coordinate.lat)
+                }
+            }
+        }
+
+        return if (hasCoordinates) {
+            Bounds(minLon, maxLon, minLat, maxLat)
+        } else {
+            null
+        }
     }
 
     /**
@@ -145,6 +173,18 @@ internal object GeoJsonRenderer {
         }
     }
 
+    fun createPaths(
+        regions: List<EnrichedRegion>,
+        bounds: Bounds,
+        transform: ViewportTransform,
+    ): List<Path> {
+        return regions.flatMap { region ->
+            if (region.polygon.isEmpty()) return@flatMap emptyList<Path>()
+
+            listOf(createPolygonPath(region.polygon.toLonLatPairs(), bounds, transform))
+        }
+    }
+
     private fun createPolygonPath(
         coordinates: List<List<Pair<Double, Double>>>,
         bounds: Bounds,
@@ -171,6 +211,14 @@ internal object GeoJsonRenderer {
         }
 
         return path
+    }
+
+    private fun PolygonWithHoles.toLonLatPairs(): List<List<Pair<Double, Double>>> {
+        return map { ring ->
+            ring.map { coordinate ->
+                coordinate.lon to coordinate.lat
+            }
+        }
     }
 
     /**
