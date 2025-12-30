@@ -3,6 +3,9 @@ package me.matsumo.travelog.core.repository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
 import me.matsumo.travelog.core.datasource.NominatimDataSource
 import me.matsumo.travelog.core.datasource.OverpassDataSource
@@ -11,6 +14,7 @@ import me.matsumo.travelog.core.model.geo.EnrichedRegion
 import me.matsumo.travelog.core.model.geo.GeoBoundaryLevel
 import me.matsumo.travelog.core.model.geo.GeoJsonData
 import me.matsumo.travelog.core.model.geo.OverpassResult
+import me.matsumo.travelog.core.model.geo.PolygonWithHoles
 import me.matsumo.travelog.core.model.geo.isPointInPolygonWithHoles
 import me.matsumo.travelog.core.model.geo.toIso3CountryCode
 import me.matsumo.travelog.core.model.geo.toPolygons
@@ -63,16 +67,52 @@ class GeoBoundaryRepository(
             }
         }
 
-        val polygons = geoJsonData?.features?.mapNotNull { feature ->
-            val parsed = feature.geometry.toPolygons()
-            parsed.ifEmpty { null }
+        data class ParsedFeature(
+            val polygons: List<PolygonWithHoles>,
+            val properties: JsonObject?,
+        )
+
+        val parsedFeatures = geoJsonData?.features?.mapNotNull { feature ->
+            val parsed: List<PolygonWithHoles> = feature.geometry.toPolygons()
+            if (parsed.isEmpty()) return@mapNotNull null
+
+            ParsedFeature(
+                polygons = parsed,
+                properties = feature.properties as? JsonObject,
+            )
         } ?: emptyList()
 
         elements.map { element ->
             async {
-                val matchedPolygon = polygons.firstNotNullOfOrNull { polygonGroup ->
-                    polygonGroup.firstOrNull { polygon ->
+                val nameCandidates = buildList {
+                    add(element.tags.name)
+                    element.tags.nameEn?.let { add(it) }
+                    element.tags.nameJa?.let { add(it) }
+                    element.tags.iso31662?.let { add(it) }
+                }.map { it.normalizeName() }
+
+                val matchedPolygon: PolygonWithHoles = parsedFeatures.firstNotNullOfOrNull { parsed ->
+                    parsed.polygons.firstOrNull { polygon ->
                         isPointInPolygonWithHoles(element.center, polygon)
+                    }
+                } ?: parsedFeatures.firstNotNullOfOrNull { parsed ->
+                    val props = parsed.properties
+                    val propNames = buildList {
+                        props?.get("shapeName")?.jsonPrimitive?.contentOrNull?.let { name ->
+                            add(name.normalizeName())
+                        }
+                        props?.get("shapeISO")?.jsonPrimitive?.contentOrNull?.let { iso ->
+                            add(iso.normalizeName())
+                        }
+                        props?.get("shapeID")?.jsonPrimitive?.contentOrNull?.let { id ->
+                            add(id.normalizeName())
+                        }
+                    }
+
+                    if (propNames.any { candidate -> candidate in nameCandidates }) {
+                        parsed.polygons.firstOrNull()
+                    } else {
+                        null
                     }
                 } ?: emptyList()
 
@@ -110,6 +150,10 @@ class GeoBoundaryRepository(
             adminLevel in 5..8 -> GeoBoundaryLevel.ADM2
             else -> GeoBoundaryLevel.ADM3
         }
+    }
+
+    private fun String.normalizeName(): String {
+        return lowercase().replace("[\\s\\p{Punct}]".toRegex(), "")
     }
 
     private fun OverpassResult.Element.Tags.asMap(): Map<String, String> {
