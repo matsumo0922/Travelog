@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kmp) apply false
+    alias(libs.plugins.kmp.jvm) apply false
     alias(libs.plugins.kmp.compose) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.kotlin.compose.compiler) apply false
