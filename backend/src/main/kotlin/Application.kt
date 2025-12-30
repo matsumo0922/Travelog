@@ -9,6 +9,7 @@ import io.ktor.server.resources.Resources
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import route.geoJsonRoute
 import route.revisionRoute
 
 val logger = KtorSimpleLogger("matsumo-me-KMP")
@@ -38,6 +39,7 @@ fun Application.module() {
 }
 
 fun Application.routes() {
+    geoJsonRoute()
     revisionRoute()
 }
 
