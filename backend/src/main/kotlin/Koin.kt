@@ -20,8 +20,6 @@ fun Application.initKoin() {
         install(Postgrest)
     }
 
-    logger.info("Supabase client initialized. url:${supabaseClient.supabaseUrl}, key:${supabaseClient.supabaseKey}")
-
     install(Koin) {
         slf4jLogger()
 

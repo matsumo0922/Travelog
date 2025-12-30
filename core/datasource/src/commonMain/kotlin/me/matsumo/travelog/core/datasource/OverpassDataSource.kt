@@ -28,6 +28,6 @@ class OverpassDataSource(
     }
 
     companion object {
-        private const val BASE_URL = "https://overpass-api.de/api/interpreter"
+        private const val BASE_URL = "https://overpass.kumi.systems/api/interpreter"
     }
 }

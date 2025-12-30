@@ -6,6 +6,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.resources.get
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
+import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.repository.GeoBoundaryRepository
 import org.koin.ktor.ext.inject
 
@@ -14,7 +15,9 @@ fun Application.revisionRoute() {
 
     routing {
         get<Route.Revision> {
-            call.respondText(formatter.encodeToString(geoBoundaryRepository.getAdmins("JPN")))
+            val result = suspendRunCatching { geoBoundaryRepository.getAdmins("JP") }
+
+            call.respondText(formatter.encodeToString(result.getOrThrow()))
             // call.respondText(System.getProperty("REVISION", "Revision not found."))
         }
     }
