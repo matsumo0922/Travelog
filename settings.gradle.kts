@@ -5,6 +5,11 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     includeBuild("build-logic")
+    plugins {
+        id("org.jetbrains.kotlin.jvm") version "2.3.0"
+        id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
+        id("io.ktor.plugin") version "3.3.3"
+    }
     repositories {
         google()
         mavenCentral()

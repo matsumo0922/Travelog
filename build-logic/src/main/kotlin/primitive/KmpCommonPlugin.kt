@@ -18,10 +18,6 @@ class KmpCommonPlugin : Plugin<Project> {
             kotlin {
                 applyDefaultHierarchyTemplate()
 
-                sourceSets.all {
-                    languageSettings.enableLanguageFeature("ExplicitBackingFields")
-                }
-
                 sourceSets.commonMain.dependencies {
                     val kotlinBom = libs.library("kotlin-bom")
                     implementation(project.dependencies.platform(kotlinBom))
