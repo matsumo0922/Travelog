@@ -4,6 +4,9 @@ import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.serializer.KotlinXSerializer
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import me.matsumo.travelog.core.common.di.commonModule
+import me.matsumo.travelog.core.datasource.di.dataSourceModule
+import me.matsumo.travelog.core.repository.di.repositoryModule
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
@@ -26,6 +29,9 @@ fun Application.initKoin() {
             module {
                 single<SupabaseClient> { supabaseClient }
             },
+            repositoryModule,
+            dataSourceModule,
+            commonModule,
         )
     }
 }

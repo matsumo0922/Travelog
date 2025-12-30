@@ -1,5 +1,5 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import java.util.*
+import java.util.Properties
 
 plugins {
     id("matsumo.primitive.backend")
@@ -28,6 +28,8 @@ application {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:model"))
+    implementation(project(":core:datasource"))
+    implementation(project(":core:repository"))
 
     implementation(project.dependencies.platform(libs.kotlin.bom))
 
