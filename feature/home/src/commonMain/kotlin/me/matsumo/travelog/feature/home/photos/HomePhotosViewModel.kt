@@ -18,7 +18,7 @@ class HomePhotosViewModel(
     init {
         viewModelScope.launch {
             regions.value = suspendRunCatching {
-                geoBoundaryRepository.getEnrichedAdmins("JP", "埼玉県")
+                geoBoundaryRepository.getEnrichedAdmins("JP", "鹿児島県")
             }.onSuccess {
                 Napier.d { "regions: ${it.size}" }
             }.onFailure {

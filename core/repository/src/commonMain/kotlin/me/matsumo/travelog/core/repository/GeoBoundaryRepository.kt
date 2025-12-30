@@ -56,8 +56,8 @@ class GeoBoundaryRepository(
             ?: nominatimResult.countryCode?.uppercase()
             ?: elements.firstNotNullOfOrNull { it.tags.iso31662 }?.substringBefore("-")
         val countryIso3 = countryIso3FromParam ?: countryIso2?.toIso3CountryCode()
-        val adminLevel = elements.firstNotNullOfOrNull { it.tags.adminLevel?.toIntOrNull() }
-        val geoBoundaryLevel = mapAdminLevelToGeoBoundaryLevel(adminLevel)
+        val targetAdminLevel = mapPlaceRankToAdminLevel(nominatimResult.placeRank)
+        val geoBoundaryLevel = mapAdminLevelToGeoBoundaryLevel(targetAdminLevel)
 
         val geoJsonData = countryIso3?.let { iso3 ->
             try {
@@ -140,6 +140,15 @@ class GeoBoundaryRepository(
         val title = wikipedia.substringAfter(':')
 
         return wikipediaDataSource.getThumbnailUrl(lang, title)
+    }
+
+    private fun mapPlaceRankToAdminLevel(placeRank: Int): Int {
+        return when {
+            placeRank <= 4 -> 2   // Country level
+            placeRank <= 12 -> 4  // State/Prefecture level
+            placeRank <= 16 -> 6  // County/District level
+            else -> 8             // City/Town level
+        }
     }
 
     private fun mapAdminLevelToGeoBoundaryLevel(adminLevel: Int?): GeoBoundaryLevel {
