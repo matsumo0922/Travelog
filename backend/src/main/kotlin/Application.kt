@@ -47,8 +47,8 @@ fun Application.routes() {
 sealed interface Route {
 
     @Serializable
-    @Resource("/geojson/{iso}")
-    data class GeoJson(val iso: String) : Route
+    @Resource("/geojson/{country}")
+    data class GeoJson(val country: String, val q: String? = null) : Route
 
     @Serializable
     @Resource("/revision")

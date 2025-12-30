@@ -35,14 +35,23 @@ class GeoBoundaryRepository(
         return overpassResult.elements.sortedBy { it.tags.iso31662?.substringAfter("-") ?: "9999" }
     }
 
-    suspend fun getEnrichedAdmins(location: String): List<EnrichedRegion> = coroutineScope {
-        val nominatimResult = nominatimDataSource.search(location)
+    suspend fun getEnrichedAdmins(country: String, query: String?): List<EnrichedRegion> = coroutineScope {
+        val searchQuery = query?.let { "$it $country" } ?: country
+
+        val nominatimResult = nominatimDataSource.search(searchQuery)
         val overpassResult = overpassDataSource.getAdmins(nominatimResult.osmId, nominatimResult.placeRank)
         val elements = overpassResult.elements.sortedBy { it.tags.iso31662?.substringAfter("-") ?: "9999" }
 
-        val countryIso2 = elements.firstNotNullOfOrNull { it.tags.iso31662 }?.substringBefore("-")
-        val countryIso3 = countryIso2?.toIso3CountryCode()
-            ?: nominatimResult.countryCode?.toIso3CountryCode()
+        val countryIso2FromParam = country.takeIf { it.length == 2 }?.uppercase()
+        val countryIso3FromParam = when {
+            country.length == 3 -> country.uppercase()
+            else -> countryIso2FromParam?.toIso3CountryCode()
+        }
+
+        val countryIso2 = countryIso2FromParam
+            ?: nominatimResult.countryCode?.uppercase()
+            ?: elements.firstNotNullOfOrNull { it.tags.iso31662 }?.substringBefore("-")
+        val countryIso3 = countryIso3FromParam ?: countryIso2?.toIso3CountryCode()
         val adminLevel = elements.firstNotNullOfOrNull { it.tags.adminLevel?.toIntOrNull() }
         val geoBoundaryLevel = mapAdminLevelToGeoBoundaryLevel(adminLevel)
 
@@ -98,9 +107,8 @@ class GeoBoundaryRepository(
             adminLevel == null -> GeoBoundaryLevel.ADM1
             adminLevel <= 2 -> GeoBoundaryLevel.ADM0
             adminLevel in 3..4 -> GeoBoundaryLevel.ADM1
-            adminLevel in 5..6 -> GeoBoundaryLevel.ADM2
-            adminLevel in 7..8 -> GeoBoundaryLevel.ADM3
-            else -> GeoBoundaryLevel.ADM4
+            adminLevel in 5..8 -> GeoBoundaryLevel.ADM2
+            else -> GeoBoundaryLevel.ADM3
         }
     }
 
