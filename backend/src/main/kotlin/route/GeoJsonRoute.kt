@@ -14,8 +14,9 @@ fun Application.geoJsonRoute() {
     val geoBoundaryRepository by inject<GeoBoundaryRepository>()
 
     routing {
-        get<Route.Revision> {
-            val result = suspendRunCatching { geoBoundaryRepository.getAdmins("JP") }
+        get<Route.GeoJson> {
+            val iso = call.parameters["iso"] ?: return@get call.respondText("iso is required.")
+            val result = suspendRunCatching { geoBoundaryRepository.getEnrichedAdmins(iso) }
 
             call.respondText(formatter.encodeToString(result.getOrThrow()))
         }
