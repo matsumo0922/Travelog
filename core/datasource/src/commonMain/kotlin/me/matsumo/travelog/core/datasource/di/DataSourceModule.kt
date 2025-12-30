@@ -55,9 +55,9 @@ val dataSourceModule = module {
             }
 
             install(HttpTimeout) {
-                requestTimeoutMillis = 30.seconds.inWholeMilliseconds
+                requestTimeoutMillis = 60.seconds.inWholeMilliseconds
                 connectTimeoutMillis = 10.seconds.inWholeMilliseconds
-                socketTimeoutMillis = 30.seconds.inWholeMilliseconds
+                socketTimeoutMillis = 60.seconds.inWholeMilliseconds
             }
 
             install(HttpCache)
