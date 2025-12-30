@@ -12,6 +12,7 @@ import me.matsumo.travelog.core.model.geo.GeoBoundaryLevel
 import me.matsumo.travelog.core.model.geo.GeoJsonData
 import me.matsumo.travelog.core.model.geo.OverpassResult
 import me.matsumo.travelog.core.model.geo.isPointInPolygonWithHoles
+import me.matsumo.travelog.core.model.geo.toIso3CountryCode
 import me.matsumo.travelog.core.model.geo.toPolygons
 
 class GeoBoundaryRepository(
@@ -39,13 +40,15 @@ class GeoBoundaryRepository(
         val overpassResult = overpassDataSource.getAdmins(nominatimResult.osmId, nominatimResult.placeRank)
         val elements = overpassResult.elements.sortedBy { it.tags.iso31662?.substringAfter("-") ?: "9999" }
 
-        val countryIso = elements.firstNotNullOfOrNull { it.tags.iso31662 }?.substringBefore("-")
+        val countryIso2 = elements.firstNotNullOfOrNull { it.tags.iso31662 }?.substringBefore("-")
+        val countryIso3 = countryIso2?.toIso3CountryCode()
+            ?: nominatimResult.countryCode?.toIso3CountryCode()
         val adminLevel = elements.firstNotNullOfOrNull { it.tags.adminLevel?.toIntOrNull() }
         val geoBoundaryLevel = mapAdminLevelToGeoBoundaryLevel(adminLevel)
 
-        val geoJsonData = countryIso?.let { iso ->
+        val geoJsonData = countryIso3?.let { iso3 ->
             try {
-                getPolygon(iso, geoBoundaryLevel)
+                getPolygon(iso3, geoBoundaryLevel)
             } catch (_: Exception) {
                 null
             }

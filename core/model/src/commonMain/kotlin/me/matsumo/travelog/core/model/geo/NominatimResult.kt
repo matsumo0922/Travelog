@@ -10,6 +10,8 @@ data class NominatimResult(
     val boundingbox: List<String>,
     @SerialName("category")
     val category: String,
+    @SerialName("country_code")
+    val countryCode: String? = null,
     @SerialName("display_name")
     val displayName: String,
     @SerialName("lat")
