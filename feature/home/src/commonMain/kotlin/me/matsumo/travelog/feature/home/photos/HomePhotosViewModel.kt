@@ -20,10 +20,7 @@ class HomePhotosViewModel(
             regions.value = suspendRunCatching {
                 geoBoundaryRepository.getEnrichedAdmins("JP", "埼玉県")
             }.onSuccess {
-                val names = it.map { region -> region.tags["name"] }
-                Napier.d(tag = "GeoBoundaryDebug") {
-                    "[HomePhotosViewModel] regions count=${it.size} names=${names.joinToString()}"
-                }
+                Napier.d(tag = "GeoBoundary") { "Fetched regions count=${it.size}" }
             }.onFailure {
                 Napier.e(it) { "Failed to fetch regions" }
             }.getOrElse { emptyList() }
