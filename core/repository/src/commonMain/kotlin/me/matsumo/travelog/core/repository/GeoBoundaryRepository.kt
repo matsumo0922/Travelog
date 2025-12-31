@@ -54,6 +54,9 @@ class GeoBoundaryRepository(
     }
 
     suspend fun getEnrichedAdmins(country: String, query: String?): List<EnrichedRegion> = coroutineScope {
+        val logTag = "GeoBoundaryDebug"
+        val targetShapeId = "22064153B18486924389046"
+
         fun polygonCentroid(polygon: PolygonWithHoles): OverpassResult.Element.Coordinate? {
             val outer = polygon.firstOrNull() ?: return null
             if (outer.size < 3) return null
@@ -96,6 +99,7 @@ class GeoBoundaryRepository(
             return polygon.firstOrNull()?.firstOrNull()
         }
         data class Adm2Region(
+            val id: String,
             val name: String,
             val polygons: List<PolygonWithHoles>,
             val boundingBoxes: List<BoundingBox>,
@@ -130,21 +134,36 @@ class GeoBoundaryRepository(
 
         val adm2Regions = adm2GeoJson.features.mapNotNull { feature ->
             val properties = feature.properties as? JsonObject ?: return@mapNotNull null
+            val shapeId = properties["shapeID"]?.jsonPrimitive?.contentOrNull ?: "unknown"
             val name = properties["shapeName"]?.jsonPrimitive?.contentOrNull
                 ?: properties["shapeISO"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
-                ?: properties["shapeID"]?.jsonPrimitive?.contentOrNull
+                ?: shapeId
                 ?: "unknown"
             val polygons = feature.geometry.toPolygons()
             val boundingBoxes = polygons.mapNotNull { polygon -> polygon.boundingBox() }
             val interiorPoint = polygons.asSequence()
                 .mapNotNull { polygon -> findInteriorPoint(polygon) }
                 .firstOrNull()
-                ?: return@mapNotNull null
+                ?: run {
+                    if (shapeId == targetShapeId) {
+                        Napier.d(tag = logTag) { "[ADM2 skip:target] shapeId=$shapeId name=$name reason=noInteriorPoint polygons=${polygons.size} bboxes=${boundingBoxes.size}" }
+                    }
+                    return@mapNotNull null
+                }
             val center = interiorPoint
 
             if (polygons.isEmpty() || boundingBoxes.isEmpty()) return@mapNotNull null
 
+            if (shapeId == targetShapeId) {
+                Napier.d(tag = logTag) {
+                    "[ADM2 parsed:target] shapeId=$shapeId name=$name polygons=${polygons.size} outerPoints=${
+                        polygons.firstOrNull()?.firstOrNull()?.size ?: 0
+                    } center=${center.lat},${center.lon} bbox=${boundingBoxes.firstOrNull()}"
+                }
+            }
+
             Adm2Region(
+                id = shapeId,
                 name = name,
                 polygons = polygons,
                 boundingBoxes = boundingBoxes,
@@ -154,8 +173,20 @@ class GeoBoundaryRepository(
 
         adm2Regions.forEach { adm2 ->
             val parent = adm1Regions.firstOrNull { adm1 ->
-                adm1.boundingBoxes.any { boundingBox -> boundingBox.contains(adm2.center) } &&
-                        adm1.polygons.any { polygon -> isPointInPolygonWithHoles(adm2.center, polygon) }
+                val bboxHit = adm1.boundingBoxes.any { boundingBox -> boundingBox.contains(adm2.center) }
+                val polygonHit = adm1.polygons.any { polygon -> isPointInPolygonWithHoles(adm2.center, polygon) }
+
+                if (adm2.id == targetShapeId) {
+                    Napier.d(tag = logTag) {
+                        "[ADM2 check:target] adm1=${adm1.name} bboxHit=$bboxHit polygonHit=$polygonHit center=${adm2.center.lat},${adm2.center.lon}"
+                    }
+                }
+
+                bboxHit && polygonHit
+            }
+
+            if (adm2.id == targetShapeId) {
+                Napier.d(tag = logTag) { "[ADM2 result:target] parent=${parent?.name ?: "none"} center=${adm2.center.lat},${adm2.center.lon}" }
             }
 
             parent?.children?.add(adm2)
@@ -170,6 +201,17 @@ class GeoBoundaryRepository(
         val targetAdm1 = adm1Regions.find { adm1 ->
             adm1.name.contains("Saitama", ignoreCase = true) ||
                     (query?.let { adm1.name.contains(it, ignoreCase = true) } == true)
+        }
+
+        if (targetAdm1 != null) {
+            Napier.d(tag = logTag) {
+                val childSummary = targetAdm1.children.joinToString { child ->
+                    "${child.id}:${child.name}(${child.center.lat},${child.center.lon})"
+                }
+                "[ADM2 return] adm1=${targetAdm1.name} count=${targetAdm1.children.size} children=$childSummary"
+            }
+        } else {
+            Napier.d(tag = logTag) { "[ADM2 return] targetAdm1 not found for query=$query" }
         }
 
         targetAdm1?.children?.mapIndexed { index, adm2 ->
