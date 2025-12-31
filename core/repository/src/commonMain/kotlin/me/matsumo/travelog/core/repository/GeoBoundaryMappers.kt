@@ -24,6 +24,7 @@ class GeoBoundaryMapper {
     )
 
     data class Adm1Region(
+        val id: String,
         val name: String,
         val polygons: List<PolygonWithHoles>,
         val boundingBoxes: List<BoundingBox>,
@@ -33,6 +34,7 @@ class GeoBoundaryMapper {
     fun mapAdm1Regions(geoJsonData: GeoJsonData): List<Adm1Region> {
         return geoJsonData.features.mapNotNull { feature ->
             val properties = feature.properties as? JsonObject ?: return@mapNotNull null
+            val id = properties["shapeID"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
             val name = properties["shapeName"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
             val polygons = feature.geometry.toPolygons()
             val boundingBoxes = polygons.mapNotNull { polygon -> polygon.boundingBox() }
@@ -40,6 +42,7 @@ class GeoBoundaryMapper {
             if (polygons.isEmpty() || boundingBoxes.isEmpty()) return@mapNotNull null
 
             Adm1Region(
+                id = id,
                 name = name,
                 polygons = polygons,
                 boundingBoxes = boundingBoxes,

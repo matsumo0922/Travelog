@@ -103,7 +103,8 @@ class GeoBoundaryRepository(
                 }
 
                 EnrichedAdm1Regions(
-                    adm1Name = adm1.name,
+                    parentAdmId = adm1.id,
+                    parentAdmName = adm1.name,
                     regions = enrichedWithThumbnails,
                 )
             }
