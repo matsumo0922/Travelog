@@ -7,6 +7,7 @@ import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
 import me.matsumo.travelog.core.datasource.NominatimDataSource
 import me.matsumo.travelog.core.datasource.OverpassDataSource
 import me.matsumo.travelog.core.datasource.WikipediaDataSource
+import me.matsumo.travelog.core.model.geo.EnrichedAdm1Regions
 import me.matsumo.travelog.core.model.geo.EnrichedRegion
 import me.matsumo.travelog.core.model.geo.GeoBoundaryLevel
 import me.matsumo.travelog.core.model.geo.GeoJsonData
@@ -57,39 +58,56 @@ class GeoBoundaryRepository(
         adm1Regions
     }
 
-    suspend fun getEnrichedAllAdmins(regions: List<GeoBoundaryMapper.Adm1Region>) = coroutineScope {
-        val matchedElements = regions.map { region ->
+    suspend fun getEnrichedAllAdmins(regions: List<GeoBoundaryMapper.Adm1Region>): List<EnrichedAdm1Regions> = coroutineScope {
+        regions.map { adm1 ->
             async {
-                val locationQuery = region.name
-                val overpassElements = getAdmins(locationQuery)
+                val overpassElements = runCatching { getAdmins(adm1.name) }.getOrElse { emptyList() }
+                val matchedElements = geoBoundaryMapper.matchAdm2WithOverpass(adm1.children, overpassElements)
 
-                region to geoBoundaryMapper.matchAdm2WithOverpass(region.children, overpassElements)
+                val enrichedRegions = adm1.children
+                    .mapIndexed { index, adm2 ->
+                        val overpass = matchedElements[adm2.id]
+                        val displayName = overpass?.tags?.name ?: adm2.name
+
+                        val tags = EnrichedRegion.Tag(
+                            name = displayName,
+                            adm2Id = adm2.id,
+                            nameEn = overpass?.tags?.nameEn,
+                            nameJa = overpass?.tags?.nameJa,
+                            wikipedia = overpass?.tags?.wikipedia,
+                            iso31662 = overpass?.tags?.iso31662,
+                        )
+
+                        EnrichedRegion(
+                            id = index.toLong(),
+                            tags = tags,
+                            center = adm2.center,
+                            polygons = adm2.polygons,
+                            thumbnailUrl = null,
+                        )
+                    }
+                    .sortedBy { it.tags.name.orEmpty() }
+
+                val thumbnails = enrichedRegions.map { region ->
+                    async {
+                        region.tags.wikipedia
+                            ?.takeIf { it.isNotBlank() }
+                            ?.let { wiki ->
+                                runCatching { getThumbnailUrl(wiki) }.getOrNull()
+                            }
+                    }
+                }.awaitAll()
+
+                val enrichedWithThumbnails = enrichedRegions.mapIndexed { index, region ->
+                    region.copy(thumbnailUrl = thumbnails.getOrNull(index))
+                }
+
+                EnrichedAdm1Regions(
+                    adm1Name = adm1.name,
+                    regions = enrichedWithThumbnails,
+                )
             }
         }.awaitAll()
-
-        val enrichedRegionsList = matchedElements.map { (region, matchedElement) ->
-            region.children.mapIndexed { index, adm2 ->
-                val overpass = matchedElement[adm2.id]
-                val displayName = overpass?.tags?.name ?: adm2.name
-
-                val tags = EnrichedRegion.Tag(
-                    name = displayName,
-                    adm2Id = adm2.id,
-                    nameEn = overpass?.tags?.nameEn,
-                    nameJa = overpass?.tags?.nameJa,
-                    wikipedia = overpass?.tags?.wikipedia,
-                    iso31662 = overpass?.tags?.iso31662,
-                )
-
-                EnrichedRegion(
-                    id = index.toLong(),
-                    tags = tags,
-                    center = adm2.center,
-                    polygons = adm2.polygons,
-                    thumbnailUrl = null,
-                )
-            }
-        }
     }
 
     suspend fun getEnrichedAdmins(country: String, query: String?): List<EnrichedRegion> = coroutineScope {
