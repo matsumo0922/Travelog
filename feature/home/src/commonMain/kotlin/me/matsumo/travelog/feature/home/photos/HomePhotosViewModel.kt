@@ -22,7 +22,6 @@ class HomePhotosViewModel(
             }.onSuccess {
                 val names = it.map { region -> region.tags.name }
                 Napier.d(tag = "GeoBoundary") { "Fetched regions=${names.joinToString()}" }
-                Napier.d(tag = "GeoBoundary") { "Fetched regions count=${it.size}" }
             }.onFailure {
                 Napier.e(it) { "Failed to fetch regions" }
             }.getOrElse { emptyList() }

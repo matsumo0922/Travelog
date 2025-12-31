@@ -1,5 +1,7 @@
 package me.matsumo.travelog.core.repository
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
 import me.matsumo.travelog.core.datasource.NominatimDataSource
@@ -63,7 +65,7 @@ class GeoBoundaryRepository(
             geoBoundaryMapper.matchAdm2WithOverpass(adm1.children, overpassElements)
         }.orEmpty()
 
-        targetAdm1?.children
+        val regions = targetAdm1?.children
             ?.mapIndexed { index, adm2 ->
                 val overpass = matchedElements[adm2.id]
                 val displayName = overpass?.tags?.name ?: adm2.name
@@ -87,6 +89,22 @@ class GeoBoundaryRepository(
             }
             ?.sortedBy { it.tags.name.orEmpty() }
             .orEmpty()
+
+        if (regions.isEmpty()) return@coroutineScope emptyList()
+
+        val thumbnails = regions.map { region ->
+            async {
+                region.tags.wikipedia
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { wiki ->
+                        runCatching { getThumbnailUrl(wiki) }.getOrNull()
+                    }
+            }
+        }.awaitAll()
+
+        regions.mapIndexed { index, region ->
+            region.copy(thumbnailUrl = thumbnails.getOrNull(index))
+        }
     }
 }
 
