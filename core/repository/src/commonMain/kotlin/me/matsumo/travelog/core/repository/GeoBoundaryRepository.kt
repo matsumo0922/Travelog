@@ -68,14 +68,14 @@ class GeoBoundaryRepository(
                 val overpass = matchedElements[adm2.id]
                 val displayName = overpass?.tags?.name ?: adm2.name
 
-                val tags = buildMap {
-                    put("name", displayName)
-                    put("adm2_id", adm2.id)
-                    overpass?.tags?.nameEn?.let { put("name:en", it) }
-                    overpass?.tags?.nameJa?.let { put("name:ja", it) }
-                    overpass?.tags?.wikipedia?.let { put("wikipedia", it) }
-                    overpass?.tags?.iso31662?.let { put("ISO3166-2", it) }
-                }
+                val tags = EnrichedRegion.Tag(
+                    name = displayName,
+                    adm2Id = adm2.id,
+                    nameEn = overpass?.tags?.nameEn,
+                    nameJa = overpass?.tags?.nameJa,
+                    wikipedia = overpass?.tags?.wikipedia,
+                    iso31662 = overpass?.tags?.iso31662,
+                )
 
                 EnrichedRegion(
                     id = index.toLong(),
@@ -85,7 +85,7 @@ class GeoBoundaryRepository(
                     thumbnailUrl = null,
                 )
             }
-            ?.sortedBy { it.tags["name"] ?: "" }
+            ?.sortedBy { it.tags.name.orEmpty() }
             .orEmpty()
     }
 }
