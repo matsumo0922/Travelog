@@ -6,10 +6,15 @@ import me.matsumo.travelog.core.model.geo.OverpassResult.Element.Coordinate
 
 @Serializable
 data class EnrichedRegion(
+    @SerialName("id")
     val id: Long,
+    @SerialName("tags")
     val tags: Tag,
+    @SerialName("center")
     val center: Coordinate,
+    @SerialName("polygons")
     val polygons: List<PolygonWithHoles>,
+    @SerialName("thumbnail_url")
     val thumbnailUrl: String?,
 ) {
     @Serializable
