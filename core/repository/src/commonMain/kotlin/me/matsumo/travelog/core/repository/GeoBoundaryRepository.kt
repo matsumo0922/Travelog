@@ -54,18 +54,38 @@ class GeoBoundaryRepository(
         geoBoundaryMapper.linkAdm2ToAdm1(adm1Regions, adm2Regions)
 
         val targetAdm1 = geoBoundaryMapper.findTargetAdm1(adm1Regions, query)
+        val matchedElements = targetAdm1?.let { adm1 ->
+            val overpassElements = runCatching {
+                val locationQuery = query?.takeIf { it.isNotBlank() } ?: adm1.name
+                getAdmins(locationQuery)
+            }.getOrElse { emptyList() }
+
+            geoBoundaryMapper.matchAdm2WithOverpass(adm1.children, overpassElements)
+        }.orEmpty()
 
         targetAdm1?.children
-            ?.sortedBy { it.name }
             ?.mapIndexed { index, adm2 ->
+                val overpass = matchedElements[adm2.id]
+                val displayName = overpass?.tags?.name ?: adm2.name
+
+                val tags = buildMap {
+                    put("name", displayName)
+                    put("adm2_id", adm2.id)
+                    overpass?.tags?.nameEn?.let { put("name:en", it) }
+                    overpass?.tags?.nameJa?.let { put("name:ja", it) }
+                    overpass?.tags?.wikipedia?.let { put("wikipedia", it) }
+                    overpass?.tags?.iso31662?.let { put("ISO3166-2", it) }
+                }
+
                 EnrichedRegion(
                     id = index.toLong(),
-                    tags = mapOf("name" to adm2.name),
+                    tags = tags,
                     center = adm2.center,
                     polygons = adm2.polygons,
                     thumbnailUrl = null,
                 )
             }
+            ?.sortedBy { it.tags["name"] ?: "" }
             .orEmpty()
     }
 }

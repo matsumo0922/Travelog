@@ -87,6 +87,28 @@ class GeoBoundaryMapper {
         }
     }
 
+    fun matchAdm2WithOverpass(
+        adm2Regions: List<Adm2Region>,
+        overpassElements: List<OverpassResult.Element>,
+    ): Map<String, OverpassResult.Element> {
+        if (adm2Regions.isEmpty() || overpassElements.isEmpty()) return emptyMap()
+
+        val result = mutableMapOf<String, OverpassResult.Element>()
+
+        overpassElements.forEach { element ->
+            val matchedAdm2 = adm2Regions.firstOrNull { adm2 ->
+                adm2.boundingBoxes.any { bbox -> bbox.contains(element.center) } &&
+                        adm2.polygons.any { polygon -> isPointInPolygonWithHoles(element.center, polygon) }
+            }
+
+            if (matchedAdm2 != null && matchedAdm2.id !in result) {
+                result[matchedAdm2.id] = element
+            }
+        }
+
+        return result
+    }
+
     fun findTargetAdm1(
         adm1Regions: List<Adm1Region>,
         query: String?,
