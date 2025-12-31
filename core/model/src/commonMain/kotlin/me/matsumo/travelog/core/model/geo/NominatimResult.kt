@@ -28,4 +28,10 @@ data class NominatimResult(
     val placeRank: Int,
     @SerialName("type")
     val type: String
-)
+) {
+    val center: OverpassResult.Element.Coordinate
+        get() = OverpassResult.Element.Coordinate(
+            lat = lat.toDouble(),
+            lon = lon.toDouble()
+        )
+}
