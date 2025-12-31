@@ -56,7 +56,9 @@ class GeoBoundaryRepository(
             ?: nominatimResult.countryCode?.uppercase()
             ?: elements.firstNotNullOfOrNull { it.tags.iso31662 }?.substringBefore("-")
         val countryIso3 = countryIso3FromParam ?: countryIso2?.toIso3CountryCode()
-        val targetAdminLevel = mapPlaceRankToAdminLevel(nominatimResult.placeRank)
+
+        val targetAdminLevel = elements.firstNotNullOfOrNull { it.tags.adminLevel?.toIntOrNull() }
+            ?: mapPlaceRankToAdminLevel(nominatimResult.placeRank)
         val geoBoundaryLevel = mapAdminLevelToGeoBoundaryLevel(targetAdminLevel)
 
         val geoJsonData = countryIso3?.let { iso3 ->
