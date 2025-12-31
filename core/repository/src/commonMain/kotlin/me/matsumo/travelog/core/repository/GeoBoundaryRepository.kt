@@ -45,6 +45,53 @@ class GeoBoundaryRepository(
         return wikipediaDataSource.getThumbnailUrl(lang, title)
     }
 
+    suspend fun getEnrichedCountries(country: String): List<GeoBoundaryMapper.Adm1Region> = coroutineScope {
+        val iso3CountryCode = country.toIso3CountryCode() ?: error("Unknown county code.")
+        val adm1GeoJson = async { getPolygon(iso3CountryCode, GeoBoundaryLevel.ADM1) }
+        val adm2GeoJson = async { getPolygon(iso3CountryCode, GeoBoundaryLevel.ADM2) }
+
+        val adm1Regions = geoBoundaryMapper.mapAdm1Regions(adm1GeoJson.await())
+        val adm2Regions = geoBoundaryMapper.mapAdm2Regions(adm2GeoJson.await())
+
+        geoBoundaryMapper.linkAdm2ToAdm1(adm1Regions, adm2Regions)
+        adm1Regions
+    }
+
+    suspend fun getEnrichedAllAdmins(regions: List<GeoBoundaryMapper.Adm1Region>) = coroutineScope {
+        val matchedElements = regions.map { region ->
+            async {
+                val locationQuery = region.name
+                val overpassElements = getAdmins(locationQuery)
+
+                region to geoBoundaryMapper.matchAdm2WithOverpass(region.children, overpassElements)
+            }
+        }.awaitAll()
+
+        val enrichedRegionsList = matchedElements.map { (region, matchedElement) ->
+            region.children.mapIndexed { index, adm2 ->
+                val overpass = matchedElement[adm2.id]
+                val displayName = overpass?.tags?.name ?: adm2.name
+
+                val tags = EnrichedRegion.Tag(
+                    name = displayName,
+                    adm2Id = adm2.id,
+                    nameEn = overpass?.tags?.nameEn,
+                    nameJa = overpass?.tags?.nameJa,
+                    wikipedia = overpass?.tags?.wikipedia,
+                    iso31662 = overpass?.tags?.iso31662,
+                )
+
+                EnrichedRegion(
+                    id = index.toLong(),
+                    tags = tags,
+                    center = adm2.center,
+                    polygons = adm2.polygons,
+                    thumbnailUrl = null,
+                )
+            }
+        }
+    }
+
     suspend fun getEnrichedAdmins(country: String, query: String?): List<EnrichedRegion> = coroutineScope {
         val iso3CountryCode = country.toIso3CountryCode() ?: error("Unknown county code.")
         val adm1GeoJson = getPolygon(iso3CountryCode, GeoBoundaryLevel.ADM1)
