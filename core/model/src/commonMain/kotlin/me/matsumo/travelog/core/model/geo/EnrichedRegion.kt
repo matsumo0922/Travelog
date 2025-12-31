@@ -8,6 +8,6 @@ data class EnrichedRegion(
     val id: Long,
     val tags: Map<String, String>,
     val center: Coordinate,
-    val polygon: List<List<Coordinate>>,
+    val polygons: List<PolygonWithHoles>,
     val thumbnailUrl: String?,
 )

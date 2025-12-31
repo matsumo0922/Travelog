@@ -219,7 +219,7 @@ class GeoBoundaryRepository(
                 id = index.toLong(),
                 tags = mapOf("name" to adm2.name),
                 center = adm2.center,
-                polygon = adm2.polygons.firstOrNull() ?: emptyList(),
+                polygons = adm2.polygons,
                 thumbnailUrl = null,
             )
         }.orEmpty()

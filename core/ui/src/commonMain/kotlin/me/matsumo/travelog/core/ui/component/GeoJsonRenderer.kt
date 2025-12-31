@@ -35,13 +35,15 @@ internal object GeoJsonRenderer {
         var hasCoordinates = false
 
         regions.forEach { region ->
-            region.polygon.forEach { ring ->
-                ring.forEach { coordinate ->
-                    hasCoordinates = true
-                    minLon = min(minLon, coordinate.lon)
-                    maxLon = max(maxLon, coordinate.lon)
-                    minLat = min(minLat, coordinate.lat)
-                    maxLat = max(maxLat, coordinate.lat)
+            region.polygons.forEach { polygon ->
+                polygon.forEach { ring ->
+                    ring.forEach { coordinate ->
+                        hasCoordinates = true
+                        minLon = min(minLon, coordinate.lon)
+                        maxLon = max(maxLon, coordinate.lon)
+                        minLat = min(minLat, coordinate.lat)
+                        maxLat = max(maxLat, coordinate.lat)
+                    }
                 }
             }
         }
@@ -179,9 +181,11 @@ internal object GeoJsonRenderer {
         transform: ViewportTransform,
     ): List<Path> {
         return regions.flatMap { region ->
-            if (region.polygon.isEmpty()) return@flatMap emptyList<Path>()
+            if (region.polygons.isEmpty()) return@flatMap emptyList<Path>()
 
-            listOf(createPolygonPath(region.polygon.toLonLatPairs(), bounds, transform))
+            region.polygons.map { polygon ->
+                createPolygonPath(polygon.toLonLatPairs(), bounds, transform)
+            }
         }
     }
 

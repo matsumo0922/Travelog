@@ -20,13 +20,13 @@ import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 
 /**
- * A Composable that displays enriched region polygon data with zoom and pan capabilities
+ * A Composable that displays enriched region polygons data with zoom and pan capabilities
  *
  * @param regions The region polygons to display
  * @param modifier Modifier for the canvas
- * @param strokeColor Color for polygon borders
- * @param fillColor Color for polygon fill
- * @param strokeWidth Width of polygon borders
+ * @param strokeColor Color for polygons borders
+ * @param fillColor Color for polygons fill
+ * @param strokeWidth Width of polygons borders
  */
 @Composable
 fun GeoCanvasMap(
@@ -96,7 +96,7 @@ private fun DrawScope.drawGeoJson(
     strokeWidth: Float,
 ) {
     paths.forEach { path ->
-        // Draw filled polygon
+        // Draw filled polygons
         drawPath(
             path = path,
             color = fillColor,
