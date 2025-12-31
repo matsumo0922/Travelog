@@ -54,6 +54,47 @@ class GeoBoundaryRepository(
     }
 
     suspend fun getEnrichedAdmins(country: String, query: String?): List<EnrichedRegion> = coroutineScope {
+        fun polygonCentroid(polygon: PolygonWithHoles): OverpassResult.Element.Coordinate? {
+            val outer = polygon.firstOrNull() ?: return null
+            if (outer.size < 3) return null
+
+            var accumulatedCross = 0.0
+            var accumulatedCx = 0.0
+            var accumulatedCy = 0.0
+
+            for (i in outer.indices) {
+                val current = outer[i]
+                val next = outer[(i + 1) % outer.size]
+
+                val cross = current.lon * next.lat - next.lon * current.lat
+                accumulatedCross += cross
+                accumulatedCx += (current.lon + next.lon) * cross
+                accumulatedCy += (current.lat + next.lat) * cross
+            }
+
+            if (accumulatedCross == 0.0) return null
+
+            val areaFactor = accumulatedCross * 3
+
+            return OverpassResult.Element.Coordinate(
+                lat = accumulatedCy / areaFactor,
+                lon = accumulatedCx / areaFactor,
+            )
+        }
+
+        fun findInteriorPoint(polygon: PolygonWithHoles): OverpassResult.Element.Coordinate? {
+            val centroid = polygonCentroid(polygon)
+            if (centroid != null && isPointInPolygonWithHoles(centroid, polygon)) {
+                return centroid
+            }
+
+            val bboxCenter = polygon.boundingBox()?.center()
+            if (bboxCenter != null && isPointInPolygonWithHoles(bboxCenter, polygon)) {
+                return bboxCenter
+            }
+
+            return polygon.firstOrNull()?.firstOrNull()
+        }
         data class Adm2Region(
             val name: String,
             val polygons: List<PolygonWithHoles>,
@@ -89,10 +130,17 @@ class GeoBoundaryRepository(
 
         val adm2Regions = adm2GeoJson.features.mapNotNull { feature ->
             val properties = feature.properties as? JsonObject ?: return@mapNotNull null
-            val name = properties["shapeName"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+            val name = properties["shapeName"]?.jsonPrimitive?.contentOrNull
+                ?: properties["shapeISO"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
+                ?: properties["shapeID"]?.jsonPrimitive?.contentOrNull
+                ?: "unknown"
             val polygons = feature.geometry.toPolygons()
             val boundingBoxes = polygons.mapNotNull { polygon -> polygon.boundingBox() }
-            val center = boundingBoxes.firstOrNull()?.center() ?: return@mapNotNull null
+            val interiorPoint = polygons.asSequence()
+                .mapNotNull { polygon -> findInteriorPoint(polygon) }
+                .firstOrNull()
+                ?: return@mapNotNull null
+            val center = interiorPoint
 
             if (polygons.isEmpty() || boundingBoxes.isEmpty()) return@mapNotNull null
 
