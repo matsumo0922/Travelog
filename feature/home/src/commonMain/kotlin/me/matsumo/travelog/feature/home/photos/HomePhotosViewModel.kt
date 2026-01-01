@@ -6,13 +6,13 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
+import me.matsumo.travelog.core.datasource.helper.GeoRegionMapper
 import me.matsumo.travelog.core.model.geo.EnrichedRegion
-import me.matsumo.travelog.core.repository.GeoBoundaryRepository
 import me.matsumo.travelog.core.repository.GeoRegionRepository
 
 class HomePhotosViewModel(
-    private val geoBoundaryRepository: GeoBoundaryRepository,
     private val geoRegionRepository: GeoRegionRepository,
+    private val geoRegionMapper: GeoRegionMapper,
 ) : ViewModel() {
 
     val regions = MutableStateFlow<List<EnrichedRegion>>(emptyList())
@@ -20,10 +20,10 @@ class HomePhotosViewModel(
     init {
         viewModelScope.launch {
             regions.value = suspendRunCatching {
-                val country = geoBoundaryRepository.getEnrichedCountries("JP")
-                val admins = geoBoundaryRepository.getEnrichedAllAdmins(country)
+                val groupDTO = geoRegionRepository.getRegionGroupByAdmId("47310658B92659408322453")
+                val regionsDTO = geoRegionRepository.getRegionsByGroupId(groupDTO!!.id!!)
 
-                admins.map { it.regions }.flatten()
+                geoRegionMapper.toDomain(groupDTO, regionsDTO).regions
             }.onSuccess {
                 val names = it.map { region -> region.name }
                 Napier.d(tag = "GeoBoundary") { "Fetched regions=${names.joinToString()}" }
