@@ -48,7 +48,7 @@ sealed interface Route {
 
     @Serializable
     @Resource("/geojson/{country}")
-    data class GeoJson(val country: String, val q: String? = null) : Route
+    data class GeoJson(val country: String) : Route
 
     @Serializable
     @Resource("/revision")

@@ -65,32 +65,27 @@ class GeoBoundaryRepository(
                 val matchedElements = geoBoundaryMapper.matchAdm2WithOverpass(adm1.children, overpassElements)
 
                 val enrichedRegions = adm1.children
-                    .mapIndexed { index, adm2 ->
+                    .map { adm2 ->
                         val overpass = matchedElements[adm2.id]
                         val displayName = overpass?.tags?.name ?: adm2.name
 
-                        val tags = EnrichedRegion.Tag(
+                        EnrichedRegion(
                             name = displayName,
                             adm2Id = adm2.id,
                             nameEn = overpass?.tags?.nameEn,
                             nameJa = overpass?.tags?.nameJa,
                             wikipedia = overpass?.tags?.wikipedia,
                             iso31662 = overpass?.tags?.iso31662,
-                        )
-
-                        EnrichedRegion(
-                            id = index.toLong(),
-                            tags = tags,
                             center = adm2.center,
                             polygons = adm2.polygons,
                             thumbnailUrl = null,
                         )
                     }
-                    .sortedBy { it.tags.name.orEmpty() }
+                    .sortedBy { it.name }
 
                 val thumbnails = enrichedRegions.map { region ->
                     async {
-                        region.tags.wikipedia
+                        region.wikipedia
                             ?.takeIf { it.isNotBlank() }
                             ?.let { wiki ->
                                 runCatching { getThumbnailUrl(wiki) }.getOrNull()
@@ -103,74 +98,12 @@ class GeoBoundaryRepository(
                 }
 
                 EnrichedAdm1Regions(
-                    parentAdmId = adm1.id,
-                    parentAdmName = adm1.name,
+                    admId = adm1.id,
+                    admName = adm1.name,
                     regions = enrichedWithThumbnails,
                 )
             }
         }.awaitAll()
-    }
-
-    suspend fun getEnrichedAdmins(country: String, query: String?): List<EnrichedRegion> = coroutineScope {
-        val iso3CountryCode = country.toIso3CountryCode() ?: error("Unknown county code.")
-        val adm1GeoJson = getPolygon(iso3CountryCode, GeoBoundaryLevel.ADM1)
-        val adm2GeoJson = getPolygon(iso3CountryCode, GeoBoundaryLevel.ADM2)
-
-        val adm1Regions = geoBoundaryMapper.mapAdm1Regions(adm1GeoJson)
-        val adm2Regions = geoBoundaryMapper.mapAdm2Regions(adm2GeoJson)
-
-        geoBoundaryMapper.linkAdm2ToAdm1(adm1Regions, adm2Regions)
-
-        val targetAdm1 = geoBoundaryMapper.findTargetAdm1(adm1Regions, query)
-        val matchedElements = targetAdm1?.let { adm1 ->
-            val overpassElements = runCatching {
-                val locationQuery = query?.takeIf { it.isNotBlank() } ?: adm1.name
-                getAdmins(locationQuery)
-            }.getOrElse { emptyList() }
-
-            geoBoundaryMapper.matchAdm2WithOverpass(adm1.children, overpassElements)
-        }.orEmpty()
-
-        val regions = targetAdm1?.children
-            ?.mapIndexed { index, adm2 ->
-                val overpass = matchedElements[adm2.id]
-                val displayName = overpass?.tags?.name ?: adm2.name
-
-                val tags = EnrichedRegion.Tag(
-                    name = displayName,
-                    adm2Id = adm2.id,
-                    nameEn = overpass?.tags?.nameEn,
-                    nameJa = overpass?.tags?.nameJa,
-                    wikipedia = overpass?.tags?.wikipedia,
-                    iso31662 = overpass?.tags?.iso31662,
-                )
-
-                EnrichedRegion(
-                    id = index.toLong(),
-                    tags = tags,
-                    center = adm2.center,
-                    polygons = adm2.polygons,
-                    thumbnailUrl = null,
-                )
-            }
-            ?.sortedBy { it.tags.name.orEmpty() }
-            .orEmpty()
-
-        if (regions.isEmpty()) return@coroutineScope emptyList()
-
-        val thumbnails = regions.map { region ->
-            async {
-                region.tags.wikipedia
-                    ?.takeIf { it.isNotBlank() }
-                    ?.let { wiki ->
-                        runCatching { getThumbnailUrl(wiki) }.getOrNull()
-                    }
-            }
-        }.awaitAll()
-
-        regions.mapIndexed { index, region ->
-            region.copy(thumbnailUrl = thumbnails.getOrNull(index))
-        }
     }
 }
 

@@ -5,10 +5,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class EnrichedAdm1Regions(
-    @SerialName("parent_adm_id")
-    val parentAdmId: String,
-    @SerialName("parent_adm_name")
-    val parentAdmName: String,
+    @SerialName("id")
+    val id: String? = null,
+    @SerialName("adm_id")
+    val admId: String,
+    @SerialName("adm_name")
+    val admName: String,
     @SerialName("regions")
     val regions: List<EnrichedRegion>,
 )

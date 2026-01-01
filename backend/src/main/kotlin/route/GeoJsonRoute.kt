@@ -16,7 +16,8 @@ fun Application.geoJsonRoute() {
     routing {
         get<Route.GeoJson> { geoJson ->
             val result = suspendRunCatching {
-                geoBoundaryRepository.getEnrichedAdmins(geoJson.country, geoJson.q)
+                val regions = geoBoundaryRepository.getEnrichedCountries(geoJson.country)
+                val admins = geoBoundaryRepository.getEnrichedAllAdmins(regions)
             }
 
             call.respondText(formatter.encodeToString(result.getOrThrow()))
