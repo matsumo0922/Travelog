@@ -7,7 +7,7 @@ create or replace function public.upsert_geo_region_group_with_regions(
 returns uuid
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   v_group_id uuid;

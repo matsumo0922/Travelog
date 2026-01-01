@@ -27,9 +27,9 @@ fun Application.initKoin() {
             module {
                 single<SupabaseClient> { supabaseClient }
             },
-            repositoryModule,
-            dataSourceModule,
             commonModule,
+            dataSourceModule,
+            repositoryModule,
         )
     }
 }

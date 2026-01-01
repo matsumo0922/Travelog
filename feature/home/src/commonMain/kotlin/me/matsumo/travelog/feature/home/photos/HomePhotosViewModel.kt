@@ -8,9 +8,11 @@ import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.model.geo.EnrichedRegion
 import me.matsumo.travelog.core.repository.GeoBoundaryRepository
+import me.matsumo.travelog.core.repository.GeoRegionRepository
 
 class HomePhotosViewModel(
     private val geoBoundaryRepository: GeoBoundaryRepository,
+    private val geoRegionRepository: GeoRegionRepository,
 ) : ViewModel() {
 
     val regions = MutableStateFlow<List<EnrichedRegion>>(emptyList())
@@ -23,7 +25,7 @@ class HomePhotosViewModel(
 
                 admins.map { it.regions }.flatten()
             }.onSuccess {
-                val names = it.map { region -> region.tags.name }
+                val names = it.map { region -> region.name }
                 Napier.d(tag = "GeoBoundary") { "Fetched regions=${names.joinToString()}" }
             }.onFailure {
                 Napier.e(it) { "Failed to fetch regions" }

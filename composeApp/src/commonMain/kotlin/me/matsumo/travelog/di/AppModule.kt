@@ -1,11 +1,22 @@
 package me.matsumo.travelog.di
 
+import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.FlowType
+import io.github.jan.supabase.compose.auth.ComposeAuth
+import io.github.jan.supabase.compose.auth.appleNativeLogin
+import io.github.jan.supabase.compose.auth.googleNativeLogin
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.logging.LogLevel
+import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.realtime.Realtime
+import io.github.jan.supabase.serializer.KotlinXSerializer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import me.matsumo.travelog.BuildKonfig
+import me.matsumo.travelog.core.common.formatter
 import me.matsumo.travelog.core.model.AppConfig
 import me.matsumo.travelog.core.model.Platform
 import me.matsumo.travelog.core.model.currentPlatform
@@ -59,6 +70,30 @@ val appModule = module {
             supabaseKey = BuildKonfig.SUPABASE_KEY,
             googleClientId = BuildKonfig.GOOGLE_CLIENT_ID,
         )
+    }
+
+    single {
+        val appConfig = get<AppConfig>()
+
+        createSupabaseClient(
+            supabaseUrl = appConfig.supabaseUrl,
+            supabaseKey = appConfig.supabaseKey,
+        ) {
+            defaultLogLevel = LogLevel.DEBUG
+            defaultSerializer = KotlinXSerializer(formatter)
+
+            install(Postgrest)
+            install(Realtime)
+            install(Auth) {
+                flowType = FlowType.PKCE
+                scheme = "https"
+                host = "travelog.dev"
+            }
+            install(ComposeAuth) {
+                googleNativeLogin(appConfig.googleClientId)
+                appleNativeLogin()
+            }
+        }
     }
 
     includes(appModulePlatform)

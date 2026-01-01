@@ -1,3 +1,5 @@
+import io.github.aakira.napier.DebugAntilog
+import io.github.aakira.napier.Napier
 import io.ktor.resources.Resource
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -28,6 +30,8 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+    Napier.base(DebugAntilog())
+
     install(ContentNegotiation) {
         json(formatter)
     }
