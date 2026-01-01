@@ -25,7 +25,11 @@
       "Bash(curl -s -A \"Travelog/1.0\" \"https://nominatim.openstreetmap.org/search?q=Saitama,Japan&format=json&limit=1&extratags=1\")",
       "Bash(curl -s -A \"Travelog/1.0\" \"https://overpass-api.de/api/interpreter\" -d 'data=[out:json];relation\\(1768185\\);out tags;')",
       "Bash(curl -s -A \"Travelog/1.0\" \"https://overpass-api.de/api/interpreter\" -d 'data=[out:json];relation\\(1859867\\);out tags;')",
-      "Bash(grep -n \"data class GeoJsonData\\\\|class GeoJsonData\\\\|interface GeoJsonData\" /Users/daichi-matsumoto/CAIOS/Travelog/core/model/src/commonMain/kotlin/me/matsumo/travelog/core/model/geo/*.kt)"
+      "Bash(grep -n \"data class GeoJsonData\\\\|class GeoJsonData\\\\|interface GeoJsonData\" /Users/daichi-matsumoto/CAIOS/Travelog/core/model/src/commonMain/kotlin/me/matsumo/travelog/core/model/geo/*.kt)",
+      "mcp__jetbrains__search_in_files_by_text",
+      "mcp__jetbrains__find_files_by_name_keyword",
+      "mcp__jetbrains__list_directory_tree",
+      "mcp__jetbrains__create_new_file"
     ]
   }
 }
