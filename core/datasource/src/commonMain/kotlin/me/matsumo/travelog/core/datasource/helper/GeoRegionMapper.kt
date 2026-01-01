@@ -34,14 +34,18 @@ class GeoRegionMapper {
     // Domain -> DTO
     // ---------------------------
 
-    fun toGroupDTO(model: EnrichedAdm1Regions): GeoRegionGroupDTO =
-        GeoRegionGroupDTO(
+    fun toGroupDTO(model: EnrichedAdm1Regions, includeGeoJsonString: Boolean = true): GeoRegionGroupDTO {
+        val polygonsGeoJson = formatter.encodeToString(model.getGeoJsonMultiPolygon()).takeIf { includeGeoJsonString }
+
+        return GeoRegionGroupDTO(
             id = model.id,
             admId = model.admId,
             admName = model.admName,
+            polygonsGeoJson = polygonsGeoJson,
             createdAt = null,
             updatedAt = null,
         )
+    }
 
     /**
      * Convert a single EnrichedRegion to GeoRegionDTO.
@@ -88,16 +92,17 @@ class GeoRegionMapper {
     // DTO -> Domain
     // ---------------------------
 
-    fun toDomain(
-        group: GeoRegionGroupDTO,
-        regions: List<GeoRegionDTO>,
-        polygonsFallback: List<PolygonWithHoles> = emptyList(),
-    ): EnrichedAdm1Regions = EnrichedAdm1Regions(
-        id = group.id,
-        admId = group.admId,
-        admName = group.admName,
-        regions = regions.map { toDomainRegion(it, polygonsFallback) }
-    )
+    fun toDomain(group: GeoRegionGroupDTO, regions: List<GeoRegionDTO>): EnrichedAdm1Regions {
+        val groupPolygons = group.polygonsGeoJson?.let { parseGeoJsonMultiPolygon(it) }.orEmpty()
+
+        return EnrichedAdm1Regions(
+            id = group.id,
+            admId = group.admId,
+            admName = group.admName,
+            polygons = groupPolygons,
+            regions = regions.map { toDomainRegion(it) }
+        )
+    }
 
     /**
      * Convert GeoRegionDTO to EnrichedRegion.

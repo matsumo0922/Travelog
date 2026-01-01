@@ -17,11 +17,14 @@ class GeoRegionApi internal constructor(
 ) {
     suspend fun upsertGroupWithRegions(enriched: EnrichedAdm1Regions): JsonElement {
         val regionsPayload = buildRegionsPayload(enriched)
+        val groupPolygons = enriched.getGeoJsonMultiPolygon()
+
         val raw = supabaseClient.postgrest.rpc(
             function = "upsert_geo_region_group_with_regions",
             parameters = buildJsonObject {
                 put("p_adm_id", JsonPrimitive(enriched.admId))
                 put("p_adm_name", JsonPrimitive(enriched.admName))
+                put("p_group_polygons_geojson", groupPolygons)
                 put("p_regions", regionsPayload)
             }
         ).decodeAs<JsonElement>()

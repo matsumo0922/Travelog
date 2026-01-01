@@ -1,22 +1,31 @@
 create or replace function public.upsert_geo_region_group_with_regions(
   p_adm_id text,
   p_adm_name text,
+  p_group_polygons_geojson jsonb,
   p_regions jsonb
 )
 returns uuid
 language plpgsql
+security definer
+set search_path = public
 as $$
 declare
   v_group_id uuid;
 begin
-  -- upsert group
-  insert into public.geo_region_groups (adm_id, adm_name)
-  values (p_adm_id, p_adm_name)
+  -- upsert group (ADM1) with polygons
+  insert into public.geo_region_groups (adm_id, adm_name, polygons)
+  values (
+    p_adm_id,
+    p_adm_name,
+    ST_SetSRID(ST_GeomFromGeoJSON(p_group_polygons_geojson::text), 4326)
+  )
   on conflict (adm_id)
-  do update set adm_name = excluded.adm_name
+  do update set
+    adm_name = excluded.adm_name,
+    polygons = excluded.polygons
   returning id into v_group_id;
 
-  -- upsert regions
+  -- upsert regions (ADM2)
   insert into public.geo_regions (
     group_id,
     adm2_id,
@@ -67,5 +76,5 @@ begin
 end;
 $$;
 
-comment on function public.upsert_geo_region_group_with_regions(text, text, jsonb)
-is 'Upsert geo_region_groups by adm_id, then upsert geo_regions by (group_id, adm2_id). Converts lat/lon + GeoJSON into PostGIS geography/geometry.';
+comment on function public.upsert_geo_region_group_with_regions(text, text, jsonb, jsonb)
+is 'Upsert geo_region_groups by adm_id (with ADM1 polygons), then upsert geo_regions by (group_id, adm2_id). Converts GeoJSON into PostGIS geometry/geography.';

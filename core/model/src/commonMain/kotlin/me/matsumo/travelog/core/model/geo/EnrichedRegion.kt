@@ -65,17 +65,18 @@ data class EnrichedRegion(
         )
     }
 
-    private fun closeRing(ring: PolygonRing): PolygonRing {
-        if (ring.isEmpty()) return ring
+    companion object {
+        fun closeRing(ring: PolygonRing): PolygonRing {
+            if (ring.isEmpty()) return ring
 
-        val first = ring.first()
-        val last = ring.last()
+            val first = ring.first()
+            val last = ring.last()
 
-        return if (first.lat == last.lat && first.lon == last.lon) {
-            ring
-        } else {
-            ring + first
+            return if (first.lat == last.lat && first.lon == last.lon) {
+                ring
+            } else {
+                ring + first
+            }
         }
     }
-
 }

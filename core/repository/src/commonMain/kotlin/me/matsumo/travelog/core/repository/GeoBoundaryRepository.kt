@@ -100,6 +100,7 @@ class GeoBoundaryRepository(
                 EnrichedAdm1Regions(
                     admId = adm1.id,
                     admName = adm1.name,
+                    polygons = adm1.polygons,
                     regions = enrichedWithThumbnails,
                 )
             }
