@@ -26,6 +26,10 @@ class GeoRegionApi internal constructor(
                 put("p_adm_name", JsonPrimitive(enriched.admName))
                 put("p_adm_group", JsonPrimitive(enriched.admGroup))
                 put("p_adm_iso", JsonPrimitive(enriched.admISO))
+                put("p_name", JsonPrimitive(enriched.name))
+                put("p_name_en", JsonPrimitive(enriched.nameEn))
+                put("p_name_ja", JsonPrimitive(enriched.nameJa))
+                put("p_thumbnail_url", JsonPrimitive(enriched.thumbnailUrl))
                 put("p_group_polygons_geojson", groupPolygons)
                 put("p_regions", regionsPayload)
             }
