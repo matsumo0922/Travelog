@@ -37,6 +37,16 @@ class GeoRegionRepository(
     }
 
     /**
+     * Fetch all region groups by group code.
+     *
+     * @param groupCode The group code
+     * @return List of GeoRegionGroupDTO
+     */
+    suspend fun getGroupsByGroupCode(groupCode: String): List<GeoRegionGroupDTO> {
+        return geoRegionApi.fetchGroupsByGroupCode(groupCode)
+    }
+
+    /**
      * Fetch all regions belonging to a specific group.
      *
      * @param groupId The group identifier (UUID)

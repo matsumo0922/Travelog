@@ -20,8 +20,9 @@ class HomePhotosViewModel(
     init {
         viewModelScope.launch {
             regions.value = suspendRunCatching {
-                val groupDTO = geoRegionRepository.getRegionGroupByAdmId("47310658B92659408322453")
-                val regionsDTO = geoRegionRepository.getRegionsByGroupId(groupDTO!!.id!!)
+                val groupsDTO = geoRegionRepository.getGroupsByGroupCode("JPN")
+                val groupDTO = groupsDTO.find { it.nameJa?.contains("鹿児島") == true } ?: return@suspendRunCatching emptyList()
+                val regionsDTO = geoRegionRepository.getRegionsByGroupId(groupDTO.id!!)
 
                 geoRegionMapper.toDomain(groupDTO, regionsDTO).regions
             }.onSuccess {

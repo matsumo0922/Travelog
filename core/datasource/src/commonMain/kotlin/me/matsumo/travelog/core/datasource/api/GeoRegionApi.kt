@@ -46,6 +46,13 @@ class GeoRegionApi internal constructor(
             }
             .decodeSingleOrNull()
 
+    suspend fun fetchGroupsByGroupCode(groupCode: String): List<GeoRegionGroupDTO> =
+        supabaseClient.from(GROUP_TABLE_NAME)
+            .select {
+                filter { eq("adm_group", groupCode) }
+            }
+            .decodeList()
+
     suspend fun fetchRegionsByGroupId(groupId: String): List<GeoRegionDTO> =
         supabaseClient.from(REGION_VIEW_NAME) // "geo_regions_view"
             .select {
@@ -53,7 +60,6 @@ class GeoRegionApi internal constructor(
                 order("name", Order.ASCENDING)
             }
             .decodeList()
-
 
     private fun buildRegionsPayload(enriched: EnrichedAdm1Regions): JsonArray =
         JsonArray(
