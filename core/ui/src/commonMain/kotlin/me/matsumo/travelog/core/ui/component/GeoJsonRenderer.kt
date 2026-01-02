@@ -5,9 +5,9 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.double
-import me.matsumo.travelog.core.model.geo.EnrichedRegion
 import me.matsumo.travelog.core.model.geo.GeoJsonData
 import me.matsumo.travelog.core.model.geo.GeoJsonGeometry
+import me.matsumo.travelog.core.model.geo.GeoRegion
 import me.matsumo.travelog.core.model.geo.PolygonWithHoles
 import kotlin.math.PI
 import kotlin.math.max
@@ -27,7 +27,7 @@ internal object GeoJsonRenderer {
         val latRange: Double get() = maxLat - minLat
     }
 
-    fun calculateBounds(regions: List<EnrichedRegion>): Bounds? {
+    fun calculateBounds(regions: List<GeoRegion>): Bounds? {
         var minLon = Double.MAX_VALUE
         var maxLon = -Double.MAX_VALUE
         var minLat = Double.MAX_VALUE
@@ -176,7 +176,7 @@ internal object GeoJsonRenderer {
     }
 
     fun createPaths(
-        regions: List<EnrichedRegion>,
+        regions: List<GeoRegion>,
         bounds: Bounds,
         transform: ViewportTransform,
     ): List<Path> {

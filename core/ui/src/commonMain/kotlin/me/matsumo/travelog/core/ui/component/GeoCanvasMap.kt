@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
-import me.matsumo.travelog.core.model.geo.EnrichedRegion
+import me.matsumo.travelog.core.model.geo.GeoRegion
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 
@@ -30,7 +30,7 @@ import net.engawapg.lib.zoomable.zoomable
  */
 @Composable
 fun GeoCanvasMap(
-    regions: List<EnrichedRegion>,
+    regions: List<GeoRegion>,
     modifier: Modifier = Modifier,
     strokeColor: Color = Color.Black,
     fillColor: Color = Color.Gray.copy(alpha = 0.3f),

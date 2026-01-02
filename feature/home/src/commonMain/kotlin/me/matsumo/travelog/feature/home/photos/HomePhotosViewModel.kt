@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.datasource.helper.GeoRegionMapper
-import me.matsumo.travelog.core.model.geo.EnrichedRegion
+import me.matsumo.travelog.core.model.geo.GeoRegion
 import me.matsumo.travelog.core.repository.GeoRegionRepository
 
 class HomePhotosViewModel(
@@ -15,7 +15,7 @@ class HomePhotosViewModel(
     private val geoRegionMapper: GeoRegionMapper,
 ) : ViewModel() {
 
-    val regions = MutableStateFlow<List<EnrichedRegion>>(emptyList())
+    val regions = MutableStateFlow<List<GeoRegion>>(emptyList())
 
     init {
         viewModelScope.launch {

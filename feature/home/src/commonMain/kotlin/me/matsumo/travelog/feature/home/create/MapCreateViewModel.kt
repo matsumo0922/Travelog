@@ -12,12 +12,14 @@ import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.core.model.geo.OverpassResult
 import me.matsumo.travelog.core.repository.GeoBoundaryRepository
+import me.matsumo.travelog.core.repository.GeoRegionRepository
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_download
 import me.matsumo.travelog.core.resource.home_map_select_region_loading_message
 import me.matsumo.travelog.core.ui.screen.ScreenState
 
 class MapCreateViewModel(
+    private val geoRegionRepository: GeoRegionRepository,
     private val geoBoundaryRepository: GeoBoundaryRepository,
 ) : ViewModel() {
 

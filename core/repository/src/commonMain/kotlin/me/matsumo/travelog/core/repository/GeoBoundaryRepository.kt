@@ -9,10 +9,10 @@ import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
 import me.matsumo.travelog.core.datasource.NominatimDataSource
 import me.matsumo.travelog.core.datasource.OverpassDataSource
 import me.matsumo.travelog.core.datasource.WikipediaDataSource
-import me.matsumo.travelog.core.model.geo.EnrichedAdm1Regions
-import me.matsumo.travelog.core.model.geo.EnrichedRegion
 import me.matsumo.travelog.core.model.geo.GeoBoundaryLevel
 import me.matsumo.travelog.core.model.geo.GeoJsonData
+import me.matsumo.travelog.core.model.geo.GeoRegion
+import me.matsumo.travelog.core.model.geo.GeoRegionGroup
 import me.matsumo.travelog.core.model.geo.OverpassResult
 import me.matsumo.travelog.core.model.geo.toIso3CountryCode
 
@@ -65,7 +65,7 @@ class GeoBoundaryRepository(
         adm1Regions
     }
 
-    suspend fun getEnrichedAllAdmins(regions: List<GeoBoundaryMapper.Adm1Region>): List<EnrichedAdm1Regions> = coroutineScope {
+    suspend fun getEnrichedAllAdmins(regions: List<GeoBoundaryMapper.Adm1Region>): List<GeoRegionGroup> = coroutineScope {
         Napier.d(tag = LOG_TAG) { "getEnrichedAllAdmins: Start - processing ${regions.size} ADM1 regions" }
 
         regions.mapIndexed { index, adm1 ->
@@ -80,7 +80,7 @@ class GeoBoundaryRepository(
                 val adm1EnrichedRegion = overpassElements.find { it.type == "area" }?.let {
                     overpassElements.remove(it)
 
-                    EnrichedRegion(
+                    GeoRegion(
                         name = adm1.name,
                         adm2Id = "",
                         nameEn = it.tags.nameEn,
@@ -98,12 +98,12 @@ class GeoBoundaryRepository(
                 val matchedElements = geoBoundaryMapper.matchAdm2WithOverpass(adm1.children, overpassElements)
                 Napier.d(tag = LOG_TAG) { "getEnrichedAllAdmins: [${adm1.name}] Matched ${matchedElements.size}/${adm1.children.size} with Overpass" }
 
-                val enrichedRegions = adm1.children
+                val geoRegions = adm1.children
                     .map { adm2 ->
                         val overpass = matchedElements[adm2.id]
                         val displayName = overpass?.tags?.name ?: adm2.name
 
-                        EnrichedRegion(
+                        GeoRegion(
                             name = displayName,
                             adm2Id = adm2.id,
                             nameEn = overpass?.tags?.nameEn,
@@ -117,8 +117,8 @@ class GeoBoundaryRepository(
                     }
                     .sortedBy { it.name }
 
-                val regionsWithWikipedia = enrichedRegions.count { !it.wikipedia.isNullOrBlank() }
-                val thumbnails = enrichedRegions.map { region ->
+                val regionsWithWikipedia = geoRegions.count { !it.wikipedia.isNullOrBlank() }
+                val thumbnails = geoRegions.map { region ->
                     async {
                         region.wikipedia
                             ?.takeIf { it.isNotBlank() }
@@ -131,11 +131,11 @@ class GeoBoundaryRepository(
                 val successfulThumbnails = thumbnails.count { it != null }
                 Napier.d(tag = LOG_TAG) { "getEnrichedAllAdmins: [${adm1.name}] Fetched $successfulThumbnails/$regionsWithWikipedia thumbnails" }
 
-                val enrichedWithThumbnails = enrichedRegions.mapIndexed { idx, region ->
+                val enrichedWithThumbnails = geoRegions.mapIndexed { idx, region ->
                     region.copy(thumbnailUrl = thumbnails.getOrNull(idx))
                 }
 
-                EnrichedAdm1Regions(
+                GeoRegionGroup(
                     admId = adm1.id,
                     admName = adm1.name,
                     admGroup = adm1.group,

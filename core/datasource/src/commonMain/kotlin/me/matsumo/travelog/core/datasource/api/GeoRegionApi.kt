@@ -10,12 +10,12 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import me.matsumo.travelog.core.model.dto.GeoRegionDTO
 import me.matsumo.travelog.core.model.dto.GeoRegionGroupDTO
-import me.matsumo.travelog.core.model.geo.EnrichedAdm1Regions
+import me.matsumo.travelog.core.model.geo.GeoRegionGroup
 
 class GeoRegionApi internal constructor(
     private val supabaseClient: SupabaseClient,
 ) {
-    suspend fun upsertGroupWithRegions(enriched: EnrichedAdm1Regions): JsonElement {
+    suspend fun upsertGroupWithRegions(enriched: GeoRegionGroup): JsonElement {
         val regionsPayload = buildRegionsPayload(enriched)
         val groupPolygons = enriched.getGeoJsonMultiPolygon()
 
@@ -61,7 +61,7 @@ class GeoRegionApi internal constructor(
             }
             .decodeList()
 
-    private fun buildRegionsPayload(enriched: EnrichedAdm1Regions): JsonArray =
+    private fun buildRegionsPayload(enriched: GeoRegionGroup): JsonArray =
         JsonArray(
             enriched.regions.map { region ->
                 buildJsonObject {

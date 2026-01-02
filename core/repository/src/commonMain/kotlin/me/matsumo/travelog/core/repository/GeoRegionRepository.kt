@@ -4,7 +4,7 @@ import me.matsumo.travelog.core.datasource.api.GeoRegionApi
 import me.matsumo.travelog.core.datasource.helper.GeoRegionMapper
 import me.matsumo.travelog.core.model.dto.GeoRegionDTO
 import me.matsumo.travelog.core.model.dto.GeoRegionGroupDTO
-import me.matsumo.travelog.core.model.geo.EnrichedAdm1Regions
+import me.matsumo.travelog.core.model.geo.GeoRegionGroup
 
 /**
  * Repository for managing geo regions and region groups in the database.
@@ -22,7 +22,7 @@ class GeoRegionRepository(
      * @param enriched EnrichedAdm1Regions data from GeoBoundaryRepository
      * @return The result of the upsert operation
      */
-    suspend fun upsertRegionGroup(enriched: EnrichedAdm1Regions) {
+    suspend fun upsertRegionGroup(enriched: GeoRegionGroup) {
         geoRegionApi.upsertGroupWithRegions(enriched)
     }
 
@@ -62,7 +62,7 @@ class GeoRegionRepository(
      * @param admId The ADM1 identifier
      * @return EnrichedAdm1Regions domain model if found, null otherwise
      */
-    suspend fun getEnrichedRegionsByAdmId(admId: String): EnrichedAdm1Regions? {
+    suspend fun getEnrichedRegionsByAdmId(admId: String): GeoRegionGroup? {
         val group = geoRegionApi.fetchGroupByAdmId(admId) ?: return null
         val regions = geoRegionApi.fetchRegionsByGroupId(group.id!!)
 
@@ -74,7 +74,7 @@ class GeoRegionRepository(
      *
      * @param enrichedList List of EnrichedAdm1Regions to insert/update
      */
-    suspend fun upsertRegionGroups(enrichedList: List<EnrichedAdm1Regions>) {
+    suspend fun upsertRegionGroups(enrichedList: List<GeoRegionGroup>) {
         enrichedList.forEach { enriched ->
             upsertRegionGroup(enriched)
         }
@@ -86,7 +86,7 @@ class GeoRegionRepository(
      * @param admIds List of ADM1 identifiers
      * @return List of EnrichedAdm1Regions (excludes not found items)
      */
-    suspend fun getEnrichedRegionsByAdmIds(admIds: List<String>): List<EnrichedAdm1Regions> {
+    suspend fun getEnrichedRegionsByAdmIds(admIds: List<String>): List<GeoRegionGroup> {
         return admIds.mapNotNull { admId ->
             getEnrichedRegionsByAdmId(admId)
         }
