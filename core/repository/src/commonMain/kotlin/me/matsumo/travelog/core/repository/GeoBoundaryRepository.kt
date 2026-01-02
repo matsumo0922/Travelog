@@ -4,6 +4,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
 import me.matsumo.travelog.core.datasource.NominatimDataSource
 import me.matsumo.travelog.core.datasource.OverpassDataSource
@@ -74,6 +75,25 @@ class GeoBoundaryRepository(
                 val overpassElements = runCatching { getAdmins(adm1.name) }
                     .onFailure { Napier.w(tag = LOG_TAG, throwable = it) { "getEnrichedAllAdmins: [${adm1.name}] Overpass fetch failed" } }
                     .getOrElse { emptyList() }
+                    .toMutableList()
+
+                val adm1EnrichedRegion = overpassElements.find { it.type == "area" }?.let {
+                    overpassElements.remove(it)
+
+                    EnrichedRegion(
+                        name = adm1.name,
+                        adm2Id = "",
+                        nameEn = it.tags.nameEn,
+                        nameJa = it.tags.nameJa,
+                        wikipedia = it.tags.wikipedia,
+                        iso31662 = it.tags.iso31662,
+                        center = OverpassResult.Element.Coordinate(0.0, 0.0),
+                        polygons = emptyList(),
+                        thumbnailUrl = suspendRunCatching {
+                            it.tags.wikipedia?.let { wikipedia -> getThumbnailUrl(wikipedia) }
+                        }.getOrNull()
+                    )
+                }
 
                 val matchedElements = geoBoundaryMapper.matchAdm2WithOverpass(adm1.children, overpassElements)
                 Napier.d(tag = LOG_TAG) { "getEnrichedAllAdmins: [${adm1.name}] Matched ${matchedElements.size}/${adm1.children.size} with Overpass" }
@@ -120,6 +140,10 @@ class GeoBoundaryRepository(
                     admName = adm1.name,
                     admGroup = adm1.group,
                     admISO = adm1.iso,
+                    name = adm1EnrichedRegion?.name ?: adm1.name,
+                    nameEn = adm1EnrichedRegion?.nameEn,
+                    nameJa = adm1EnrichedRegion?.nameJa,
+                    thumbnailUrl = adm1EnrichedRegion?.thumbnailUrl,
                     polygons = adm1.polygons,
                     regions = enrichedWithThumbnails,
                 )
