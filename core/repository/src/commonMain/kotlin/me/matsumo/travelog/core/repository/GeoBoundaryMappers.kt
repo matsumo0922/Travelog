@@ -1,5 +1,6 @@
 package me.matsumo.travelog.core.repository
 
+import io.github.aakira.napier.Napier
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -26,6 +27,8 @@ class GeoBoundaryMapper {
     data class Adm1Region(
         val id: String,
         val name: String,
+        val group: String,
+        val iso: String,
         val polygons: List<PolygonWithHoles>,
         val boundingBoxes: List<BoundingBox>,
         val children: MutableList<Adm2Region> = mutableListOf(),
@@ -34,16 +37,25 @@ class GeoBoundaryMapper {
     fun mapAdm1Regions(geoJsonData: GeoJsonData): List<Adm1Region> {
         return geoJsonData.features.mapNotNull { feature ->
             val properties = feature.properties as? JsonObject ?: return@mapNotNull null
-            val id = properties["shapeID"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
-            val name = properties["shapeName"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+            val id = properties["shapeID"]?.jsonPrimitive?.contentOrNull
+            val name = properties["shapeName"]?.jsonPrimitive?.contentOrNull
+            val group = properties["shapeGroup"]?.jsonPrimitive?.contentOrNull
+            val iso = properties["shapeISO"]?.jsonPrimitive?.contentOrNull
             val polygons = feature.geometry.toPolygons()
             val boundingBoxes = polygons.mapNotNull { polygon -> polygon.boundingBox() }
+
+            if (id == null || name == null || group == null || iso == null) {
+                Napier.d { "Skipping Adm1Region due to missing properties: id=$id, name=$name, group=$group, iso=$iso" }
+                return@mapNotNull null
+            }
 
             if (polygons.isEmpty() || boundingBoxes.isEmpty()) return@mapNotNull null
 
             Adm1Region(
                 id = id,
                 name = name,
+                group = group,
+                iso = iso,
                 polygons = polygons,
                 boundingBoxes = boundingBoxes,
             )
@@ -100,8 +112,11 @@ class GeoBoundaryMapper {
 
         overpassElements.forEach { element ->
             val matchedAdm2 = adm2Regions.firstOrNull { adm2 ->
-                adm2.boundingBoxes.any { bbox -> bbox.contains(element.center) } &&
-                        adm2.polygons.any { polygon -> isPointInPolygonWithHoles(element.center, polygon) }
+                val center = element.center ?: return@firstOrNull false
+                val bbox = adm2.boundingBoxes.any { bbox -> bbox.contains(center) }
+                val polygons = adm2.polygons.any { polygon -> isPointInPolygonWithHoles(center, polygon) }
+
+                bbox && polygons
             }
 
             if (matchedAdm2 != null && matchedAdm2.id !in result) {

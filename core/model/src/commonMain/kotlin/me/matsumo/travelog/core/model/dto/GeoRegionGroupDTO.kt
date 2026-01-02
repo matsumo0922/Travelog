@@ -11,6 +11,10 @@ data class GeoRegionGroupDTO(
     val admId: String,
     @SerialName("adm_name")
     val admName: String,
+    @SerialName("adm_group")
+    val admGroup: String,
+    @SerialName("adm_iso")
+    val admISO: String,
     @SerialName("polygons_geojson")
     val polygonsGeoJson: String? = null,
     @SerialName("created_at")

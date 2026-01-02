@@ -22,7 +22,7 @@ data class OverpassResult(
         @SerialName("type")
         val type: String,
         @SerialName("center")
-        val center: Coordinate,
+        val center: Coordinate?,
     ) {
         @Serializable
         data class Tags(

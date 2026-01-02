@@ -15,6 +15,10 @@ data class EnrichedAdm1Regions(
     val admId: String,
     @SerialName("adm_name")
     val admName: String,
+    @SerialName("adm_group")
+    val admGroup: String,
+    @SerialName("adm_iso")
+    val admISO: String,
     @SerialName("polygons")
     val polygons: List<PolygonWithHoles>,
     @SerialName("regions")

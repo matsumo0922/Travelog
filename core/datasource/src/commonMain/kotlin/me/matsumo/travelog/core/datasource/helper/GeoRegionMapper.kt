@@ -41,6 +41,8 @@ class GeoRegionMapper {
             id = model.id,
             admId = model.admId,
             admName = model.admName,
+            admGroup = model.admGroup,
+            admISO = model.admISO,
             polygonsGeoJson = polygonsGeoJson,
             createdAt = null,
             updatedAt = null,
@@ -99,6 +101,8 @@ class GeoRegionMapper {
             id = group.id,
             admId = group.admId,
             admName = group.admName,
+            admGroup = group.admGroup,
+            admISO = group.admISO,
             polygons = groupPolygons,
             regions = regions.map { toDomainRegion(it) }
         )

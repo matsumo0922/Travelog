@@ -24,6 +24,8 @@ class GeoRegionApi internal constructor(
             parameters = buildJsonObject {
                 put("p_adm_id", JsonPrimitive(enriched.admId))
                 put("p_adm_name", JsonPrimitive(enriched.admName))
+                put("p_adm_group", JsonPrimitive(enriched.admGroup))
+                put("p_adm_iso", JsonPrimitive(enriched.admISO))
                 put("p_group_polygons_geojson", groupPolygons)
                 put("p_regions", regionsPayload)
             }
