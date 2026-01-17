@@ -65,3 +65,6 @@ xcuserdata
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 iosApp/Pods
+
+# Claude
+.claude/settings.local.json
