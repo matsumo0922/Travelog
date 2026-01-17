@@ -58,7 +58,7 @@ private fun IdleScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { navBackStack.add(Destination.MapCreate) },
+                onClick = { /* TODO */ },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer
             ) {
                 Icon(
