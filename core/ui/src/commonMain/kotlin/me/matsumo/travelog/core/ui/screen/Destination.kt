@@ -17,6 +17,11 @@ sealed interface Destination : NavKey {
     data object CountrySelect : Destination
 
     @Serializable
+    data class RegionSelect(
+        val selectedCountryCode3: String,
+    ) : Destination
+
+    @Serializable
     data object MapCreate : Destination
 
     @Serializable
@@ -37,6 +42,7 @@ sealed interface Destination : NavKey {
                 polymorphic(NavKey::class) {
                     subclass(Home::class, Home.serializer())
                     subclass(CountrySelect::class, CountrySelect.serializer())
+                    subclass(RegionSelect::class, RegionSelect.serializer())
                     subclass(MapCreate::class, MapCreate.serializer())
                     subclass(Login::class, Login.serializer())
                     subclass(Setting.Root::class, Setting.Root.serializer())

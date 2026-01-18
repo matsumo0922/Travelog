@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.home.select.component
+package me.matsumo.travelog.feature.home.select.country.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

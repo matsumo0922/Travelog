@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.home.select
+package me.matsumo.travelog.feature.home.select.country
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,41 +11,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.matsumo.travelog.core.model.SupportedRegion
-import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
-import me.matsumo.travelog.feature.home.select.component.CountrySelectItem
-import me.matsumo.travelog.feature.home.select.component.CountrySelectTopAppBar
-import org.koin.compose.viewmodel.koinViewModel
-
-@Composable
-internal fun CountrySelectRoute(
-    modifier: Modifier = Modifier,
-    viewModel: CountrySelectViewModel = koinViewModel(),
-) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-
-    AsyncLoadContents(
-        modifier = modifier,
-        screenState = screenState,
-    ) {
-        CountrySelectScreen(
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
-}
+import me.matsumo.travelog.feature.home.select.country.component.CountrySelectItem
+import me.matsumo.travelog.feature.home.select.country.component.CountrySelectTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CountrySelectScreen(
+internal fun CountrySelectScreen(
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current

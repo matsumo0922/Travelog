@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.home.select
+package me.matsumo.travelog.feature.home.select.country
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
@@ -8,7 +8,7 @@ import me.matsumo.travelog.core.ui.screen.Destination
 
 fun EntryProviderScope<NavKey>.countrySelectEntry() {
     entry<Destination.CountrySelect> {
-        CountrySelectRoute(
+        CountrySelectScreen(
             modifier = Modifier.fillMaxSize(),
         )
     }

@@ -1,5 +1,6 @@
 package me.matsumo.travelog.core.model.geo
 
+import androidx.compose.runtime.Stable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
@@ -7,6 +8,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import me.matsumo.travelog.core.model.geo.GeoRegion.Companion.closeRing
 
+@Stable
 @Serializable
 data class GeoRegionGroup(
     @SerialName("id")

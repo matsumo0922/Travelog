@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.home.select.component
+package me.matsumo.travelog.feature.home.select.country.component
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
