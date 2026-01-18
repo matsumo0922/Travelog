@@ -1,11 +1,13 @@
 package me.matsumo.travelog.core.ui.screen
 
+import androidx.compose.runtime.Immutable
 import androidx.navigation3.runtime.NavKey
 import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
+@Immutable
 @Serializable
 sealed interface Destination : NavKey {
     @Serializable

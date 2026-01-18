@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import me.matsumo.travelog.core.ui.animation.NavigationTransitions
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.home.homeEntry
@@ -32,6 +33,9 @@ internal fun AppNavHost(
                 settingEntry()
                 settingLicenseEntry()
             },
+            transitionSpec = { NavigationTransitions.forwardTransition },
+            popTransitionSpec = { NavigationTransitions.backwardTransition },
+            predictivePopTransitionSpec = { NavigationTransitions.backwardTransition },
         )
     }
 }
