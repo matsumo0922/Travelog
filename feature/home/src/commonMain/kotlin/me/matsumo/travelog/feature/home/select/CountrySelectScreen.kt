@@ -1,18 +1,29 @@
 package me.matsumo.travelog.feature.home.select
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
+import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
+import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
+import me.matsumo.travelog.core.ui.utils.plus
+import me.matsumo.travelog.feature.home.select.component.CountrySelectItem
+import me.matsumo.travelog.feature.home.select.component.CountrySelectTopAppBar
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -28,27 +39,55 @@ internal fun CountrySelectRoute(
     ) {
         CountrySelectScreen(
             modifier = Modifier.fillMaxSize(),
-            countryCodes = it.countryCodes.toImmutableList(),
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CountrySelectScreen(
-    countryCodes: ImmutableList<String>,
     modifier: Modifier = Modifier,
 ) {
+    val navBackStack = LocalNavBackStack.current
+    val supportedRegions = remember { SupportedRegion.all }
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            CountrySelectTopAppBar(
+                modifier = Modifier.fillMaxWidth(),
+                onBackClicked = { navBackStack.removeLastOrNull() },
+                scrollBehavior = scrollBehavior,
+            )
+        },
     ) { contentPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = contentPadding,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            contentPadding = contentPadding + PaddingValues(16.dp),
         ) {
-            items(countryCodes) {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyLarge,
+            itemsIndexed(
+                items = supportedRegions,
+                key = { _, region -> region.code2 },
+            ) { index, region ->
+                val isSectionStart = index == 0
+                val isSectionEnd = index == supportedRegions.lastIndex
+
+                val shape = RoundedCornerShape(
+                    topStart = if (isSectionStart) 16.dp else 0.dp,
+                    topEnd = if (isSectionStart) 16.dp else 0.dp,
+                    bottomStart = if (isSectionEnd) 16.dp else 0.dp,
+                    bottomEnd = if (isSectionEnd) 16.dp else 0.dp,
+                )
+
+                CountrySelectItem(
+                    modifier = Modifier
+                        .clip(shape)
+                        .fillMaxWidth(),
+                    supportedRegion = region,
+                    onSelected = {}
                 )
             }
         }

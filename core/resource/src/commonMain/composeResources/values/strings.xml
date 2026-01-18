@@ -68,6 +68,7 @@
     <string name="home_title">証明写真</string>
     <string name="home_navigation_map">マップ</string>
     <string name="home_navigation_photos">写真</string>
+    <string name="home_select_region">地域の選択</string>
     <string name="home_map_add">マップの追加</string>
     <string name="home_map_add_description">思い出を記録するマップを選ぼう！</string>
     <string name="home_map_select_country_hint">思い出を記録するマップの地域を選択しましょう。次の画面でより詳細な地域を選ぶこともできます。</string>

@@ -1,5 +1,9 @@
 package me.matsumo.travelog.core.repository
 
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 import me.matsumo.travelog.core.datasource.api.GeoRegionApi
 import me.matsumo.travelog.core.datasource.helper.GeoRegionMapper
 import me.matsumo.travelog.core.model.geo.GeoRegion
@@ -14,6 +18,7 @@ import me.matsumo.travelog.core.model.geo.GeoRegionGroup
 class GeoRegionRepository(
     private val geoRegionApi: GeoRegionApi,
     private val geoRegionMapper: GeoRegionMapper,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     /**
      * Insert or update a region group with its regions.
@@ -21,7 +26,7 @@ class GeoRegionRepository(
      * @param enriched EnrichedAdm1Regions data from GeoBoundaryRepository
      * @return The result of the upsert operation
      */
-    suspend fun upsertRegionGroup(enriched: GeoRegionGroup) {
+    suspend fun upsertRegionGroup(enriched: GeoRegionGroup) = withContext(ioDispatcher) {
         geoRegionApi.upsertGroupWithRegions(enriched)
     }
 
@@ -31,9 +36,9 @@ class GeoRegionRepository(
      * @param admId The ADM1 identifier
      * @return GeoRegionGroup if found, null otherwise (regions is empty list)
      */
-    suspend fun getRegionGroupByAdmId(admId: String): GeoRegionGroup? {
-        val dto = geoRegionApi.fetchGroupByAdmId(admId) ?: return null
-        return geoRegionMapper.toDomainWithoutRegions(dto)
+    suspend fun getRegionGroupByAdmId(admId: String): GeoRegionGroup? = withContext(ioDispatcher) {
+        val dto = geoRegionApi.fetchGroupByAdmId(admId) ?: return@withContext null
+        return@withContext geoRegionMapper.toDomainWithoutRegions(dto)
     }
 
     /**
@@ -42,8 +47,8 @@ class GeoRegionRepository(
      * @param groupCode The group code
      * @return List of GeoRegionGroup (each group's regions is empty list)
      */
-    suspend fun getGroupsByGroupCode(groupCode: String): List<GeoRegionGroup> {
-        return geoRegionApi.fetchGroupsByGroupCode(groupCode).map { dto ->
+    suspend fun getGroupsByGroupCode(groupCode: String): List<GeoRegionGroup> = withContext(ioDispatcher) {
+        return@withContext geoRegionApi.fetchGroupsByGroupCode(groupCode).map { dto ->
             geoRegionMapper.toDomainWithoutRegions(dto)
         }
     }
@@ -54,8 +59,8 @@ class GeoRegionRepository(
      * @param groupId The group identifier (UUID)
      * @return List of GeoRegion
      */
-    suspend fun getRegionsByGroupId(groupId: String): List<GeoRegion> {
-        return geoRegionApi.fetchRegionsByGroupId(groupId).map { dto ->
+    suspend fun getRegionsByGroupId(groupId: String): List<GeoRegion> = withContext(ioDispatcher) {
+        return@withContext geoRegionApi.fetchRegionsByGroupId(groupId).map { dto ->
             geoRegionMapper.toDomainRegion(dto)
         }
     }
@@ -66,11 +71,11 @@ class GeoRegionRepository(
      * @param admId The ADM1 identifier
      * @return EnrichedAdm1Regions domain model if found, null otherwise
      */
-    suspend fun getEnrichedRegionsByAdmId(admId: String): GeoRegionGroup? {
-        val group = geoRegionApi.fetchGroupByAdmId(admId) ?: return null
+    suspend fun getEnrichedRegionsByAdmId(admId: String): GeoRegionGroup? = withContext(ioDispatcher) {
+        val group = geoRegionApi.fetchGroupByAdmId(admId) ?: return@withContext null
         val regions = geoRegionApi.fetchRegionsByGroupId(group.id!!)
 
-        return geoRegionMapper.toDomain(group, regions)
+        return@withContext geoRegionMapper.toDomain(group, regions)
     }
 
     /**
@@ -101,7 +106,7 @@ class GeoRegionRepository(
      *
      * @return List of unique country codes
      */
-    suspend fun getAvailableCountryCodes(): List<String> {
-        return geoRegionApi.fetchDistinctAdmGroups()
+    suspend fun getAvailableCountryCodes(): List<String> = withContext(ioDispatcher) {
+        return@withContext geoRegionApi.fetchDistinctAdmGroups()
     }
 }
