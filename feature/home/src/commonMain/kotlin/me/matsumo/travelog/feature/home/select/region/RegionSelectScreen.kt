@@ -42,7 +42,9 @@ import org.koin.core.parameter.parametersOf
 internal fun RegionSelectRoute(
     selectedCountryCode3: String,
     modifier: Modifier = Modifier,
-    viewModel: RegionSelectViewModel = koinViewModel {
+    viewModel: RegionSelectViewModel = koinViewModel(
+        key = selectedCountryCode3,
+    ) {
         parametersOf(selectedCountryCode3)
     }
 ) {
