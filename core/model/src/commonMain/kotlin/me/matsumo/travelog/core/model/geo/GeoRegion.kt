@@ -33,7 +33,8 @@ data class GeoRegion(
     fun getGeoJsonMultiPolygon() = buildJsonObject {
         put("type", JsonPrimitive("MultiPolygon"))
         put(
-            "coordinates", JsonArray(
+            "coordinates",
+            JsonArray(
                 polygons.map { polygon ->
                     JsonArray(
                         polygon.map { ring ->
@@ -43,25 +44,27 @@ data class GeoRegion(
                                         listOf(
                                             JsonPrimitive(coord.lon),
                                             JsonPrimitive(coord.lat),
-                                        )
+                                        ),
                                     )
-                                }
+                                },
                             )
-                        }
+                        },
                     )
-                }
-            ))
+                },
+            ),
+        )
     }
 
     fun getGeoJsonPoint() = buildJsonObject {
         put("type", JsonPrimitive("Point"))
         put(
-            "coordinates", JsonArray(
+            "coordinates",
+            JsonArray(
                 listOf(
                     JsonPrimitive(center.lon),
-                    JsonPrimitive(center.lat)
-                )
-            )
+                    JsonPrimitive(center.lat),
+                ),
+            ),
         )
     }
 

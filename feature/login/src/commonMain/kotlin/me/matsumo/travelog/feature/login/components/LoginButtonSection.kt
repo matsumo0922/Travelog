@@ -25,10 +25,10 @@ import me.matsumo.travelog.core.resource.account_continue_with_google
 import me.matsumo.travelog.core.resource.account_policy_agreement
 import me.matsumo.travelog.core.resource.account_privacy_policy
 import me.matsumo.travelog.core.resource.account_team_of_service
+import me.matsumo.travelog.core.ui.icon.Apple
+import me.matsumo.travelog.core.ui.icon.Google
 import me.matsumo.travelog.core.ui.theme.center
 import me.matsumo.travelog.core.ui.theme.semiBold
-import me.matsumo.zencall.core.ui.icon.Apple
-import me.matsumo.zencall.core.ui.icon.Google
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -52,9 +52,9 @@ internal fun LoginButtonSection(
             modifier = Modifier.fillMaxWidth(),
             onClick = onGoogleLogin,
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = MaterialTheme.colorScheme.surface,
             ),
-            contentPadding = ButtonDefaults.contentPaddingFor(height)
+            contentPadding = ButtonDefaults.contentPaddingFor(height),
         ) {
             Image(
                 modifier = Modifier.size(20.dp),
@@ -74,9 +74,9 @@ internal fun LoginButtonSection(
             modifier = Modifier.fillMaxWidth(),
             onClick = onAppleLogin,
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = MaterialTheme.colorScheme.surface,
             ),
-            contentPadding = ButtonDefaults.contentPaddingFor(height)
+            contentPadding = ButtonDefaults.contentPaddingFor(height),
         ) {
             Image(
                 modifier = Modifier.size(20.dp),
@@ -119,7 +119,7 @@ internal fun LoginButtonSection(
             },
             style = MaterialTheme.typography.bodyMedium.center(),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            lineHeight = 24.sp
+            lineHeight = 24.sp,
         )
     }
 }

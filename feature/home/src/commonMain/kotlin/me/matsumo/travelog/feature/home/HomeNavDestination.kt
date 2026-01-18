@@ -30,7 +30,7 @@ internal data class HomeNavDestination(
                 icon = Icons.Outlined.Photo,
                 iconSelected = Icons.Filled.Photo,
                 route = HomeRoute.Photos,
-            )
+            ),
         )
     }
 }

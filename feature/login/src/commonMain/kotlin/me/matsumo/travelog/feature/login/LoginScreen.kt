@@ -103,7 +103,7 @@ internal fun LoginRoute(
                 hostState = snackbarHostState,
             )
         },
-        contentWindowInsets = WindowInsets()
+        contentWindowInsets = WindowInsets(),
     ) { contentPadding ->
         AnimatedContent(
             modifier = Modifier

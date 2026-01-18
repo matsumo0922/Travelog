@@ -1,6 +1,5 @@
 package me.matsumo.travelog.core.model.geo
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -11,7 +10,7 @@ data class OverpassResult(
     @SerialName("generator")
     val generator: String,
     @SerialName("version")
-    val version: Double
+    val version: Double,
 ) {
     @Serializable
     data class Element(

@@ -9,7 +9,8 @@ enum class GeoBoundaryLevel {
     ADM2, // Second-level administrative division
     ADM3, // Third-level administrative division
     ADM4, // Fourth-level administrative division
-    ADM5; // Fifth-level administrative division
+    ADM5, // Fifth-level administrative division
+    ;
 
     companion object {
         fun fromString(value: String): GeoBoundaryLevel? {

@@ -100,7 +100,6 @@ internal object GeoJsonRenderer {
         }
     }
 
-
     /**
      * Calculate the scale factor and offset to maintain aspect ratio
      */
@@ -146,33 +145,6 @@ internal object GeoJsonRenderer {
         val offsetY = (canvasHeight - contentHeight) / 2f
 
         return ViewportTransform(scale, offsetX, offsetY)
-    }
-
-    /**
-     * Parse coordinates from GeoJSON and create a Path with dynamic bounds
-     */
-    fun createPath(
-        geometry: GeoJsonGeometry,
-        width: Float,
-        height: Float,
-        bounds: Bounds,
-        transform: ViewportTransform,
-    ): List<Path> {
-        return when (geometry.type) {
-            "Polygon" -> {
-                val coordinates = parsePolygonCoordinates(geometry.coordinates)
-                coordinates?.let { listOf(createPolygonPath(it, bounds, transform)) } ?: emptyList()
-            }
-
-            "MultiPolygon" -> {
-                val polygons = parseMultiPolygonCoordinates(geometry.coordinates)
-                polygons.map { polygon ->
-                    createPolygonPath(polygon, bounds, transform)
-                }
-            }
-
-            else -> emptyList()
-        }
     }
 
     fun createPaths(

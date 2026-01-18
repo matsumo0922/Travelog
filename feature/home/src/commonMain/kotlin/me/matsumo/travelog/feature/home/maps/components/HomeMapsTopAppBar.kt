@@ -31,6 +31,6 @@ internal fun HomeMapsTopAppBar(
                     contentDescription = null,
                 )
             }
-        }
+        },
     )
 }

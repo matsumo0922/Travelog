@@ -10,11 +10,11 @@ data class WikipediaThumbnailResult(
     @SerialName("thumbnail")
     val thumbnail: Image? = null,
     @SerialName("originalimage")
-    val originalImage: Image? = null
+    val originalImage: Image? = null,
 ) {
     @Serializable
     data class Image(
         @SerialName("source")
-        val source: String
+        val source: String,
     )
 }

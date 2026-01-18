@@ -103,7 +103,7 @@ class GeoRegionMapper {
 
         return toDomainWithoutRegions(group).copy(
             polygons = groupPolygons,
-            regions = regions.map { toDomainRegion(it) }
+            regions = regions.map { toDomainRegion(it) },
         )
     }
 

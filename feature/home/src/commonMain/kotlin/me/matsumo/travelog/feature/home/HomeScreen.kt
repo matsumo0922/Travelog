@@ -68,17 +68,17 @@ internal fun HomeScreen(
                     icon = {
                         Icon(
                             imageVector = if (currentIndex == index) destination.iconSelected else destination.icon,
-                            contentDescription = stringResource(destination.label)
+                            contentDescription = stringResource(destination.label),
                         )
                     },
                     label = {
                         Text(
                             text = stringResource(destination.label),
                         )
-                    }
+                    },
                 )
             }
-        }
+        },
     ) {
         AnimatedContent(
             modifier = Modifier.fillMaxSize(),

@@ -32,7 +32,7 @@ class GeoRegionApi internal constructor(
                 put("p_thumbnail_url", JsonPrimitive(enriched.thumbnailUrl))
                 put("p_group_polygons_geojson", groupPolygons)
                 put("p_regions", regionsPayload)
-            }
+            },
         ).decodeAs<JsonElement>()
 
         return raw
@@ -80,7 +80,7 @@ class GeoRegionApi internal constructor(
                     // Kotlin side: build GeoJSON MultiPolygon JsonObject
                     put("polygons_geojson", region.getGeoJsonMultiPolygon())
                 }
-            }
+            },
         )
 
     companion object {

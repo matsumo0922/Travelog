@@ -53,17 +53,17 @@ private fun IdleScreen(
         topBar = {
             HomeMapsTopAppBar(
                 modifier = Modifier.fillMaxWidth(),
-                onSettingClicked = { navBackStack.add(Destination.Setting.Root) }
+                onSettingClicked = { navBackStack.add(Destination.Setting.Root) },
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { /* TODO */ },
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Reviews"
+                    contentDescription = "Reviews",
                 )
 
                 Text(
@@ -71,8 +71,7 @@ private fun IdleScreen(
                     text = stringResource(Res.string.home_map_add),
                 )
             }
-        }
+        },
     ) {
-
     }
 }

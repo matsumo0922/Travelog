@@ -57,7 +57,9 @@ class GeoBoundaryRepository(
 
         val adm1Regions = geoBoundaryMapper.mapAdm1Regions(adm1GeoJson.await())
         val adm2Regions = geoBoundaryMapper.mapAdm2Regions(adm2GeoJson.await())
-        Napier.d(tag = LOG_TAG) { "getEnrichedCountries: Mapped ${adm1Regions.size} ADM1 regions, ${adm2Regions.size} ADM2 regions" }
+        Napier.d(tag = LOG_TAG) {
+            "getEnrichedCountries: Mapped ${adm1Regions.size} ADM1 regions, ${adm2Regions.size} ADM2 regions"
+        }
 
         geoBoundaryMapper.linkAdm2ToAdm1(adm1Regions, adm2Regions)
         Napier.d(tag = LOG_TAG) { "getEnrichedCountries: Completed - linked ADM2 to ADM1" }
@@ -70,7 +72,9 @@ class GeoBoundaryRepository(
 
         regions.mapIndexed { index, adm1 ->
             async {
-                Napier.d(tag = LOG_TAG) { "getEnrichedAllAdmins: [${index + 1}/${regions.size}] ${adm1.name} - start (${adm1.children.size} ADM2 regions)" }
+                Napier.d(tag = LOG_TAG) {
+                    "getEnrichedAllAdmins: [${index + 1}/${regions.size}] ${adm1.name} - start (${adm1.children.size} ADM2 regions)"
+                }
 
                 val overpassElements = runCatching { getAdmins(adm1.name) }
                     .onFailure { Napier.w(tag = LOG_TAG, throwable = it) { "getEnrichedAllAdmins: [${adm1.name}] Overpass fetch failed" } }
@@ -91,12 +95,14 @@ class GeoBoundaryRepository(
                         polygons = emptyList(),
                         thumbnailUrl = suspendRunCatching {
                             it.tags.wikipedia?.let { wikipedia -> getThumbnailUrl(wikipedia) }
-                        }.getOrNull()
+                        }.getOrNull(),
                     )
                 }
 
                 val matchedElements = geoBoundaryMapper.matchAdm2WithOverpass(adm1.children, overpassElements)
-                Napier.d(tag = LOG_TAG) { "getEnrichedAllAdmins: [${adm1.name}] Matched ${matchedElements.size}/${adm1.children.size} with Overpass" }
+                Napier.d(tag = LOG_TAG) {
+                    "getEnrichedAllAdmins: [${adm1.name}] Matched ${matchedElements.size}/${adm1.children.size} with Overpass"
+                }
 
                 val geoRegions = adm1.children
                     .map { adm2 ->
@@ -129,7 +135,9 @@ class GeoBoundaryRepository(
                 }.awaitAll()
 
                 val successfulThumbnails = thumbnails.count { it != null }
-                Napier.d(tag = LOG_TAG) { "getEnrichedAllAdmins: [${adm1.name}] Fetched $successfulThumbnails/$regionsWithWikipedia thumbnails" }
+                Napier.d(tag = LOG_TAG) {
+                    "getEnrichedAllAdmins: [${adm1.name}] Fetched $successfulThumbnails/$regionsWithWikipedia thumbnails"
+                }
 
                 val enrichedWithThumbnails = geoRegions.mapIndexed { idx, region ->
                     region.copy(thumbnailUrl = thumbnails.getOrNull(idx))
@@ -157,4 +165,3 @@ class GeoBoundaryRepository(
         private const val LOG_TAG = "GeoBoundaryRepository"
     }
 }
-

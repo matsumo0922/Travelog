@@ -1,4 +1,4 @@
-package me.matsumo.zencall.core.ui.icon
+package me.matsumo.travelog.core.ui.icon
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.Color
@@ -16,10 +16,10 @@ val Icons.Filled.Apple: ImageVector
             defaultWidth = 24.dp,
             defaultHeight = 24.dp,
             viewportWidth = 24f,
-            viewportHeight = 24f
+            viewportHeight = 24f,
         ).apply {
             path(
-                fill = SolidColor(Color(0xFF000000))
+                fill = SolidColor(Color(0xFF000000)),
             ) {
                 moveTo(22f, 17.607f)
                 curveToRelative(-0.786f, 2.28f, -3.139f, 6.317f, -5.563f, 6.361f)
@@ -43,4 +43,3 @@ val Icons.Filled.Apple: ImageVector
     }
 
 private var icon: ImageVector? = null
-

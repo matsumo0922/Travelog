@@ -1,6 +1,5 @@
 package me.matsumo.travelog.core.model.geo
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -27,11 +26,11 @@ data class NominatimResult(
     @SerialName("place_rank")
     val placeRank: Int,
     @SerialName("type")
-    val type: String
+    val type: String,
 ) {
     val center: OverpassResult.Element.Coordinate
         get() = OverpassResult.Element.Coordinate(
             lat = lat.toDouble(),
-            lon = lon.toDouble()
+            lon = lon.toDouble(),
         )
 }

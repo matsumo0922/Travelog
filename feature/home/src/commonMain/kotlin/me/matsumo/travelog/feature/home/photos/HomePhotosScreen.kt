@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.collections.immutable.toImmutableList
 import me.matsumo.travelog.core.ui.component.GeoCanvasMap
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -19,11 +20,11 @@ internal fun HomePhotosScreen(
 
     Box(
         modifier = modifier,
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         GeoCanvasMap(
             modifier = Modifier.fillMaxSize(),
-            regions = regions,
+            regions = regions.toImmutableList(),
         )
     }
 }

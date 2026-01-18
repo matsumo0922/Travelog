@@ -1,4 +1,4 @@
-package me.matsumo.zencall.core.ui.icon
+package me.matsumo.travelog.core.ui.icon
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.Color
@@ -16,10 +16,10 @@ val Icons.Filled.Google: ImageVector
             defaultWidth = 800.dp,
             defaultHeight = 800.dp,
             viewportWidth = 262f,
-            viewportHeight = 262f
+            viewportHeight = 262f,
         ).apply {
             path(
-                fill = SolidColor(Color(0xFF4285F4))
+                fill = SolidColor(Color(0xFF4285F4)),
             ) {
                 moveTo(258.878f, 133.451f)
                 curveToRelative(0f, -10.734f, -0.871f, -18.567f, -2.756f, -26.69f)
@@ -33,7 +33,7 @@ val Icons.Filled.Google: ImageVector
                 curveToRelative(24.659f, -22.774f, 38.875f, -56.282f, 38.875f, -96.027f)
             }
             path(
-                fill = SolidColor(Color(0xFF34A853))
+                fill = SolidColor(Color(0xFF34A853)),
             ) {
                 moveTo(133.55f, 261.1f)
                 curveToRelative(35.248f, 0f, 64.839f, -11.605f, 86.453f, -31.622f)
@@ -46,7 +46,7 @@ val Icons.Filled.Google: ImageVector
                 curveTo(38.393f, 231.798f, 82.49f, 261.1f, 133.55f, 261.1f)
             }
             path(
-                fill = SolidColor(Color(0xFFFBBC05))
+                fill = SolidColor(Color(0xFFFBBC05)),
             ) {
                 moveTo(59.281f, 156.37f)
                 curveToRelative(-2.756f, -8.123f, -4.351f, -16.827f, -4.351f, -25.82f)
@@ -59,7 +59,7 @@ val Icons.Filled.Google: ImageVector
                 lineToRelative(42.356f, -32.782f)
             }
             path(
-                fill = SolidColor(Color(0xFFEB4335))
+                fill = SolidColor(Color(0xFFEB4335)),
             ) {
                 moveTo(133.55f, 50.479f)
                 curveToRelative(24.514f, 0f, 41.05f, 10.589f, 50.479f, 19.438f)
@@ -75,4 +75,3 @@ val Icons.Filled.Google: ImageVector
     }
 
 private var icon: ImageVector? = null
-
