@@ -14,6 +14,12 @@ sealed interface Destination : NavKey {
     data object Home : Destination
 
     @Serializable
+    data object CountrySelect : Destination
+
+    @Serializable
+    data object MapCreate : Destination
+
+    @Serializable
     data object Login : Destination
 
     @Serializable
@@ -30,6 +36,8 @@ sealed interface Destination : NavKey {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
                     subclass(Home::class, Home.serializer())
+                    subclass(CountrySelect::class, CountrySelect.serializer())
+                    subclass(MapCreate::class, MapCreate.serializer())
                     subclass(Login::class, Login.serializer())
                     subclass(Setting.Root::class, Setting.Root.serializer())
                     subclass(Setting.License::class, Setting.License.serializer())
