@@ -8,7 +8,7 @@ import me.matsumo.travelog.core.ui.screen.Destination
 
 fun EntryProviderScope<NavKey>.countrySelectEntry() {
     entry<Destination.CountrySelect> {
-        CountrySelectScreen(
+        CountrySelectRoute(
             modifier = Modifier.fillMaxSize(),
         )
     }

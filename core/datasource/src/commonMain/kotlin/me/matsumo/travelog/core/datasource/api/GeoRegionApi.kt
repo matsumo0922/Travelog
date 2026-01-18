@@ -3,11 +3,14 @@ package me.matsumo.travelog.core.datasource.api
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import me.matsumo.travelog.core.model.dto.GeoRegionDTO
 import me.matsumo.travelog.core.model.dto.GeoRegionGroupDTO
 import me.matsumo.travelog.core.model.geo.GeoRegionGroup
@@ -60,6 +63,13 @@ class GeoRegionApi internal constructor(
                 order("name", Order.ASCENDING)
             }
             .decodeList()
+
+    suspend fun fetchDistinctAdmGroups(): List<String> =
+        supabaseClient.from(GROUP_TABLE_NAME)
+            .select(columns = Columns.list("adm_group"))
+            .decodeList<JsonObject>()
+            .mapNotNull { it["adm_group"]?.jsonPrimitive?.content }
+            .distinct()
 
     private fun buildRegionsPayload(enriched: GeoRegionGroup): JsonArray =
         JsonArray(

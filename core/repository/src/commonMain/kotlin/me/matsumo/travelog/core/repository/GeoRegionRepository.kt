@@ -91,4 +91,13 @@ class GeoRegionRepository(
             getEnrichedRegionsByAdmId(admId)
         }
     }
+
+    /**
+     * Fetch all available country codes (adm_group) from the database.
+     *
+     * @return List of unique country codes
+     */
+    suspend fun getAvailableCountryCodes(): List<String> {
+        return geoRegionApi.fetchDistinctAdmGroups()
+    }
 }

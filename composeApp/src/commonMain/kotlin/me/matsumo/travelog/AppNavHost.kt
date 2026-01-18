@@ -10,6 +10,7 @@ import me.matsumo.travelog.core.ui.animation.NavigationTransitions
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.home.homeEntry
+import me.matsumo.travelog.feature.home.select.countrySelectEntry
 import me.matsumo.travelog.feature.login.loginEntry
 import me.matsumo.travelog.feature.setting.oss.settingLicenseEntry
 import me.matsumo.travelog.feature.setting.settingEntry
@@ -30,6 +31,7 @@ internal fun AppNavHost(
             entryProvider = entryProvider {
                 homeEntry()
                 loginEntry()
+                countrySelectEntry()
                 settingEntry()
                 settingLicenseEntry()
             },
