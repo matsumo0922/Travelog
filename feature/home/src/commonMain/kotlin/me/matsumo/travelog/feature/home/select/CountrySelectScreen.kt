@@ -18,7 +18,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 internal fun CountrySelectRoute(
     modifier: Modifier = Modifier,
-    viewModel: CountrySelectViewModel = koinViewModel()
+    viewModel: CountrySelectViewModel = koinViewModel(),
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 

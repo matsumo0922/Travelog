@@ -2,8 +2,7 @@ package me.matsumo.travelog.core.repository
 
 import me.matsumo.travelog.core.datasource.api.GeoRegionApi
 import me.matsumo.travelog.core.datasource.helper.GeoRegionMapper
-import me.matsumo.travelog.core.model.dto.GeoRegionDTO
-import me.matsumo.travelog.core.model.dto.GeoRegionGroupDTO
+import me.matsumo.travelog.core.model.geo.GeoRegion
 import me.matsumo.travelog.core.model.geo.GeoRegionGroup
 
 /**
@@ -30,30 +29,35 @@ class GeoRegionRepository(
      * Fetch a region group by ADM1 ID.
      *
      * @param admId The ADM1 identifier
-     * @return GeoRegionGroupDTO if found, null otherwise
+     * @return GeoRegionGroup if found, null otherwise (regions is empty list)
      */
-    suspend fun getRegionGroupByAdmId(admId: String): GeoRegionGroupDTO? {
-        return geoRegionApi.fetchGroupByAdmId(admId)
+    suspend fun getRegionGroupByAdmId(admId: String): GeoRegionGroup? {
+        val dto = geoRegionApi.fetchGroupByAdmId(admId) ?: return null
+        return geoRegionMapper.toDomainWithoutRegions(dto)
     }
 
     /**
      * Fetch all region groups by group code.
      *
      * @param groupCode The group code
-     * @return List of GeoRegionGroupDTO
+     * @return List of GeoRegionGroup (each group's regions is empty list)
      */
-    suspend fun getGroupsByGroupCode(groupCode: String): List<GeoRegionGroupDTO> {
-        return geoRegionApi.fetchGroupsByGroupCode(groupCode)
+    suspend fun getGroupsByGroupCode(groupCode: String): List<GeoRegionGroup> {
+        return geoRegionApi.fetchGroupsByGroupCode(groupCode).map { dto ->
+            geoRegionMapper.toDomainWithoutRegions(dto)
+        }
     }
 
     /**
      * Fetch all regions belonging to a specific group.
      *
      * @param groupId The group identifier (UUID)
-     * @return List of GeoRegionDTO
+     * @return List of GeoRegion
      */
-    suspend fun getRegionsByGroupId(groupId: String): List<GeoRegionDTO> {
-        return geoRegionApi.fetchRegionsByGroupId(groupId)
+    suspend fun getRegionsByGroupId(groupId: String): List<GeoRegion> {
+        return geoRegionApi.fetchRegionsByGroupId(groupId).map { dto ->
+            geoRegionMapper.toDomainRegion(dto)
+        }
     }
 
     /**
