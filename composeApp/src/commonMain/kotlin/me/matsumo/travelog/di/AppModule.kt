@@ -16,14 +16,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import me.matsumo.travelog.BuildKonfig
+import me.matsumo.travelog.MainViewModel
 import me.matsumo.travelog.core.common.formatter
 import me.matsumo.travelog.core.model.AppConfig
 import me.matsumo.travelog.core.model.Platform
 import me.matsumo.travelog.core.model.currentPlatform
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val appModule = module {
+    viewModelOf(::MainViewModel)
+
     single<CoroutineDispatcher> {
         Dispatchers.IO.limitedParallelism(24)
     }

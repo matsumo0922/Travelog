@@ -34,5 +34,9 @@ sealed interface Destination : NavKey {
                 }
             }
         }
+
+        fun initialDestination(isAuthenticated: Boolean): Destination {
+            return if (isAuthenticated) Home else Login
+        }
     }
 }

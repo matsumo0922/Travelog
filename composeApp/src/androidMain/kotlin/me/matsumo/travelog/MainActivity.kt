@@ -18,7 +18,8 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.handleDeeplinks
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.init
-import me.matsumo.travelog.core.model.Theme
+import me.matsumo.travelog.core.ui.screen.Destination
+import me.matsumo.travelog.core.ui.state.AppStartupState
 import me.matsumo.travelog.core.ui.theme.shouldUseDarkTheme
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -36,28 +37,38 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            val userData by viewModel.setting.collectAsStateWithLifecycle(null)
-            val isSystemInDarkTheme = shouldUseDarkTheme(userData?.theme ?: Theme.System)
+            val startupState by viewModel.startupState.collectAsStateWithLifecycle()
 
-            val lightScrim = Color.argb(0xe6, 0xFF, 0xFF, 0xFF)
-            val darkScrim = Color.argb(0x80, 0x1b, 0x1b, 0x1b)
-
-            DisposableEffect(isSystemInDarkTheme) {
-                enableEdgeToEdge(
-                    statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { isSystemInDarkTheme },
-                    navigationBarStyle = SystemBarStyle.auto(lightScrim, darkScrim) { isSystemInDarkTheme },
-                )
-                onDispose {}
+            splashScreen.setKeepOnScreenCondition {
+                startupState is AppStartupState.Loading
             }
 
-            userData?.let {
-                TravelogApp(
-                    modifier = Modifier.fillMaxSize(),
-                    setting = it,
-                )
-            }
+            when (val state = startupState) {
+                is AppStartupState.Loading -> {
+                    // Splash表示中
+                }
 
-            splashScreen.setKeepOnScreenCondition { userData == null }
+                is AppStartupState.Ready -> {
+                    val isSystemInDarkTheme = shouldUseDarkTheme(state.setting.theme)
+
+                    val lightScrim = Color.argb(0xe6, 0xFF, 0xFF, 0xFF)
+                    val darkScrim = Color.argb(0x80, 0x1b, 0x1b, 0x1b)
+
+                    DisposableEffect(isSystemInDarkTheme) {
+                        enableEdgeToEdge(
+                            statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { isSystemInDarkTheme },
+                            navigationBarStyle = SystemBarStyle.auto(lightScrim, darkScrim) { isSystemInDarkTheme },
+                        )
+                        onDispose {}
+                    }
+
+                    TravelogApp(
+                        modifier = Modifier.fillMaxSize(),
+                        setting = state.setting,
+                        initialDestination = Destination.initialDestination(state.isAuthenticated),
+                    )
+                }
+            }
         }
 
         FileKit.init(this)

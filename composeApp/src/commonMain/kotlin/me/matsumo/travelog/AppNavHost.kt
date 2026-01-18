@@ -16,8 +16,9 @@ import me.matsumo.travelog.feature.setting.settingEntry
 @Composable
 internal fun AppNavHost(
     modifier: Modifier = Modifier,
+    initialDestination: Destination = Destination.Home,
 ) {
-    val navBackStack = rememberNavBackStack(Destination.config, Destination.Home)
+    val navBackStack = rememberNavBackStack(Destination.config, initialDestination)
 
     CompositionLocalProvider(
         LocalNavBackStack provides navBackStack,

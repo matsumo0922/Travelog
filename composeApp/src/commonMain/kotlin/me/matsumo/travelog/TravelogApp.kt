@@ -7,17 +7,22 @@ import coil3.compose.setSingletonImageLoaderFactory
 import coil3.svg.SvgDecoder
 import io.github.vinceglb.filekit.coil.addPlatformFileSupport
 import me.matsumo.travelog.core.model.AppSetting
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.TravelogTheme
 
 @Composable
 internal fun TravelogApp(
     setting: AppSetting,
+    initialDestination: Destination,
     modifier: Modifier = Modifier,
 ) {
     SetupCoil()
 
     TravelogTheme(setting) {
-        AppNavHost(modifier)
+        AppNavHost(
+            modifier = modifier,
+            initialDestination = initialDestination,
+        )
     }
 }
 
