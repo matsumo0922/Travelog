@@ -23,9 +23,9 @@ import me.matsumo.travelog.core.ui.theme.semiBold
 
 @Composable
 internal fun RegionSelectItem(
-    modifier: Modifier = Modifier,
     group: GeoRegionGroup,
     onSelected: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val isJapanese = Locale.current.language == "ja"
 

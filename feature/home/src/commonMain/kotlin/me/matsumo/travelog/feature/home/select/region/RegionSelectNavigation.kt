@@ -10,7 +10,7 @@ fun EntryProviderScope<NavKey>.regionSelectEntry() {
     entry<Destination.RegionSelect> {
         RegionSelectRoute(
             modifier = Modifier.fillMaxSize(),
-            selectedCountryCode3 = it.selectedCountryCode3
+            selectedCountryCode3 = it.selectedCountryCode3,
         )
     }
 }

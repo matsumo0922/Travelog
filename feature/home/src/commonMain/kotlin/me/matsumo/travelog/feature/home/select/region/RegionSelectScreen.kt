@@ -46,7 +46,7 @@ internal fun RegionSelectRoute(
         key = selectedCountryCode3,
     ) {
         parametersOf(selectedCountryCode3)
-    }
+    },
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
@@ -80,7 +80,7 @@ private fun RegionSelectScreen(
                 onBackClicked = { navBackStack.removeLastOrNull() },
                 scrollBehavior = scrollBehavior,
             )
-        }
+        },
     ) { contentPadding ->
         LazyVerticalGrid(
             modifier = Modifier.fillMaxSize(),
@@ -103,7 +103,7 @@ private fun RegionSelectScreen(
                         .clip(RoundedCornerShape(16.dp))
                         .fillMaxWidth(),
                     supportedRegion = region,
-                    onSelected = { }
+                    onSelected = { },
                 )
             }
 
@@ -125,7 +125,7 @@ private fun RegionSelectScreen(
                 RegionSelectItem(
                     modifier = Modifier.fillMaxWidth(),
                     group = group,
-                    onSelected = { }
+                    onSelected = { },
                 )
             }
         }

@@ -39,5 +39,5 @@ data class SupportedRegion(
 @Stable
 data class Region(
     val supportedRegion: SupportedRegion,
-    val groups: List<GeoRegionGroup>
+    val groups: List<GeoRegionGroup>,
 )

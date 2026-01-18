@@ -31,7 +31,7 @@ class RegionSelectViewModel(
                     region = selectedRegion,
                     groups = geoRegionRepository.getGroupsByGroupCode(selectedRegion.code3)
                         .sortedBy { it.admISO }
-                        .toImmutableList()
+                        .toImmutableList(),
                 )
             }.fold(
                 onSuccess = { ScreenState.Idle(it) },

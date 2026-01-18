@@ -67,7 +67,7 @@ internal fun CountrySelectScreen(
                         .clip(shape)
                         .fillMaxWidth(),
                     supportedRegion = region,
-                    onSelected = { navBackStack.add(Destination.RegionSelect(it.code3)) }
+                    onSelected = { navBackStack.add(Destination.RegionSelect(it.code3)) },
                 )
             }
         }

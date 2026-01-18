@@ -19,7 +19,7 @@ internal fun CountrySelectBottomBar(
     Button(
         modifier = modifier,
         onClick = onClick,
-        contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight)
+        contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
     ) {
         Text(
             text = stringResource(Res.string.home_map_create),

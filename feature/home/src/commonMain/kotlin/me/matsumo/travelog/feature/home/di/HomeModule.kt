@@ -17,7 +17,7 @@ val homeModule = module {
     viewModel { extras ->
         RegionSelectViewModel(
             selectedRegion = SupportedRegion.all.first { it.code3 == extras.get<String>() },
-            geoRegionRepository = get()
+            geoRegionRepository = get(),
         )
     }
 }
