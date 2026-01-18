@@ -42,6 +42,7 @@ import me.matsumo.travelog.core.resource.account_auth_error
 import me.matsumo.travelog.core.resource.account_auth_success
 import me.matsumo.travelog.core.resource.app_name
 import me.matsumo.travelog.core.resource.error_network
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.screen.view.LoadingView
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.theme.center
@@ -86,6 +87,10 @@ internal fun LoginRoute(
     LaunchedEffect(Unit) {
         viewModel.authenticatedTrigger.collect {
             navBackStack.removeLastOrNull()
+
+            if (navBackStack.isEmpty()) {
+                navBackStack.add(Destination.Home)
+            }
         }
     }
 
