@@ -29,7 +29,9 @@ class RegionSelectViewModel(
             _screenState.value = suspendRunCatching {
                 RegionSelectUiState(
                     region = selectedRegion,
-                    groups = geoRegionRepository.getGroupsByGroupCode(selectedRegion.code3).toImmutableList()
+                    groups = geoRegionRepository.getGroupsByGroupCode(selectedRegion.code3)
+                        .sortedBy { it.admISO }
+                        .toImmutableList()
                 )
             }.fold(
                 onSuccess = { ScreenState.Idle(it) },

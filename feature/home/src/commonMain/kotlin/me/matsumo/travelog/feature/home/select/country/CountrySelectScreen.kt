@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import me.matsumo.travelog.core.model.SupportedRegion
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
 import me.matsumo.travelog.feature.home.select.country.component.CountrySelectItem
@@ -66,7 +67,7 @@ internal fun CountrySelectScreen(
                         .clip(shape)
                         .fillMaxWidth(),
                     supportedRegion = region,
-                    onSelected = {}
+                    onSelected = { navBackStack.add(Destination.RegionSelect(it.code3)) }
                 )
             }
         }
