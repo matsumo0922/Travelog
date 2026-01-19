@@ -6,6 +6,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
 import me.matsumo.travelog.core.datasource.NominatimDataSource
@@ -165,23 +167,38 @@ class GeoBoundaryRepository(
 
     fun getEnrichedAllAdminsAsFlow(
         regions: List<GeoBoundaryMapper.Adm1Region>,
+        maxConcurrent: Int = 3,
     ): Flow<Pair<Int, Result<GeoRegionGroup>>> = flow {
-        Napier.d(tag = LOG_TAG) { "getEnrichedAllAdminsAsFlow: Start - processing ${regions.size} ADM1 regions sequentially" }
+        Napier.d(tag = LOG_TAG) {
+            "getEnrichedAllAdminsAsFlow: Processing ${regions.size} regions with concurrency=$maxConcurrent"
+        }
 
-        regions.forEachIndexed { index, adm1 ->
-            Napier.d(tag = LOG_TAG) {
-                "getEnrichedAllAdminsAsFlow: [${index + 1}/${regions.size}] ${adm1.name} - start"
+        val semaphore = Semaphore(maxConcurrent)
+
+        coroutineScope {
+            val deferredResults = regions.mapIndexed { index, adm1 ->
+                async {
+                    semaphore.withPermit {
+                        Napier.d(tag = LOG_TAG) {
+                            "getEnrichedAllAdminsAsFlow: [${index + 1}/${regions.size}] ${adm1.name} - start"
+                        }
+
+                        val result = runCatching { processAdm1Region(adm1, index, regions.size) }
+
+                        result.onSuccess {
+                            Napier.d(tag = LOG_TAG) { "getEnrichedAllAdminsAsFlow: [${adm1.name}] Completed successfully" }
+                        }.onFailure { e ->
+                            Napier.e(tag = LOG_TAG, throwable = e) { "getEnrichedAllAdminsAsFlow: [${adm1.name}] Failed" }
+                        }
+
+                        index to result
+                    }
+                }
             }
 
-            val result = runCatching { processAdm1Region(adm1, index, regions.size) }
-
-            result.onSuccess {
-                Napier.d(tag = LOG_TAG) { "getEnrichedAllAdminsAsFlow: [${adm1.name}] Completed successfully" }
-            }.onFailure { e ->
-                Napier.e(tag = LOG_TAG, throwable = e) { "getEnrichedAllAdminsAsFlow: [${adm1.name}] Failed" }
+            deferredResults.forEach { deferred ->
+                emit(deferred.await())
             }
-
-            emit(index to result)
         }
 
         Napier.d(tag = LOG_TAG) { "getEnrichedAllAdminsAsFlow: Flow completed" }
