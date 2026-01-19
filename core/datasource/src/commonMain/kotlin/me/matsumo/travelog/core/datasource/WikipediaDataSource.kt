@@ -17,6 +17,6 @@ class WikipediaDataSource(
         val url = "https://$lang.wikipedia.org/api/rest_v1/page/summary/$title"
         val result = httpClient.get(url).body<WikipediaThumbnailResult>()
 
-        result.originalImage?.source ?: result.thumbnail?.source
+        result.thumbnail?.source ?: result.originalImage?.source
     }
 }

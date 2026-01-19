@@ -18,6 +18,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.compose.LocalPlatformContext
+import coil3.network.NetworkHeaders
+import coil3.network.httpHeaders
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import io.github.aakira.napier.Napier
 import me.matsumo.travelog.core.model.geo.GeoRegionGroup
 import me.matsumo.travelog.core.ui.theme.semiBold
 
@@ -44,7 +51,21 @@ internal fun RegionSelectItem(
                         .fillMaxWidth()
                         .aspectRatio(3 / 2f)
                         .background(MaterialTheme.colorScheme.surfaceVariant),
-                    model = group.thumbnailUrl,
+                    model = ImageRequest.Builder(LocalPlatformContext.current)
+                        .data(group.degradedThumbnailUrl)
+                        .crossfade(true)
+                        .httpHeaders(
+                            NetworkHeaders.Builder()
+                                .add("User-Agent", "Travelog/1.0 (Android; Compose Multiplatform)")
+                                .add("Referer", "https://ja.wikipedia.org/")
+                                .build()
+                        )
+                        .build(),
+                    onState = { state ->
+                        if (state is AsyncImagePainter.State.Error) {
+                            Napier.d { "Error loading region thumbnail: ${state.result}" }
+                        }
+                    },
                     contentScale = ContentScale.Crop,
                     contentDescription = null,
                 )
@@ -73,3 +94,4 @@ internal fun RegionSelectItem(
         }
     }
 }
+
