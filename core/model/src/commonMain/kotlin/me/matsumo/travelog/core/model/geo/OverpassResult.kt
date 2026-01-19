@@ -32,7 +32,7 @@ data class OverpassResult(
             @SerialName("boundary")
             val boundary: String?,
             @SerialName("name")
-            val name: String,
+            val name: String?,
             @SerialName("name:en")
             val nameEn: String?,
             @SerialName("name:ja")

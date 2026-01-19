@@ -4,6 +4,8 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
 import me.matsumo.travelog.core.datasource.NominatimDataSource
@@ -159,6 +161,120 @@ class GeoBoundaryRepository(
         }.awaitAll().also {
             Napier.d(tag = LOG_TAG) { "getEnrichedAllAdmins: Completed - processed ${it.size} ADM1 regions" }
         }
+    }
+
+    fun getEnrichedAllAdminsAsFlow(
+        regions: List<GeoBoundaryMapper.Adm1Region>,
+    ): Flow<Pair<Int, Result<GeoRegionGroup>>> = flow {
+        Napier.d(tag = LOG_TAG) { "getEnrichedAllAdminsAsFlow: Start - processing ${regions.size} ADM1 regions sequentially" }
+
+        regions.forEachIndexed { index, adm1 ->
+            Napier.d(tag = LOG_TAG) {
+                "getEnrichedAllAdminsAsFlow: [${index + 1}/${regions.size}] ${adm1.name} - start"
+            }
+
+            val result = runCatching { processAdm1Region(adm1, index, regions.size) }
+
+            result.onSuccess {
+                Napier.d(tag = LOG_TAG) { "getEnrichedAllAdminsAsFlow: [${adm1.name}] Completed successfully" }
+            }.onFailure { e ->
+                Napier.e(tag = LOG_TAG, throwable = e) { "getEnrichedAllAdminsAsFlow: [${adm1.name}] Failed" }
+            }
+
+            emit(index to result)
+        }
+
+        Napier.d(tag = LOG_TAG) { "getEnrichedAllAdminsAsFlow: Flow completed" }
+    }
+
+    private suspend fun processAdm1Region(
+        adm1: GeoBoundaryMapper.Adm1Region,
+        index: Int,
+        total: Int,
+    ): GeoRegionGroup = coroutineScope {
+        Napier.d(tag = LOG_TAG) {
+            "processAdm1Region: [${index + 1}/$total] ${adm1.name} - start (${adm1.children.size} ADM2 regions)"
+        }
+
+        val overpassElements = runCatching { getAdmins(adm1.name) }
+            .onFailure { Napier.w(tag = LOG_TAG, throwable = it) { "processAdm1Region: [${adm1.name}] Overpass fetch failed" } }
+            .getOrElse { emptyList() }
+            .toMutableList()
+
+        val adm1EnrichedRegion = overpassElements.find { it.type == "area" }?.let {
+            overpassElements.remove(it)
+
+            GeoRegion(
+                name = adm1.name,
+                adm2Id = "",
+                nameEn = it.tags.nameEn,
+                nameJa = it.tags.nameJa,
+                wikipedia = it.tags.wikipedia,
+                iso31662 = it.tags.iso31662,
+                center = OverpassResult.Element.Coordinate(0.0, 0.0),
+                polygons = emptyList(),
+                thumbnailUrl = suspendRunCatching {
+                    it.tags.wikipedia?.let { wikipedia -> getThumbnailUrl(wikipedia) }
+                }.getOrNull(),
+            )
+        }
+
+        val matchedElements = geoBoundaryMapper.matchAdm2WithOverpass(adm1.children, overpassElements)
+        Napier.d(tag = LOG_TAG) {
+            "processAdm1Region: [${adm1.name}] Matched ${matchedElements.size}/${adm1.children.size} with Overpass"
+        }
+
+        val geoRegions = adm1.children
+            .map { adm2 ->
+                val overpass = matchedElements[adm2.id]
+                val displayName = overpass?.tags?.name ?: adm2.name
+
+                GeoRegion(
+                    name = displayName,
+                    adm2Id = adm2.id,
+                    nameEn = overpass?.tags?.nameEn,
+                    nameJa = overpass?.tags?.nameJa,
+                    wikipedia = overpass?.tags?.wikipedia,
+                    iso31662 = overpass?.tags?.iso31662,
+                    center = adm2.center,
+                    polygons = adm2.polygons,
+                    thumbnailUrl = null,
+                )
+            }
+            .sortedBy { it.name }
+
+        val regionsWithWikipedia = geoRegions.count { !it.wikipedia.isNullOrBlank() }
+        val thumbnails = geoRegions.map { region ->
+            async {
+                region.wikipedia
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { wiki ->
+                        runCatching { getThumbnailUrl(wiki) }.getOrNull()
+                    }
+            }
+        }.awaitAll()
+
+        val successfulThumbnails = thumbnails.count { it != null }
+        Napier.d(tag = LOG_TAG) {
+            "processAdm1Region: [${adm1.name}] Fetched $successfulThumbnails/$regionsWithWikipedia thumbnails"
+        }
+
+        val enrichedWithThumbnails = geoRegions.mapIndexed { idx, region ->
+            region.copy(thumbnailUrl = thumbnails.getOrNull(idx))
+        }
+
+        GeoRegionGroup(
+            admId = adm1.id,
+            admName = adm1.name,
+            admGroup = adm1.group,
+            admISO = adm1.iso,
+            name = adm1EnrichedRegion?.name ?: adm1.name,
+            nameEn = adm1EnrichedRegion?.nameEn,
+            nameJa = adm1EnrichedRegion?.nameJa,
+            thumbnailUrl = adm1EnrichedRegion?.thumbnailUrl,
+            polygons = adm1.polygons,
+            regions = enrichedWithThumbnails,
+        )
     }
 
     companion object {

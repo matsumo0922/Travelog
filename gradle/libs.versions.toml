@@ -190,6 +190,7 @@ ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negoti
 ktor-server-resources = { module = "io.ktor:ktor-server-resources", version.ref = "ktor" }
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
 ktor-sever-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
+ktor-server-sse = { module = "io.ktor:ktor-server-sse", version.ref = "ktor" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 # Supabase
@@ -288,6 +289,7 @@ ktor-server = [
     "ktor-server-resources",
     "ktor-server-cors",
     "ktor-sever-call-logging",
+    "ktor-server-sse",
     "logback",
 ]
 

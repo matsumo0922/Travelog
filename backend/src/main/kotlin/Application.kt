@@ -8,10 +8,12 @@ import io.ktor.server.netty.EngineMain
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.resources.Resources
+import io.ktor.server.sse.SSE
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import route.geoJsonRoute
+import route.geoJsonStreamRoute
 import route.revisionRoute
 
 val logger = KtorSimpleLogger("matsumo-me-KMP")
@@ -37,6 +39,7 @@ fun Application.module() {
     }
     install(Resources)
     install(CallLogging)
+    install(SSE)
 
     initKoin()
     routes()
@@ -44,6 +47,7 @@ fun Application.module() {
 
 fun Application.routes() {
     geoJsonRoute()
+    geoJsonStreamRoute()
     revisionRoute()
 }
 

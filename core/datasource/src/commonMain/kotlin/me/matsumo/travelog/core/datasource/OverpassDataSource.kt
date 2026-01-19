@@ -4,11 +4,20 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import me.matsumo.travelog.core.common.retryWithBackoff
 import me.matsumo.travelog.core.model.geo.OverpassResult
+
+class ContentTypeException(
+    message: String,
+    val actualContentType: ContentType?,
+) : Exception(message)
 
 class OverpassDataSource(
     private val httpClient: HttpClient,
@@ -25,12 +34,32 @@ class OverpassDataSource(
              out tags center;
         """.trimIndent()
 
-        httpClient.post(BASE_URL) {
-            setBody(query)
-        }.body()
+        retryWithBackoff(
+            maxRetries = MAX_RETRIES,
+            initialDelayMs = INITIAL_DELAY_MS,
+            maxDelayMs = MAX_DELAY_MS,
+            retryIf = { it is ContentTypeException },
+        ) {
+            val response: HttpResponse = httpClient.post(BASE_URL) {
+                setBody(query)
+            }
+
+            val contentType = response.contentType()
+            if (contentType != null && !contentType.match(ContentType.Application.Json)) {
+                throw ContentTypeException(
+                    message = "Expected JSON but received $contentType from Overpass API",
+                    actualContentType = contentType,
+                )
+            }
+
+            response.body()
+        }
     }
 
     companion object {
         private const val BASE_URL = "https://overpass.kumi.systems/api/interpreter"
+        private const val MAX_RETRIES = 3
+        private const val INITIAL_DELAY_MS = 2000L
+        private const val MAX_DELAY_MS = 15000L
     }
 }
