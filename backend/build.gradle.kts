@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.bundles.infra)
     implementation(libs.bundles.koin.server)
     implementation(libs.bundles.ktor)
+    implementation(libs.ktor.server.html.builder)
 }
 
 tasks {
