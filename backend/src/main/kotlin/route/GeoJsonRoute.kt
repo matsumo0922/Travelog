@@ -25,27 +25,11 @@ import kotlinx.html.script
 import kotlinx.html.style
 import kotlinx.html.title
 import kotlinx.html.unsafe
+import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.core.model.geo.GeoJsonProgressEvent
 import me.matsumo.travelog.core.repository.GeoBoundaryRepository
 import me.matsumo.travelog.core.repository.GeoRegionRepository
 import org.koin.ktor.ext.inject
-
-private data class RegionInfo(
-    val code: String,
-    val name: String,
-    val subRegionCount: Int,
-)
-
-private val supportedRegions = listOf(
-    RegionInfo("JP", "Japan", 47),
-    RegionInfo("KR", "Korea", 17),
-    RegionInfo("TW", "Taiwan", 22),
-    RegionInfo("CN", "China", 34),
-    RegionInfo("US", "United States", 50),
-    RegionInfo("GB", "United Kingdom", 4),
-    RegionInfo("FR", "France", 18),
-    RegionInfo("DE", "Germany", 16),
-)
 
 fun Application.geoJsonRoute() {
     routing {
@@ -147,21 +131,21 @@ private fun HEAD.progressStyles() {
 // UI コンポーネント
 private fun BODY.regionList() {
     div(classes = "region-list") {
-        supportedRegions.forEach { region ->
+        SupportedRegion.all.forEach { region ->
             regionCard(region)
         }
     }
 }
 
-private fun DIV.regionCard(region: RegionInfo) {
-    a(href = "/geojson/${region.code}", classes = "region-card") {
+private fun DIV.regionCard(region: SupportedRegion) {
+    a(href = "/geojson/${region.code2}", classes = "region-card") {
         img(
-            src = "https://flagcdn.com/h240/${region.code.lowercase()}.webp",
-            alt = region.name,
+            src = region.flagUrl,
+            alt = region.nameEn,
             classes = "flag",
         )
         div(classes = "region-info") {
-            div(classes = "region-name") { +region.name }
+            div(classes = "region-name") { +region.nameEn }
             div(classes = "region-count") { +"${region.subRegionCount} regions" }
         }
     }
