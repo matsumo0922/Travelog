@@ -33,7 +33,7 @@ val dataSourceModule = module {
     single {
         HttpClient {
             install(Logging) {
-                level = KtorLogLevel.INFO
+                level = KtorLogLevel.NONE
                 logger = object : KtorLogger {
                     override fun log(message: String) {
                         Napier.d(message)

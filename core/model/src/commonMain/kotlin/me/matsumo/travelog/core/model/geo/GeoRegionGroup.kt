@@ -1,7 +1,6 @@
 package me.matsumo.travelog.core.model.geo
 
 import androidx.compose.runtime.Stable
-import io.ktor.http.encodeURLPath
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
@@ -35,16 +34,6 @@ data class GeoRegionGroup(
     @SerialName("regions")
     val regions: List<GeoRegion>,
 ) {
-    val degradedThumbnailUrl: String?
-        get() = thumbnailUrl?.let { original ->
-            val fileName = original.substringAfterLast('/')
-            val encodedFileName = fileName.encodeURLPath()
-            val pathPart = original
-                .replace("https://upload.wikimedia.org/wikipedia/commons/", "")
-
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/$pathPart/330px-$encodedFileName"
-        }
-
     fun getGeoJsonMultiPolygon() = buildJsonObject {
         put("type", JsonPrimitive("MultiPolygon"))
         put(

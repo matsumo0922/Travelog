@@ -52,13 +52,13 @@ internal fun RegionSelectItem(
                         .aspectRatio(3 / 2f)
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     model = ImageRequest.Builder(LocalPlatformContext.current)
-                        .data(group.degradedThumbnailUrl)
+                        .data(group.thumbnailUrl)
                         .crossfade(true)
                         .httpHeaders(
                             NetworkHeaders.Builder()
                                 .add("User-Agent", "Travelog/1.0 (Android; Compose Multiplatform)")
                                 .add("Referer", "https://ja.wikipedia.org/")
-                                .build()
+                                .build(),
                         )
                         .build(),
                     onState = { state ->
@@ -94,4 +94,3 @@ internal fun RegionSelectItem(
         }
     }
 }
-
