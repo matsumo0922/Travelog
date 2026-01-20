@@ -20,6 +20,7 @@ application {
     applicationDefaultJvmArgs = listOfNotNull(
         localProperties.getJvmArg("SUPABASE_URL"),
         localProperties.getJvmArg("SUPABASE_KEY"),
+        localProperties.getJvmArg("GEMINI_API_KEY"),
         localProperties.getJvmArg("PORT", defaultValue = "8080"),
         localProperties.getJvmArg("REVISION", defaultValue = "UNKNOWN"),
     )

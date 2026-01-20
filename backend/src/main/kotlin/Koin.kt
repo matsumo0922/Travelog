@@ -2,10 +2,14 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.serializer.KotlinXSerializer
+import io.ktor.client.HttpClient
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import me.matsumo.travelog.core.common.di.commonModule
+import me.matsumo.travelog.core.datasource.GeminiDataSource
+import me.matsumo.travelog.core.datasource.api.GeoAreaApi
 import me.matsumo.travelog.core.datasource.di.dataSourceModule
+import me.matsumo.travelog.core.repository.GeoNameEnrichmentRepository
 import me.matsumo.travelog.core.repository.di.repositoryModule
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
@@ -20,6 +24,8 @@ fun Application.initKoin() {
         install(Postgrest)
     }
 
+    val geminiApiKey = System.getenv("GEMINI_API_KEY") ?: ""
+
     install(Koin) {
         slf4jLogger()
 
@@ -30,6 +36,11 @@ fun Application.initKoin() {
             commonModule,
             dataSourceModule,
             repositoryModule,
+            // Backend-specific modules
+            module {
+                single { GeminiDataSource(get<HttpClient>(), geminiApiKey) }
+                single { GeoNameEnrichmentRepository(get<GeoAreaApi>(), get<GeminiDataSource>()) }
+            },
         )
     }
 }

@@ -168,6 +168,103 @@ class GeoAreaApi internal constructor(
     }
 
     /**
+     * Fetch areas with missing name_en or name_ja.
+     * @param countryCode The country code to filter by
+     * @param level The administrative level to filter by
+     * @param missingNameEn If true, returns areas where name_en is null
+     * @param missingNameJa If true, returns areas where name_ja is null
+     */
+    suspend fun fetchAreasWithMissingNames(
+        countryCode: String,
+        level: Int,
+        missingNameEn: Boolean = true,
+        missingNameJa: Boolean = true,
+    ): List<GeoAreaDTO> {
+        return supabaseClient.from(VIEW_NAME)
+            .select {
+                filter {
+                    eq("country_code", countryCode)
+                    eq("level", level)
+                    if (missingNameEn && missingNameJa) {
+                        or {
+                            exact("name_en", null)
+                            exact("name_ja", null)
+                        }
+                    } else if (missingNameEn) {
+                        exact("name_en", null)
+                    } else if (missingNameJa) {
+                        exact("name_ja", null)
+                    }
+                }
+            }
+            .decodeList()
+    }
+
+    /**
+     * Update name_en and name_ja for a specific area.
+     * @param areaId The UUID of the area to update
+     * @param nameEn The new English name (null to keep existing)
+     * @param nameJa The new Japanese name (null to keep existing)
+     */
+    suspend fun updateAreaNames(
+        areaId: String,
+        nameEn: String?,
+        nameJa: String?,
+    ) {
+        supabaseClient.from(TABLE_NAME)
+            .update(
+                buildJsonObject {
+                    nameEn?.let { put("name_en", JsonPrimitive(it)) }
+                    nameJa?.let { put("name_ja", JsonPrimitive(it)) }
+                },
+            ) {
+                filter { eq("id", areaId) }
+            }
+    }
+
+    /**
+     * Batch update names for multiple areas.
+     * @param updates List of pairs (areaId, nameEn, nameJa)
+     */
+    suspend fun updateAreaNamesBatch(updates: List<NameUpdateItem>) {
+        val payload = JsonArray(
+            updates.map { item ->
+                buildJsonObject {
+                    put("id", JsonPrimitive(item.areaId))
+                    item.nameEn?.let { put("name_en", JsonPrimitive(it)) }
+                    item.nameJa?.let { put("name_ja", JsonPrimitive(it)) }
+                }
+            },
+        )
+
+        supabaseClient.postgrest.rpc(
+            function = "update_geo_area_names_batch",
+            parameters = buildJsonObject {
+                put("p_updates", payload)
+            },
+        )
+    }
+
+    /**
+     * Get count of areas with missing names by country and level.
+     */
+    suspend fun getMissingNamesCount(countryCode: String, level: Int): MissingNamesCount {
+        val result = supabaseClient.postgrest.rpc(
+            function = "get_missing_names_count",
+            parameters = buildJsonObject {
+                put("p_country_code", JsonPrimitive(countryCode))
+                put("p_level", JsonPrimitive(level))
+            },
+        ).decodeAs<JsonObject>()
+
+        return MissingNamesCount(
+            total = result["total"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
+            missingNameEn = result["missing_name_en"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
+            missingNameJa = result["missing_name_ja"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
+        )
+    }
+
+    /**
      * Build params for single upsert RPC (requires p_ prefix for PostgREST function matching)
      */
     private fun buildAreaParams(area: GeoArea): JsonObject = buildJsonObject {
@@ -214,3 +311,21 @@ class GeoAreaApi internal constructor(
         private const val VIEW_NAME = "geo_areas_view"
     }
 }
+
+/**
+ * Data class for batch name update
+ */
+data class NameUpdateItem(
+    val areaId: String,
+    val nameEn: String?,
+    val nameJa: String?,
+)
+
+/**
+ * Data class for missing names count result
+ */
+data class MissingNamesCount(
+    val total: Int,
+    val missingNameEn: Int,
+    val missingNameJa: Int,
+)
