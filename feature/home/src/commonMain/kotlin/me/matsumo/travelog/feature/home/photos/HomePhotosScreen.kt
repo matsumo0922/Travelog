@@ -16,7 +16,7 @@ internal fun HomePhotosScreen(
     modifier: Modifier = Modifier,
     viewModel: HomePhotosViewModel = koinViewModel(),
 ) {
-    val regions by viewModel.regions.collectAsStateWithLifecycle()
+    val areas by viewModel.areas.collectAsStateWithLifecycle()
 
     Box(
         modifier = modifier,
@@ -24,7 +24,7 @@ internal fun HomePhotosScreen(
     ) {
         GeoCanvasMap(
             modifier = Modifier.fillMaxSize(),
-            regions = regions.toImmutableList(),
+            areas = areas.toImmutableList(),
         )
     }
 }

@@ -1,7 +1,7 @@
 package me.matsumo.travelog.core.model
 
 import androidx.compose.runtime.Stable
-import me.matsumo.travelog.core.model.geo.GeoRegionGroup
+import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.location_cn
 import me.matsumo.travelog.core.resource.location_de
@@ -40,5 +40,5 @@ data class SupportedRegion(
 @Stable
 data class Region(
     val supportedRegion: SupportedRegion,
-    val groups: List<GeoRegionGroup>,
+    val areas: List<GeoArea>,
 )

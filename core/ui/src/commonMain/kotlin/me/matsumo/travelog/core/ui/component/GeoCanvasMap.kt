@@ -16,14 +16,14 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import kotlinx.collections.immutable.ImmutableList
-import me.matsumo.travelog.core.model.geo.GeoRegion
+import me.matsumo.travelog.core.model.geo.GeoArea
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 
 /**
  * A Composable that displays enriched region polygons data with zoom and pan capabilities
  *
- * @param regions The region polygons to display
+ * @param areas The area polygons to display
  * @param modifier Modifier for the canvas
  * @param strokeColor Color for polygons borders
  * @param fillColor Color for polygons fill
@@ -31,7 +31,7 @@ import net.engawapg.lib.zoomable.zoomable
  */
 @Composable
 fun GeoCanvasMap(
-    regions: ImmutableList<GeoRegion>,
+    areas: ImmutableList<GeoArea>,
     modifier: Modifier = Modifier,
     strokeColor: Color = Color.Black,
     fillColor: Color = Color.Gray.copy(alpha = 0.3f),
@@ -40,9 +40,9 @@ fun GeoCanvasMap(
     val zoomState = rememberZoomState()
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
-    // Calculate bounding box from region polygons
-    val bounds = remember(regions) {
-        GeoJsonRenderer.calculateBounds(regions)
+    // Calculate bounding box from area polygons
+    val bounds = remember(areas) {
+        GeoJsonRenderer.calculateBounds(areas)
     }
 
     // Calculate viewport transform to maintain aspect ratio
@@ -59,13 +59,13 @@ fun GeoCanvasMap(
     }
 
     // Pre-compute paths for better performance
-    val paths by remember(regions, bounds, viewportTransform) {
+    val paths by remember(areas, bounds, viewportTransform) {
         derivedStateOf {
             if (bounds == null || viewportTransform == null) {
                 return@derivedStateOf emptyList()
             }
             GeoJsonRenderer.createPaths(
-                regions = regions,
+                areas = areas,
                 bounds = bounds,
                 transform = viewportTransform,
             )

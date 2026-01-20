@@ -5,9 +5,9 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.double
+import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.model.geo.GeoJsonData
 import me.matsumo.travelog.core.model.geo.GeoJsonGeometry
-import me.matsumo.travelog.core.model.geo.GeoRegion
 import me.matsumo.travelog.core.model.geo.PolygonWithHoles
 import kotlin.math.PI
 import kotlin.math.max
@@ -27,15 +27,15 @@ internal object GeoJsonRenderer {
         val latRange: Double get() = maxLat - minLat
     }
 
-    fun calculateBounds(regions: List<GeoRegion>): Bounds? {
+    fun calculateBounds(areas: List<GeoArea>): Bounds? {
         var minLon = Double.MAX_VALUE
         var maxLon = -Double.MAX_VALUE
         var minLat = Double.MAX_VALUE
         var maxLat = -Double.MAX_VALUE
         var hasCoordinates = false
 
-        regions.forEach { region ->
-            region.polygons.forEach { polygon ->
+        areas.forEach { area ->
+            area.polygons.forEach { polygon ->
                 polygon.forEach { ring ->
                     ring.forEach { coordinate ->
                         hasCoordinates = true
@@ -148,14 +148,14 @@ internal object GeoJsonRenderer {
     }
 
     fun createPaths(
-        regions: List<GeoRegion>,
+        areas: List<GeoArea>,
         bounds: Bounds,
         transform: ViewportTransform,
     ): List<Path> {
-        return regions.flatMap { region ->
-            if (region.polygons.isEmpty()) return@flatMap emptyList<Path>()
+        return areas.flatMap { area ->
+            if (area.polygons.isEmpty()) return@flatMap emptyList<Path>()
 
-            region.polygons.map { polygon ->
+            area.polygons.map { polygon ->
                 createPolygonPath(polygon.toLonLatPairs(), bounds, transform)
             }
         }

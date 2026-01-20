@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
 import me.matsumo.travelog.core.model.SupportedRegion
-import me.matsumo.travelog.core.model.geo.GeoRegionGroup
+import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.home_map_area
 import me.matsumo.travelog.core.resource.home_map_region
@@ -59,7 +59,7 @@ internal fun RegionSelectRoute(
         RegionSelectScreen(
             modifier = Modifier.fillMaxSize(),
             region = it.region,
-            groups = it.groups,
+            areas = it.areas,
         )
     }
 }
@@ -68,7 +68,7 @@ internal fun RegionSelectRoute(
 @Composable
 private fun RegionSelectScreen(
     region: SupportedRegion,
-    groups: ImmutableList<GeoRegionGroup>,
+    areas: ImmutableList<GeoArea>,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
@@ -128,17 +128,17 @@ private fun RegionSelectScreen(
             }
 
             items(
-                items = groups,
-                key = { group -> group.admId },
-            ) { group ->
+                items = areas,
+                key = { area -> area.admId },
+            ) { area ->
                 RegionSelectItem(
                     modifier = Modifier.fillMaxWidth(),
-                    group = group,
+                    area = area,
                     onSelected = {
                         navBackStack.add(
                             Destination.MapCreate(
                                 selectedCountryCode3 = region.code3,
-                                selectedGroupAdmId = group.admId,
+                                selectedGroupAdmId = area.admId,
                             ),
                         )
                     },

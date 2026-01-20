@@ -1,9 +1,9 @@
 package me.matsumo.travelog.core.repository.di
 
 import me.matsumo.travelog.core.repository.AppSettingRepository
+import me.matsumo.travelog.core.repository.GeoAreaRepository
 import me.matsumo.travelog.core.repository.GeoBoundaryMapper
 import me.matsumo.travelog.core.repository.GeoBoundaryRepository
-import me.matsumo.travelog.core.repository.GeoRegionRepository
 import me.matsumo.travelog.core.repository.ImageCommentRepository
 import me.matsumo.travelog.core.repository.ImageRepository
 import me.matsumo.travelog.core.repository.MapRegionRepository
@@ -17,7 +17,7 @@ val repositoryModule = module {
     singleOf(::AppSettingRepository)
     singleOf(::GeoBoundaryMapper)
     singleOf(::GeoBoundaryRepository)
-    singleOf(::GeoRegionRepository)
+    singleOf(::GeoAreaRepository)
     singleOf(::SessionRepository)
     singleOf(::UserRepository)
     singleOf(::MapRepository)

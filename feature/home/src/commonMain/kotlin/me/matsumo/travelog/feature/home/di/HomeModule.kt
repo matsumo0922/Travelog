@@ -18,15 +18,15 @@ val homeModule = module {
     viewModel { extras ->
         RegionSelectViewModel(
             selectedRegion = SupportedRegion.all.first { it.code3 == extras.get<String>() },
-            geoRegionRepository = get(),
+            geoAreaRepository = get(),
         )
     }
 
     viewModel { extras ->
         MapCreateViewModel(
             selectedRegion = SupportedRegion.all.first { it.code3 == extras[0] },
-            selectedGroupAdmId = extras.values.getOrNull(1) as? String,
-            geoRegionRepository = get(),
+            selectedAreaAdmId = extras.values.getOrNull(1) as? String,
+            geoAreaRepository = get(),
         )
     }
 }

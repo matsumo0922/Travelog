@@ -27,8 +27,8 @@ import kotlinx.html.title
 import kotlinx.html.unsafe
 import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.core.model.geo.GeoJsonProgressEvent
+import me.matsumo.travelog.core.repository.GeoAreaRepository
 import me.matsumo.travelog.core.repository.GeoBoundaryRepository
-import me.matsumo.travelog.core.repository.GeoRegionRepository
 import org.koin.ktor.ext.inject
 
 fun Application.geoJsonRoute() {
@@ -233,7 +233,7 @@ private fun BODY.progressScript(country: String) {
 
 fun Application.geoJsonStreamRoute() {
     val geoBoundaryRepository by inject<GeoBoundaryRepository>()
-    val geoRegionRepository by inject<GeoRegionRepository>()
+    val geoAreaRepository by inject<GeoAreaRepository>()
 
     routing {
         sse("/geojson/{country}/stream") {
@@ -245,50 +245,100 @@ fun Application.geoJsonStreamRoute() {
             }
 
             try {
+                // Get ADM0 (country) polygon first
+                val supportedRegion = SupportedRegion.all.find { it.code2 == country }
+                val countryInfo = supportedRegion?.let {
+                    GeoBoundaryRepository.CountryInfo(
+                        name = it.nameEn,
+                        nameEn = it.nameEn,
+                        nameJa = null, // TODO: Add nameJa to SupportedRegion if needed
+                        wikipedia = null,
+                        thumbnailUrl = it.flagUrl,
+                    )
+                }
+                val countryArea = geoBoundaryRepository.getCountryArea(country, countryInfo)
+
+                // Get ADM1 regions
                 val regions = geoBoundaryRepository.getEnrichedCountries(country)
 
-                val startedEvent = GeoJsonProgressEvent.Started(totalRegions = regions.size)
+                // Total = 1 (country) + ADM1 regions
+                val startedEvent = GeoJsonProgressEvent.Started(totalRegions = regions.size + 1)
                 send(ServerSentEvent(data = formatter.encodeToString(startedEvent), event = "progress"))
 
                 var successCount = 0
                 var failCount = 0
 
-                geoBoundaryRepository.getEnrichedAllAdminsAsFlow(regions).collect { (index, result) ->
-                    result
-                        .onSuccess { group ->
-                            runCatching { geoRegionRepository.upsertRegionGroup(group) }
-                                .onSuccess {
-                                    successCount++
-                                    val event = GeoJsonProgressEvent.RegionCompleted(
-                                        index = index,
-                                        regionName = group.admName,
-                                        success = true,
-                                    )
-                                    send(ServerSentEvent(data = formatter.encodeToString(event), event = "progress"))
+                // First, upsert the country (ADM0)
+                runCatching { geoAreaRepository.upsertArea(countryArea) }
+                    .onSuccess { countryId ->
+                        successCount++
+                        val event = GeoJsonProgressEvent.RegionCompleted(
+                            index = 0,
+                            regionName = countryArea.name,
+                            success = true,
+                        )
+                        send(ServerSentEvent(data = formatter.encodeToString(event), event = "progress"))
+
+                        // Process ADM1 regions
+                        geoBoundaryRepository.getEnrichedAllAdminsAsFlow(country, regions).collect { (index, result) ->
+                            result
+                                .onSuccess { adm1GeoArea ->
+                                    // Set parent to country
+                                    val areaWithParent = adm1GeoArea.copy(parentId = countryId)
+
+                                    runCatching {
+                                        // Upsert ADM1
+                                        val adm1Id = geoAreaRepository.upsertArea(areaWithParent)
+
+                                        // Upsert ADM2 children with ADM1 as parent
+                                        if (adm1GeoArea.children.isNotEmpty()) {
+                                            val adm2WithParent = adm1GeoArea.children.map { it.copy(parentId = adm1Id) }
+                                            geoAreaRepository.upsertAreasBatch(adm2WithParent)
+                                        }
+                                    }
+                                        .onSuccess {
+                                            successCount++
+                                            val event = GeoJsonProgressEvent.RegionCompleted(
+                                                index = index + 1, // +1 because country is index 0
+                                                regionName = adm1GeoArea.name,
+                                                success = true,
+                                            )
+                                            send(ServerSentEvent(data = formatter.encodeToString(event), event = "progress"))
+                                        }
+                                        .onFailure { e ->
+                                            failCount++
+                                            val event = GeoJsonProgressEvent.RegionCompleted(
+                                                index = index + 1,
+                                                regionName = adm1GeoArea.name,
+                                                success = false,
+                                                errorMessage = e.message,
+                                            )
+                                            send(ServerSentEvent(data = formatter.encodeToString(event), event = "progress"))
+                                        }
                                 }
                                 .onFailure { e ->
                                     failCount++
+                                    val regionName = regions.getOrNull(index)?.name ?: "Unknown"
                                     val event = GeoJsonProgressEvent.RegionCompleted(
-                                        index = index,
-                                        regionName = group.admName,
+                                        index = index + 1,
+                                        regionName = regionName,
                                         success = false,
                                         errorMessage = e.message,
                                     )
                                     send(ServerSentEvent(data = formatter.encodeToString(event), event = "progress"))
                                 }
                         }
-                        .onFailure { e ->
-                            failCount++
-                            val regionName = regions.getOrNull(index)?.name ?: "Unknown"
-                            val event = GeoJsonProgressEvent.RegionCompleted(
-                                index = index,
-                                regionName = regionName,
-                                success = false,
-                                errorMessage = e.message,
-                            )
-                            send(ServerSentEvent(data = formatter.encodeToString(event), event = "progress"))
-                        }
-                }
+                    }
+                    .onFailure { e ->
+                        failCount++
+                        val event = GeoJsonProgressEvent.RegionCompleted(
+                            index = 0,
+                            regionName = countryArea.name,
+                            success = false,
+                            errorMessage = e.message,
+                        )
+                        send(ServerSentEvent(data = formatter.encodeToString(event), event = "progress"))
+                    }
 
                 val completedEvent = GeoJsonProgressEvent.Completed(
                     successCount = successCount,

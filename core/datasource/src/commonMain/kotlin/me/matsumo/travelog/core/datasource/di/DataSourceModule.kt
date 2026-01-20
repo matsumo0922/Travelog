@@ -15,13 +15,13 @@ import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
 import me.matsumo.travelog.core.datasource.NominatimDataSource
 import me.matsumo.travelog.core.datasource.OverpassDataSource
 import me.matsumo.travelog.core.datasource.WikipediaDataSource
-import me.matsumo.travelog.core.datasource.api.GeoRegionApi
+import me.matsumo.travelog.core.datasource.api.GeoAreaApi
 import me.matsumo.travelog.core.datasource.api.ImageApi
 import me.matsumo.travelog.core.datasource.api.ImageCommentApi
 import me.matsumo.travelog.core.datasource.api.MapApi
 import me.matsumo.travelog.core.datasource.api.MapRegionApi
 import me.matsumo.travelog.core.datasource.api.UserApi
-import me.matsumo.travelog.core.datasource.helper.GeoRegionMapper
+import me.matsumo.travelog.core.datasource.helper.GeoAreaMapper
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -64,7 +64,7 @@ val dataSourceModule = module {
     single { MapRegionApi(get()) }
     single { ImageApi(get()) }
     single { ImageCommentApi(get()) }
-    single { GeoRegionApi(get()) }
+    single { GeoAreaApi(get()) }
 
     singleOf(::AppSettingDataSource)
     singleOf(::GeoBoundaryDataSource)
@@ -72,7 +72,7 @@ val dataSourceModule = module {
     singleOf(::NominatimDataSource)
     singleOf(::WikipediaDataSource)
 
-    singleOf(::GeoRegionMapper)
+    singleOf(::GeoAreaMapper)
 
     includes(dataSourcePlatformModule)
 }

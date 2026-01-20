@@ -5,6 +5,8 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import me.matsumo.travelog.core.model.geo.BoundingBox
+import me.matsumo.travelog.core.model.geo.GeoArea
+import me.matsumo.travelog.core.model.geo.GeoAreaLevel
 import me.matsumo.travelog.core.model.geo.GeoJsonData
 import me.matsumo.travelog.core.model.geo.OverpassResult
 import me.matsumo.travelog.core.model.geo.PolygonWithHoles
@@ -178,4 +180,122 @@ class GeoBoundaryMapper {
 
         return polygon.firstOrNull()?.firstOrNull()
     }
+
+    // ---------------------------
+    // GeoArea Conversion
+    // ---------------------------
+
+    /**
+     * Convert Adm1Region to GeoArea (ADM1 level).
+     */
+    fun toGeoArea(
+        adm1: Adm1Region,
+        countryCode: String,
+        enrichedData: EnrichedAdm1Data? = null,
+        children: List<GeoArea> = emptyList(),
+    ): GeoArea {
+        val center = adm1.polygons.asSequence()
+            .mapNotNull { polygon -> findInteriorPoint(polygon) }
+            .firstOrNull()
+
+        return GeoArea(
+            id = null,
+            parentId = null,
+            level = GeoAreaLevel.ADM1,
+            admId = adm1.id,
+            countryCode = countryCode,
+            name = enrichedData?.name ?: adm1.name,
+            nameEn = enrichedData?.nameEn,
+            nameJa = enrichedData?.nameJa,
+            isoCode = adm1.iso,
+            wikipedia = enrichedData?.wikipedia,
+            thumbnailUrl = enrichedData?.thumbnailUrl,
+            center = center,
+            polygons = adm1.polygons,
+            children = children,
+        )
+    }
+
+    /**
+     * Convert Adm2Region to GeoArea (ADM2 level).
+     */
+    fun toGeoArea(
+        adm2: Adm2Region,
+        countryCode: String,
+        enrichedData: EnrichedAdm2Data? = null,
+    ): GeoArea {
+        return GeoArea(
+            id = null,
+            parentId = null,
+            level = GeoAreaLevel.ADM2,
+            admId = adm2.id,
+            countryCode = countryCode,
+            name = enrichedData?.name ?: adm2.name,
+            nameEn = enrichedData?.nameEn,
+            nameJa = enrichedData?.nameJa,
+            isoCode = enrichedData?.isoCode,
+            wikipedia = enrichedData?.wikipedia,
+            thumbnailUrl = enrichedData?.thumbnailUrl,
+            center = adm2.center,
+            polygons = adm2.polygons,
+            children = emptyList(),
+        )
+    }
+
+    /**
+     * Create ADM0 (country) level GeoArea.
+     */
+    fun createCountryArea(
+        countryCode: String,
+        name: String,
+        nameEn: String?,
+        nameJa: String?,
+        polygons: List<PolygonWithHoles>,
+        wikipedia: String? = null,
+        thumbnailUrl: String? = null,
+    ): GeoArea {
+        val center = polygons.asSequence()
+            .mapNotNull { polygon -> findInteriorPoint(polygon) }
+            .firstOrNull()
+
+        return GeoArea(
+            id = null,
+            parentId = null,
+            level = GeoAreaLevel.ADM0,
+            admId = countryCode,
+            countryCode = countryCode,
+            name = name,
+            nameEn = nameEn,
+            nameJa = nameJa,
+            isoCode = countryCode,
+            wikipedia = wikipedia,
+            thumbnailUrl = thumbnailUrl,
+            center = center,
+            polygons = polygons,
+            children = emptyList(),
+        )
+    }
+
+    /**
+     * Enriched data for ADM1 region from Overpass/Wikipedia.
+     */
+    data class EnrichedAdm1Data(
+        val name: String,
+        val nameEn: String?,
+        val nameJa: String?,
+        val wikipedia: String?,
+        val thumbnailUrl: String?,
+    )
+
+    /**
+     * Enriched data for ADM2 region from Overpass/Wikipedia.
+     */
+    data class EnrichedAdm2Data(
+        val name: String,
+        val nameEn: String?,
+        val nameJa: String?,
+        val isoCode: String?,
+        val wikipedia: String?,
+        val thumbnailUrl: String?,
+    )
 }

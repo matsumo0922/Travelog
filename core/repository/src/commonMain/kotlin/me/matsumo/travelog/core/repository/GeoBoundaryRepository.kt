@@ -13,12 +13,12 @@ import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
 import me.matsumo.travelog.core.datasource.NominatimDataSource
 import me.matsumo.travelog.core.datasource.OverpassDataSource
 import me.matsumo.travelog.core.datasource.WikipediaDataSource
+import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.model.geo.GeoBoundaryLevel
 import me.matsumo.travelog.core.model.geo.GeoJsonData
-import me.matsumo.travelog.core.model.geo.GeoRegion
-import me.matsumo.travelog.core.model.geo.GeoRegionGroup
 import me.matsumo.travelog.core.model.geo.OverpassResult
 import me.matsumo.travelog.core.model.geo.toIso3CountryCode
+import me.matsumo.travelog.core.model.geo.toPolygons
 
 class GeoBoundaryRepository(
     private val geoBoundaryDataSource: GeoBoundaryDataSource,
@@ -33,6 +33,41 @@ class GeoBoundaryRepository(
 
         return geoJsonData
     }
+
+    /**
+     * Get ADM0 (country) level GeoArea.
+     */
+    suspend fun getCountryArea(countryCode: String, countryInfo: CountryInfo? = null): GeoArea = coroutineScope {
+        Napier.d(tag = LOG_TAG) { "getCountryArea: Start - countryCode=$countryCode" }
+
+        val iso3CountryCode = countryCode.toIso3CountryCode() ?: error("Unknown country code.")
+        val adm0GeoJson = getPolygon(iso3CountryCode, GeoBoundaryLevel.ADM0)
+
+        val polygons = adm0GeoJson.features.flatMap { feature ->
+            feature.geometry.toPolygons()
+        }
+
+        geoBoundaryMapper.createCountryArea(
+            countryCode = countryCode,
+            name = countryInfo?.name ?: countryCode,
+            nameEn = countryInfo?.nameEn,
+            nameJa = countryInfo?.nameJa,
+            polygons = polygons,
+            wikipedia = countryInfo?.wikipedia,
+            thumbnailUrl = countryInfo?.thumbnailUrl,
+        )
+    }
+
+    /**
+     * Country information for ADM0 level.
+     */
+    data class CountryInfo(
+        val name: String,
+        val nameEn: String?,
+        val nameJa: String?,
+        val wikipedia: String?,
+        val thumbnailUrl: String?,
+    )
 
     suspend fun getAdmins(location: String): List<OverpassResult.Element> {
         val nominatimResult = nominatimDataSource.search(location)
@@ -71,94 +106,15 @@ class GeoBoundaryRepository(
         adm1Regions
     }
 
-    suspend fun getEnrichedAllAdmins(regions: List<GeoBoundaryMapper.Adm1Region>): List<GeoRegionGroup> = coroutineScope {
+    suspend fun getEnrichedAllAdmins(
+        countryCode: String,
+        regions: List<GeoBoundaryMapper.Adm1Region>,
+    ): List<GeoArea> = coroutineScope {
         Napier.d(tag = LOG_TAG) { "getEnrichedAllAdmins: Start - processing ${regions.size} ADM1 regions" }
 
         regions.mapIndexed { index, adm1 ->
             async {
-                Napier.d(tag = LOG_TAG) {
-                    "getEnrichedAllAdmins: [${index + 1}/${regions.size}] ${adm1.name} - start (${adm1.children.size} ADM2 regions)"
-                }
-
-                val overpassElements = runCatching { getAdmins(adm1.name) }
-                    .onFailure { Napier.w(tag = LOG_TAG, throwable = it) { "getEnrichedAllAdmins: [${adm1.name}] Overpass fetch failed" } }
-                    .getOrElse { emptyList() }
-                    .toMutableList()
-
-                val adm1EnrichedRegion = overpassElements.find { it.type == "area" }?.let {
-                    overpassElements.remove(it)
-
-                    GeoRegion(
-                        name = adm1.name,
-                        adm2Id = "",
-                        nameEn = it.tags.nameEn,
-                        nameJa = it.tags.nameJa,
-                        wikipedia = it.tags.wikipedia,
-                        iso31662 = it.tags.iso31662,
-                        center = OverpassResult.Element.Coordinate(0.0, 0.0),
-                        polygons = emptyList(),
-                        thumbnailUrl = suspendRunCatching {
-                            it.tags.wikipedia?.let { wikipedia -> getThumbnailUrl(wikipedia) }
-                        }.getOrNull(),
-                    )
-                }
-
-                val matchedElements = geoBoundaryMapper.matchAdm2WithOverpass(adm1.children, overpassElements)
-                Napier.d(tag = LOG_TAG) {
-                    "getEnrichedAllAdmins: [${adm1.name}] Matched ${matchedElements.size}/${adm1.children.size} with Overpass"
-                }
-
-                val geoRegions = adm1.children
-                    .map { adm2 ->
-                        val overpass = matchedElements[adm2.id]
-                        val displayName = overpass?.tags?.name ?: adm2.name
-
-                        GeoRegion(
-                            name = displayName,
-                            adm2Id = adm2.id,
-                            nameEn = overpass?.tags?.nameEn,
-                            nameJa = overpass?.tags?.nameJa,
-                            wikipedia = overpass?.tags?.wikipedia,
-                            iso31662 = overpass?.tags?.iso31662,
-                            center = adm2.center,
-                            polygons = adm2.polygons,
-                            thumbnailUrl = null,
-                        )
-                    }
-                    .sortedBy { it.name }
-
-                val regionsWithWikipedia = geoRegions.count { !it.wikipedia.isNullOrBlank() }
-                val thumbnails = geoRegions.map { region ->
-                    async {
-                        region.wikipedia
-                            ?.takeIf { it.isNotBlank() }
-                            ?.let { wiki ->
-                                runCatching { getThumbnailUrl(wiki) }.getOrNull()
-                            }
-                    }
-                }.awaitAll()
-
-                val successfulThumbnails = thumbnails.count { it != null }
-                Napier.d(tag = LOG_TAG) {
-                    "getEnrichedAllAdmins: [${adm1.name}] Fetched $successfulThumbnails/$regionsWithWikipedia thumbnails"
-                }
-
-                val enrichedWithThumbnails = geoRegions.mapIndexed { idx, region ->
-                    region.copy(thumbnailUrl = thumbnails.getOrNull(idx))
-                }
-
-                GeoRegionGroup(
-                    admId = adm1.id,
-                    admName = adm1.name,
-                    admGroup = adm1.group,
-                    admISO = adm1.iso,
-                    name = adm1EnrichedRegion?.name ?: adm1.name,
-                    nameEn = adm1EnrichedRegion?.nameEn,
-                    nameJa = adm1EnrichedRegion?.nameJa,
-                    thumbnailUrl = adm1EnrichedRegion?.thumbnailUrl,
-                    polygons = adm1.polygons,
-                    regions = enrichedWithThumbnails,
-                )
+                processAdm1RegionToGeoArea(adm1, countryCode, index, regions.size)
             }
         }.awaitAll().also {
             Napier.d(tag = LOG_TAG) { "getEnrichedAllAdmins: Completed - processed ${it.size} ADM1 regions" }
@@ -166,9 +122,10 @@ class GeoBoundaryRepository(
     }
 
     fun getEnrichedAllAdminsAsFlow(
+        countryCode: String,
         regions: List<GeoBoundaryMapper.Adm1Region>,
         maxConcurrent: Int = 3,
-    ): Flow<Pair<Int, Result<GeoRegionGroup>>> = flow {
+    ): Flow<Pair<Int, Result<GeoArea>>> = flow {
         Napier.d(tag = LOG_TAG) {
             "getEnrichedAllAdminsAsFlow: Processing ${regions.size} regions with concurrency=$maxConcurrent"
         }
@@ -183,7 +140,7 @@ class GeoBoundaryRepository(
                             "getEnrichedAllAdminsAsFlow: [${index + 1}/${regions.size}] ${adm1.name} - start"
                         }
 
-                        val result = runCatching { processAdm1Region(adm1, index, regions.size) }
+                        val result = runCatching { processAdm1RegionToGeoArea(adm1, countryCode, index, regions.size) }
 
                         result.onSuccess {
                             Napier.d(tag = LOG_TAG) { "getEnrichedAllAdminsAsFlow: [${adm1.name}] Completed successfully" }
@@ -204,66 +161,67 @@ class GeoBoundaryRepository(
         Napier.d(tag = LOG_TAG) { "getEnrichedAllAdminsAsFlow: Flow completed" }
     }
 
-    private suspend fun processAdm1Region(
+    private suspend fun processAdm1RegionToGeoArea(
         adm1: GeoBoundaryMapper.Adm1Region,
+        countryCode: String,
         index: Int,
         total: Int,
-    ): GeoRegionGroup = coroutineScope {
+    ): GeoArea = coroutineScope {
         Napier.d(tag = LOG_TAG) {
-            "processAdm1Region: [${index + 1}/$total] ${adm1.name} - start (${adm1.children.size} ADM2 regions)"
+            "processAdm1RegionToGeoArea: [${index + 1}/$total] ${adm1.name} - start (${adm1.children.size} ADM2 regions)"
         }
 
         val overpassElements = runCatching { getAdmins(adm1.name) }
-            .onFailure { Napier.w(tag = LOG_TAG, throwable = it) { "processAdm1Region: [${adm1.name}] Overpass fetch failed" } }
+            .onFailure { Napier.w(tag = LOG_TAG, throwable = it) { "processAdm1RegionToGeoArea: [${adm1.name}] Overpass fetch failed" } }
             .getOrElse { emptyList() }
             .toMutableList()
 
-        val adm1EnrichedRegion = overpassElements.find { it.type == "area" }?.let {
+        // ADM1 enriched data from Overpass
+        val adm1Element = overpassElements.find { it.type == "area" }?.also {
             overpassElements.remove(it)
+        }
 
-            GeoRegion(
-                name = adm1.name,
-                adm2Id = "",
+        val adm1EnrichedData = adm1Element?.let {
+            val thumbnailUrl = suspendRunCatching {
+                it.tags.wikipedia?.let { wikipedia -> getThumbnailUrl(wikipedia) }
+            }.getOrNull()
+
+            GeoBoundaryMapper.EnrichedAdm1Data(
+                name = it.tags.name ?: adm1.name,
                 nameEn = it.tags.nameEn,
                 nameJa = it.tags.nameJa,
                 wikipedia = it.tags.wikipedia,
-                iso31662 = it.tags.iso31662,
-                center = OverpassResult.Element.Coordinate(0.0, 0.0),
-                polygons = emptyList(),
-                thumbnailUrl = suspendRunCatching {
-                    it.tags.wikipedia?.let { wikipedia -> getThumbnailUrl(wikipedia) }
-                }.getOrNull(),
+                thumbnailUrl = thumbnailUrl,
             )
         }
 
         val matchedElements = geoBoundaryMapper.matchAdm2WithOverpass(adm1.children, overpassElements)
         Napier.d(tag = LOG_TAG) {
-            "processAdm1Region: [${adm1.name}] Matched ${matchedElements.size}/${adm1.children.size} with Overpass"
+            "processAdm1RegionToGeoArea: [${adm1.name}] Matched ${matchedElements.size}/${adm1.children.size} with Overpass"
         }
 
-        val geoRegions = adm1.children
-            .map { adm2 ->
-                val overpass = matchedElements[adm2.id]
-                val displayName = overpass?.tags?.name ?: adm2.name
+        // Process ADM2 children
+        val adm2Children = adm1.children.mapIndexed { idx, adm2 ->
+            val overpass = matchedElements[adm2.id]
+            val displayName = overpass?.tags?.name ?: adm2.name
 
-                GeoRegion(
-                    name = displayName,
-                    adm2Id = adm2.id,
-                    nameEn = overpass?.tags?.nameEn,
-                    nameJa = overpass?.tags?.nameJa,
-                    wikipedia = overpass?.tags?.wikipedia,
-                    iso31662 = overpass?.tags?.iso31662,
-                    center = adm2.center,
-                    polygons = adm2.polygons,
-                    thumbnailUrl = null,
-                )
-            }
-            .sortedBy { it.name }
+            val enrichedData = GeoBoundaryMapper.EnrichedAdm2Data(
+                name = displayName,
+                nameEn = overpass?.tags?.nameEn,
+                nameJa = overpass?.tags?.nameJa,
+                isoCode = overpass?.tags?.iso31662,
+                wikipedia = overpass?.tags?.wikipedia,
+                thumbnailUrl = null,
+            )
 
-        val regionsWithWikipedia = geoRegions.count { !it.wikipedia.isNullOrBlank() }
-        val thumbnails = geoRegions.map { region ->
+            Triple(idx, adm2, enrichedData)
+        }.sortedBy { it.third.name }
+
+        // Fetch thumbnails for ADM2
+        val regionsWithWikipedia = adm2Children.count { !it.third.wikipedia.isNullOrBlank() }
+        val thumbnails = adm2Children.map { (_, _, enrichedData) ->
             async {
-                region.wikipedia
+                enrichedData.wikipedia
                     ?.takeIf { it.isNotBlank() }
                     ?.let { wiki ->
                         runCatching { getThumbnailUrl(wiki) }.getOrNull()
@@ -273,24 +231,25 @@ class GeoBoundaryRepository(
 
         val successfulThumbnails = thumbnails.count { it != null }
         Napier.d(tag = LOG_TAG) {
-            "processAdm1Region: [${adm1.name}] Fetched $successfulThumbnails/$regionsWithWikipedia thumbnails"
+            "processAdm1RegionToGeoArea: [${adm1.name}] Fetched $successfulThumbnails/$regionsWithWikipedia thumbnails"
         }
 
-        val enrichedWithThumbnails = geoRegions.mapIndexed { idx, region ->
-            region.copy(thumbnailUrl = thumbnails.getOrNull(idx))
+        // Convert to GeoArea children
+        val geoAreaChildren = adm2Children.mapIndexed { idx, (_, adm2, enrichedData) ->
+            val thumbnailUrl = thumbnails.getOrNull(idx)
+            geoBoundaryMapper.toGeoArea(
+                adm2 = adm2,
+                countryCode = countryCode,
+                enrichedData = enrichedData.copy(thumbnailUrl = thumbnailUrl),
+            )
         }
 
-        GeoRegionGroup(
-            admId = adm1.id,
-            admName = adm1.name,
-            admGroup = adm1.group,
-            admISO = adm1.iso,
-            name = adm1EnrichedRegion?.name ?: adm1.name,
-            nameEn = adm1EnrichedRegion?.nameEn,
-            nameJa = adm1EnrichedRegion?.nameJa,
-            thumbnailUrl = adm1EnrichedRegion?.thumbnailUrl,
-            polygons = adm1.polygons,
-            regions = enrichedWithThumbnails,
+        // Create ADM1 GeoArea with children
+        geoBoundaryMapper.toGeoArea(
+            adm1 = adm1,
+            countryCode = countryCode,
+            enrichedData = adm1EnrichedData,
+            children = geoAreaChildren,
         )
     }
 

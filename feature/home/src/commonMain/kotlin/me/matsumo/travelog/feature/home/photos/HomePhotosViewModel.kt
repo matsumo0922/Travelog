@@ -6,26 +6,31 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
-import me.matsumo.travelog.core.model.geo.GeoRegion
-import me.matsumo.travelog.core.repository.GeoRegionRepository
+import me.matsumo.travelog.core.model.geo.GeoArea
+import me.matsumo.travelog.core.model.geo.GeoAreaLevel
+import me.matsumo.travelog.core.repository.GeoAreaRepository
 
 class HomePhotosViewModel(
-    private val geoRegionRepository: GeoRegionRepository,
+    private val geoAreaRepository: GeoAreaRepository,
 ) : ViewModel() {
 
-    val regions = MutableStateFlow<List<GeoRegion>>(emptyList())
+    val areas = MutableStateFlow<List<GeoArea>>(emptyList())
 
     init {
         viewModelScope.launch {
-            regions.value = suspendRunCatching {
-                val groups = geoRegionRepository.getGroupsByGroupCode("JPN")
-                val group = groups.find { it.nameJa?.contains("鹿児島") == true } ?: return@suspendRunCatching emptyList()
-                geoRegionRepository.getRegionsByGroupId(group.id!!)
+            areas.value = suspendRunCatching {
+                // Get ADM1 areas for Japan
+                val adm1Areas = geoAreaRepository.getAreasByLevel("JP", GeoAreaLevel.ADM1)
+                // Find Kagoshima prefecture
+                val kagoshima = adm1Areas.find { it.nameJa?.contains("鹿児島") == true }
+                    ?: return@suspendRunCatching emptyList()
+                // Get children (ADM2 areas)
+                kagoshima.id?.let { geoAreaRepository.getChildren(it) } ?: emptyList()
             }.onSuccess {
-                val names = it.map { region -> region.name }
-                Napier.d(tag = "GeoBoundary") { "Fetched regions=${names.joinToString()}" }
+                val names = it.map { area -> area.name }
+                Napier.d(tag = "GeoBoundary") { "Fetched areas=${names.joinToString()}" }
             }.onFailure {
-                Napier.e(it) { "Failed to fetch regions" }
+                Napier.e(it) { "Failed to fetch areas" }
             }.getOrElse { emptyList() }
         }
     }

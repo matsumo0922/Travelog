@@ -10,15 +10,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.model.SupportedRegion
-import me.matsumo.travelog.core.model.geo.GeoRegionGroup
-import me.matsumo.travelog.core.repository.GeoRegionRepository
+import me.matsumo.travelog.core.model.geo.GeoArea
+import me.matsumo.travelog.core.model.geo.GeoAreaLevel
+import me.matsumo.travelog.core.repository.GeoAreaRepository
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.screen.ScreenState
 
 class RegionSelectViewModel(
     private val selectedRegion: SupportedRegion,
-    private val geoRegionRepository: GeoRegionRepository,
+    private val geoAreaRepository: GeoAreaRepository,
 ) : ViewModel() {
 
     private val _screenState = MutableStateFlow<ScreenState<RegionSelectUiState>>(ScreenState.Loading())
@@ -33,8 +34,8 @@ class RegionSelectViewModel(
             _screenState.value = suspendRunCatching {
                 RegionSelectUiState(
                     region = selectedRegion,
-                    groups = geoRegionRepository.getGroupsByGroupCode(selectedRegion.code3)
-                        .sortedBy { it.admISO }
+                    areas = geoAreaRepository.getAreasByLevel(selectedRegion.code2, GeoAreaLevel.ADM1)
+                        .sortedBy { it.isoCode }
                         .toImmutableList(),
                 )
             }.fold(
@@ -48,5 +49,5 @@ class RegionSelectViewModel(
 @Stable
 data class RegionSelectUiState(
     val region: SupportedRegion,
-    val groups: ImmutableList<GeoRegionGroup>,
+    val areas: ImmutableList<GeoArea>,
 )

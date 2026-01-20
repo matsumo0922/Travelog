@@ -25,12 +25,12 @@ import coil3.network.httpHeaders
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import io.github.aakira.napier.Napier
-import me.matsumo.travelog.core.model.geo.GeoRegionGroup
+import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.theme.semiBold
 
 @Composable
 internal fun RegionSelectItem(
-    group: GeoRegionGroup,
+    area: GeoArea,
     onSelected: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -52,7 +52,7 @@ internal fun RegionSelectItem(
                         .aspectRatio(3 / 2f)
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     model = ImageRequest.Builder(LocalPlatformContext.current)
-                        .data(group.thumbnailUrl)
+                        .data(area.thumbnailUrl)
                         .crossfade(true)
                         .httpHeaders(
                             NetworkHeaders.Builder()
@@ -78,14 +78,14 @@ internal fun RegionSelectItem(
                 ) {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = group.nameJa.takeIf { isJapanese } ?: group.name,
+                        text = area.nameJa.takeIf { isJapanese } ?: area.name,
                         style = MaterialTheme.typography.titleMedium.semiBold(),
                         color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = group.admISO,
+                        text = area.isoCode ?: area.admId,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

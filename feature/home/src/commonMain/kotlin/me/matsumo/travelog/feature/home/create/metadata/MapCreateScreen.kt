@@ -16,7 +16,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.matsumo.travelog.core.model.SupportedRegion
-import me.matsumo.travelog.core.model.geo.GeoRegionGroup
+import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
@@ -46,7 +46,7 @@ internal fun MapCreateRoute(
         MapCreateScreen(
             modifier = Modifier.fillMaxSize(),
             region = it.region,
-            group = it.group,
+            selectedArea = it.selectedArea,
         )
     }
 }
@@ -56,7 +56,7 @@ internal fun MapCreateRoute(
 @Composable
 private fun MapCreateScreen(
     region: SupportedRegion,
-    group: GeoRegionGroup?,
+    selectedArea: GeoArea?,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
