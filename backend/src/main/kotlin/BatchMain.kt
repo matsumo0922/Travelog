@@ -46,21 +46,21 @@ fun main(args: Array<String>) = runBlocking {
 
     when (mode) {
         "geojson" -> {
-            val request = BatchGeoJsonRequest(targetCountries = targetCountries)
-            val result = service.processAllGeoJson(request)
+            // Phase 1: GeoJSON Processing
+            val geoJsonRequest = BatchGeoJsonRequest(targetCountries = targetCountries)
+            val geoJsonResult = service.processAllGeoJson(geoJsonRequest)
 
             println()
             println("=".repeat(60))
-            println("GeoJSON Batch Processing Completed")
+            println("Phase 1: GeoJSON Batch Processing Completed")
             println("=".repeat(60))
-            println("Total Countries: ${result.totalCountries}")
-            println("Success: ${result.successCount}")
-            println("Failed: ${result.failCount}")
-            println("Total Time: ${result.totalTimeMs / 1000}s")
-            println("Executed At: ${result.executedAt}")
+            println("Total Countries: ${geoJsonResult.totalCountries}")
+            println("Success: ${geoJsonResult.successCount}")
+            println("Failed: ${geoJsonResult.failCount}")
+            println("Total Time: ${geoJsonResult.totalTimeMs / 1000}s")
             println()
 
-            result.countryResults.forEach { country ->
+            geoJsonResult.countryResults.forEach { country ->
                 val status = if (country.success) "✓" else "✗"
                 println(
                     "  $status ${country.countryName} (${country.countryCode}): " +
@@ -68,6 +68,55 @@ fun main(args: Array<String>) = runBlocking {
                 )
                 country.errorMessage?.let { println("    Error: $it") }
             }
+
+            // Phase 2: Name Enrichment (auto-run after GeoJSON)
+            println()
+            println("=".repeat(60))
+            println("Phase 2: Starting Name Enrichment...")
+            println("=".repeat(60))
+
+            val batchSize = args.getOrNull(2)?.toIntOrNull() ?: 10
+            val geoNamesRequest = BatchGeoNamesRequest(
+                targetCountries = targetCountries,
+                batchSize = batchSize,
+                dryRun = false,
+            )
+            val geoNamesResult = service.processAllGeoNames(geoNamesRequest)
+
+            println()
+            println("=".repeat(60))
+            println("Phase 2: Name Enrichment Completed")
+            println("=".repeat(60))
+            println("Total Countries: ${geoNamesResult.totalCountries}")
+            println("Success: ${geoNamesResult.successCount}")
+            println("Failed: ${geoNamesResult.failCount}")
+            println("Total Time: ${geoNamesResult.totalTimeMs / 1000}s")
+            println()
+            println("Summary:")
+            println("  Applied: ${geoNamesResult.totalApplied}")
+            println("  Validated: ${geoNamesResult.totalValidated}")
+            println("  Skipped: ${geoNamesResult.totalSkipped}")
+            println("  Failed: ${geoNamesResult.totalFailed}")
+            println()
+
+            geoNamesResult.countryResults.forEach { country ->
+                val status = if (country.success) "✓" else "✗"
+                println(
+                    "  $status ${country.countryName}: " +
+                            "applied=${country.appliedCount}, validated=${country.validatedCount}, " +
+                            "skipped=${country.skippedCount}, failed=${country.failedCount}"
+                )
+                country.errorMessage?.let { println("    Error: $it") }
+            }
+
+            // Final Summary
+            println()
+            println("=".repeat(60))
+            println("All Processing Completed")
+            println("=".repeat(60))
+            val totalTime = geoJsonResult.totalTimeMs + geoNamesResult.totalTimeMs
+            println("Total Time: ${totalTime / 1000}s (${totalTime / 1000 / 60} min)")
+            println("Executed At: ${geoNamesResult.executedAt}")
         }
 
         "geo-names" -> {
