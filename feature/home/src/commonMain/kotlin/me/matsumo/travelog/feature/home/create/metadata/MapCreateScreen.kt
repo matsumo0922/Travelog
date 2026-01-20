@@ -1,13 +1,27 @@
 package me.matsumo.travelog.feature.home.create.metadata
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.core.model.geo.GeoRegionGroup
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
+import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
+import me.matsumo.travelog.core.ui.utils.plus
+import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateBottomBar
+import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateTopAppBar
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -37,6 +51,7 @@ internal fun MapCreateRoute(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Suppress("UnusedParameter")
 @Composable
 private fun MapCreateScreen(
@@ -44,5 +59,33 @@ private fun MapCreateScreen(
     group: GeoRegionGroup?,
     modifier: Modifier = Modifier,
 ) {
-    // UI は今後実装
+    val navBackStack = LocalNavBackStack.current
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            MapCreateTopAppBar(
+                modifier = Modifier.fillMaxWidth(),
+                scrollBehavior = scrollBehavior,
+                onBackClicked = { },
+            )
+        },
+        bottomBar = {
+            MapCreateBottomBar(
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .padding(24.dp, 8.dp)
+                    .fillMaxWidth(),
+                onClick = { },
+            )
+        }
+    ) { contentPadding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = contentPadding + PaddingValues(16.dp),
+        ) {
+
+        }
+    }
 }

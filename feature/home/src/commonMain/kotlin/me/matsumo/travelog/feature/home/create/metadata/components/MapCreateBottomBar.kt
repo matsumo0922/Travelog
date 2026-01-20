@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.home.create.country.component
+package me.matsumo.travelog.feature.home.create.metadata.components
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -12,7 +12,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun CountrySelectBottomBar(
+internal fun MapCreateBottomBar(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
