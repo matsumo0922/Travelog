@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.home.select.region
+package me.matsumo.travelog.feature.home.create.region
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,9 +31,9 @@ import me.matsumo.travelog.core.resource.home_map_region
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
-import me.matsumo.travelog.feature.home.select.country.component.CountrySelectItem
-import me.matsumo.travelog.feature.home.select.region.components.RegionSelectItem
-import me.matsumo.travelog.feature.home.select.region.components.RegionSelectTopAppBar
+import me.matsumo.travelog.feature.home.create.country.component.CountrySelectItem
+import me.matsumo.travelog.feature.home.create.region.components.RegionSelectItem
+import me.matsumo.travelog.feature.home.create.region.components.RegionSelectTopAppBar
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf

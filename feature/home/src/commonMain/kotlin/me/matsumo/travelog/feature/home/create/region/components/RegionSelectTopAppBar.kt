@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.home.select.region.components
+package me.matsumo.travelog.feature.home.create.region.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack

@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.home.select.country
+package me.matsumo.travelog.feature.home.create.country
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,8 +20,8 @@ import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
-import me.matsumo.travelog.feature.home.select.country.component.CountrySelectItem
-import me.matsumo.travelog.feature.home.select.country.component.CountrySelectTopAppBar
+import me.matsumo.travelog.feature.home.create.country.component.CountrySelectItem
+import me.matsumo.travelog.feature.home.create.country.component.CountrySelectTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

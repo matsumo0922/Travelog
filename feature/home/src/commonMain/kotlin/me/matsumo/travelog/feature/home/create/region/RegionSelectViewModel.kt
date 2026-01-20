@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.home.select.region
+package me.matsumo.travelog.feature.home.create.region
 
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel

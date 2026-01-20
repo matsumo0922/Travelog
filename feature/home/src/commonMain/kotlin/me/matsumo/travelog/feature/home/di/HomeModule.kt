@@ -2,9 +2,9 @@ package me.matsumo.travelog.feature.home.di
 
 import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.feature.home.HomeViewModel
+import me.matsumo.travelog.feature.home.create.region.RegionSelectViewModel
 import me.matsumo.travelog.feature.home.maps.HomeMapsViewModel
 import me.matsumo.travelog.feature.home.photos.HomePhotosViewModel
-import me.matsumo.travelog.feature.home.select.region.RegionSelectViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
