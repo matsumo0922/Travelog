@@ -4,6 +4,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
+/**
+ * MapRegion entity representing a selected region within a map.
+ *
+ * References geo_areas via geo_area_id for geographical data.
+ */
 @Serializable
 data class MapRegion(
     @SerialName("id")
@@ -12,11 +17,15 @@ data class MapRegion(
     @SerialName("map_id")
     val mapId: String,
 
-    @SerialName("boundary_external_id")
-    val boundaryExternalId: String,
+    /**
+     * UUID reference to geo_areas table.
+     * Replaced TEXT-based boundary_external_id for proper FK relationship.
+     */
+    @SerialName("geo_area_id")
+    val geoAreaId: String,
 
     @SerialName("representative_image_id")
-    val representativeImageId: String?,
+    val representativeImageId: String? = null,
 
     @SerialName("created_at")
     val createdAt: Instant? = null,

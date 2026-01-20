@@ -4,6 +4,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
+/**
+ * Map entity representing a user-created map collection.
+ *
+ * References geo_areas via root_geo_area_id for geographical scope.
+ * Country code can be derived from the referenced geo_area.
+ */
 @Serializable
 data class Map(
     @SerialName("id")
@@ -12,20 +18,21 @@ data class Map(
     @SerialName("owner_user_id")
     val ownerUserId: String,
 
-    @SerialName("root_boundary_external_id")
-    val rootBoundaryExternalId: String,
-
-    @SerialName("country_code")
-    val countryCode: String?,
+    /**
+     * UUID reference to geo_areas table.
+     * Replaced TEXT-based root_boundary_external_id for proper FK relationship.
+     */
+    @SerialName("root_geo_area_id")
+    val rootGeoAreaId: String,
 
     @SerialName("title")
     val title: String,
 
     @SerialName("description")
-    val description: String?,
+    val description: String? = null,
 
     @SerialName("icon_image_id")
-    val iconImageId: String?,
+    val iconImageId: String? = null,
 
     @SerialName("created_at")
     val createdAt: Instant? = null,
