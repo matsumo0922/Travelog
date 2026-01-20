@@ -52,7 +52,7 @@ internal fun MapCreateRoute(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Suppress("UnusedParameter")
+@Suppress("UnusedParameter", "UnusedPrivateProperty")
 @Composable
 private fun MapCreateScreen(
     region: SupportedRegion,
@@ -79,13 +79,12 @@ private fun MapCreateScreen(
                     .fillMaxWidth(),
                 onClick = { },
             )
-        }
+        },
     ) { contentPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = contentPadding + PaddingValues(16.dp),
         ) {
-
         }
     }
 }
