@@ -39,6 +39,7 @@ import kotlinx.html.tr
 import kotlinx.html.unsafe
 import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.core.model.gemini.GeoNameEnrichmentEvent
+import me.matsumo.travelog.core.model.geo.MultiCountryProgressEvent
 import me.matsumo.travelog.core.repository.GeoNameEnrichmentRepository
 import org.koin.ktor.ext.inject
 
@@ -56,6 +57,11 @@ fun Application.geoNameEnrichmentRoute() {
             val level = call.request.queryParameters["level"]?.toIntOrNull()
             call.respondHtml {
                 geoNameEnrichmentProgressPage(country, level)
+            }
+        }
+        get("/geo-names/enrich/all") {
+            call.respondHtml {
+                geoNamesAllCountriesProgressPage()
             }
         }
     }
@@ -214,8 +220,26 @@ private fun HEAD.enrichmentPageStyles() {
 // UI Components
 private fun BODY.countrySelectionGrid() {
     div(classes = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4") {
+        geoNamesAllCountriesCard("/geo-names/enrich/all")
         SupportedRegion.all.forEach { region ->
             countryCard(region)
+        }
+    }
+}
+
+private fun DIV.geoNamesAllCountriesCard(href: String) {
+    val totalRegions = SupportedRegion.all.sumOf { it.subRegionCount }
+    a(
+        href = href,
+        classes = "bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 " +
+                "rounded-lg p-4 no-underline text-white transition-all flex items-center gap-3 shadow-lg",
+    ) {
+        div(classes = "w-12 h-8 flex items-center justify-center text-2xl") {
+            +"🌍"
+        }
+        div(classes = "flex-1") {
+            div(classes = "font-semibold mb-1") { +"All Countries" }
+            div(classes = "text-xs text-purple-100") { +"${SupportedRegion.all.size} countries, $totalRegions regions" }
         }
     }
 }
@@ -529,6 +553,402 @@ private fun DIV.enrichmentScript(country: String, level: Int?) {
                 }
                 """.trimIndent(),
             )
+        }
+    }
+}
+
+// ============= All Countries Processing =============
+
+/**
+ * 全国名前補完処理進捗ページ
+ */
+private fun HTML.geoNamesAllCountriesProgressPage() {
+    val totalRegions = SupportedRegion.all.sumOf { it.subRegionCount }
+    head {
+        meta(charset = "UTF-8")
+        title("Geo Name Enrichment - All Countries")
+        tailwindCdnForEnrichment()
+        geoNamesAllCountriesPageStyles()
+    }
+    body(classes = "min-h-screen bg-gray-100") {
+        div(classes = "max-w-6xl mx-auto py-10 px-5") {
+            h1(classes = "text-gray-800 text-2xl font-bold mb-4") {
+                +"Geo Name Enrichment: All Countries"
+            }
+            p(classes = "text-gray-600 mb-6") {
+                +"Enriching names for ${SupportedRegion.all.size} countries with $totalRegions regions total"
+            }
+
+            // Control buttons
+            geoNamesAllCountriesControlButtons()
+
+            // Overall progress
+            div(classes = "bg-white rounded-lg p-5 mb-5 shadow-sm") {
+                div(classes = "flex justify-between items-center mb-2") {
+                    span(classes = "text-gray-700 font-semibold") { +"Overall Progress" }
+                    span(classes = "text-gray-500 text-sm") {
+                        id = "overallProgressText"
+                        +"0 / ${SupportedRegion.all.size} countries"
+                    }
+                }
+                div(classes = "bg-gray-200 rounded-full h-4 overflow-hidden") {
+                    div(classes = "bg-gradient-to-r from-purple-500 to-pink-600 h-full progress-fill") {
+                        id = "overallProgressFill"
+                        style = "width: 0%"
+                    }
+                }
+                div(classes = "mt-3 text-gray-600 text-sm") {
+                    id = "overallStatus"
+                    +"Ready to start"
+                }
+            }
+
+            // Country cards grid
+            div(classes = "mb-5") {
+                h3(classes = "text-lg font-semibold text-gray-700 mb-3") { +"Countries" }
+                div(classes = "grid grid-cols-2 md:grid-cols-4 gap-3") {
+                    id = "countryCards"
+                    SupportedRegion.all.forEachIndexed { index, region ->
+                        geoNamesAllCountriesCountryCard(index, region)
+                    }
+                }
+            }
+
+            // Current country detail section (initially hidden)
+            div(classes = "hidden") {
+                id = "currentCountrySection"
+                div(classes = "bg-white rounded-lg p-5 mb-5 shadow-sm") {
+                    h3(classes = "text-lg font-semibold text-gray-700 mb-3") {
+                        +"Current: "
+                        span {
+                            id = "currentCountryName"
+                            +""
+                        }
+                    }
+                    // Inner progress bar
+                    div(classes = "bg-gray-200 rounded-full h-3 overflow-hidden mb-3") {
+                        div(classes = "bg-gradient-to-r from-purple-400 to-pink-500 h-full progress-fill") {
+                            id = "currentCountryProgressFill"
+                            style = "width: 0%"
+                        }
+                    }
+                    div(classes = "text-gray-600 text-sm") {
+                        id = "currentCountryStatus"
+                        +""
+                    }
+                }
+            }
+
+            // Statistics
+            div(classes = "grid grid-cols-4 gap-4 mb-5") {
+                geoNamesAllCountriesStatCard("totalStat", "Total Countries", "${SupportedRegion.all.size}", "bg-blue-500")
+                geoNamesAllCountriesStatCard("successStat", "Success", "0", "bg-green-500")
+                geoNamesAllCountriesStatCard("failedStat", "Failed", "0", "bg-red-500")
+                geoNamesAllCountriesStatCard("timeStat", "Elapsed Time", "00:00", "bg-purple-500")
+            }
+
+            // Log container
+            geoNamesAllCountriesLogContainer()
+            script(src = "/static/js/multi-country-progress.js") {}
+        }
+    }
+}
+
+private fun HEAD.geoNamesAllCountriesPageStyles() {
+    style {
+        unsafe {
+            raw(
+                """
+                .log-entry.success { color: #4CAF50; }
+                .log-entry.error { color: #f44336; }
+                .log-entry.info { color: #2196F3; }
+                .log-entry.warning { color: #FF9800; }
+
+                /* Country card states */
+                .country-card[data-state="pending"] {
+                    opacity: 0.6;
+                }
+                .country-card[data-state="processing"] {
+                    border: 2px solid #A855F7;
+                    box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+                    opacity: 1;
+                }
+                .country-card[data-state="completed"] {
+                    border: 2px solid #10B981;
+                    opacity: 1;
+                }
+                .country-card[data-state="error"] {
+                    border: 2px solid #EF4444;
+                    opacity: 1;
+                }
+
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                }
+                .animate-pulse { animation: pulse 2s infinite; }
+
+                .progress-fill {
+                    transition: width 0.3s ease-out;
+                }
+
+                .log-collapsed .log-content { display: none; }
+                .log-toggle-icon { transition: transform 0.2s; }
+                .log-collapsed .log-toggle-icon { transform: rotate(-90deg); }
+                """.trimIndent(),
+            )
+        }
+    }
+}
+
+private fun DIV.geoNamesAllCountriesControlButtons() {
+    div(classes = "flex gap-3 mb-5 items-center flex-wrap") {
+        button(
+            classes = "bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg " +
+                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+        ) {
+            id = "startBtn"
+            onClick = "startAllCountriesProcessing('geo-names')"
+            +"Start"
+        }
+        button(
+            classes = "bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg " +
+                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+        ) {
+            id = "stopBtn"
+            onClick = "stopAllCountriesProcessing()"
+            attributes["disabled"] = "true"
+            +"Stop"
+        }
+
+        // Batch size selector
+        div(classes = "ml-4 flex items-center gap-2") {
+            label(classes = "text-gray-600 text-sm") { +"Batch Size:" }
+            select(classes = "border rounded px-2 py-1 text-sm") {
+                id = "batchSize"
+                option { attributes["value"] = "5"; +"5" }
+                option { attributes["value"] = "10"; attributes["selected"] = "true"; +"10" }
+                option { attributes["value"] = "20"; +"20" }
+            }
+        }
+    }
+}
+
+private fun DIV.geoNamesAllCountriesStatCard(cardId: String, label: String, value: String, colorClass: String) {
+    div(classes = "bg-white rounded-lg p-4 shadow-sm") {
+        id = cardId
+        div(classes = "flex items-center gap-3") {
+            div(classes = "$colorClass w-10 h-10 rounded-full flex items-center justify-center") {
+                span(classes = "text-white text-lg font-bold") {
+                    id = "${cardId}Value"
+                    +value
+                }
+            }
+            div {
+                div(classes = "text-xs text-gray-500 uppercase tracking-wide") { +label }
+                div(classes = "text-xl font-bold text-gray-800") {
+                    id = "${cardId}Display"
+                    +value
+                }
+            }
+        }
+    }
+}
+
+private fun DIV.geoNamesAllCountriesCountryCard(index: Int, region: SupportedRegion) {
+    div(classes = "country-card bg-white rounded-lg p-3 shadow-sm border-2 border-transparent") {
+        id = "country-card-$index"
+        attributes["data-state"] = "pending"
+        attributes["data-code"] = region.code2
+
+        div(classes = "flex items-center gap-2") {
+            img(
+                src = region.flagUrl,
+                alt = region.nameEn,
+                classes = "w-8 h-6 object-cover rounded",
+            )
+            div(classes = "flex-1 min-w-0") {
+                div(classes = "font-semibold text-gray-800 text-sm truncate") { +region.nameEn }
+                div(classes = "text-xs text-gray-500") { +"${region.subRegionCount} regions" }
+            }
+            // Status indicator
+            span(classes = "status-icon text-lg hidden") {
+                id = "country-status-$index"
+            }
+        }
+        // Inner progress bar (hidden initially)
+        div(classes = "mt-2 hidden") {
+            id = "country-progress-$index"
+            div(classes = "bg-gray-200 rounded-full h-1.5 overflow-hidden") {
+                div(classes = "bg-purple-400 h-full progress-fill") {
+                    id = "country-progress-bar-$index"
+                    style = "width: 0%"
+                }
+            }
+            div(classes = "text-xs text-gray-500 mt-1") {
+                id = "country-progress-text-$index"
+                +"0/0"
+            }
+        }
+    }
+}
+
+private fun DIV.geoNamesAllCountriesLogContainer() {
+    div(classes = "bg-white rounded-lg shadow-sm") {
+        id = "logWrapper"
+        // Log header (clickable to toggle)
+        div(classes = "flex items-center justify-between p-4 cursor-pointer select-none border-b border-gray-200") {
+            id = "logHeader"
+            onClick = "toggleLog()"
+            div(classes = "flex items-center gap-2") {
+                span(classes = "log-toggle-icon text-gray-500") { +"▼" }
+                h3(classes = "text-lg font-semibold text-gray-700") { +"Logs" }
+                span(classes = "text-xs text-gray-400 ml-2") {
+                    id = "logCount"
+                    +"0 entries"
+                }
+            }
+            span(classes = "text-xs text-gray-400") { +"Click to toggle" }
+        }
+        // Log content
+        div(classes = "log-content") {
+            div(classes = "bg-gray-900 text-gray-300 p-4 max-h-64 overflow-y-auto font-mono text-xs rounded-b-lg") {
+                id = "log"
+            }
+        }
+    }
+}
+
+/**
+ * 全国名前補完処理用SSEエンドポイント
+ */
+fun Application.geoNamesAllCountriesStreamRoute() {
+    val repository by inject<GeoNameEnrichmentRepository>()
+
+    routing {
+        sse("/geo-names/enrich/all/stream") {
+            val overallStartTime = System.currentTimeMillis()
+            val countries = SupportedRegion.all
+            val batchSize = call.request.queryParameters["batchSize"]?.toIntOrNull() ?: 10
+            val dryRun = call.request.queryParameters["dryRun"]?.toBoolean() ?: false
+
+            try {
+                // Send AllStarted event with country list
+                val countryInfoList = countries.mapIndexed { index, region ->
+                    MultiCountryProgressEvent.CountryInfo(
+                        index = index,
+                        code = region.code2,
+                        name = region.nameEn,
+                        flagUrl = region.flagUrl,
+                        regionCount = region.subRegionCount,
+                    )
+                }
+                val allStartedEvent = MultiCountryProgressEvent.AllStarted(
+                    countries = countryInfoList,
+                    totalCountries = countries.size,
+                )
+                send(ServerSentEvent(data = formatter.encodeToString(allStartedEvent), event = "progress"))
+
+                var totalSuccessCountries = 0
+                var totalFailCountries = 0
+
+                // Process each country sequentially
+                countries.forEachIndexed { countryIndex, supportedRegion ->
+                    val countryStartTime = System.currentTimeMillis()
+                    val countryCode = supportedRegion.code2
+
+                    // Send CountryStarted event
+                    val countryStartedEvent = MultiCountryProgressEvent.CountryStarted(
+                        countryIndex = countryIndex,
+                        countryCode = countryCode,
+                        countryName = supportedRegion.nameEn,
+                    )
+                    send(ServerSentEvent(data = formatter.encodeToString(countryStartedEvent), event = "progress"))
+
+                    var countrySuccess = 0
+                    var countryFail = 0
+
+                    try {
+                        // Process enrichment for this country
+                        repository.enrichGeoNamesAsFlow(
+                            countryCode = countryCode,
+                            level = null,
+                            batchSize = batchSize,
+                            dryRun = dryRun,
+                        ).collect { event ->
+                            // Get the event type
+                            val eventType = when (event) {
+                                is GeoNameEnrichmentEvent.Started -> event.type
+                                is GeoNameEnrichmentEvent.BatchProcessed -> event.type
+                                is GeoNameEnrichmentEvent.ItemResult -> event.type
+                                is GeoNameEnrichmentEvent.Completed -> event.type
+                                is GeoNameEnrichmentEvent.Error -> event.type
+                            }
+
+                            // Wrap inner event
+                            val wrapped = MultiCountryProgressEvent.CountryProgress(
+                                countryIndex = countryIndex,
+                                countryCode = countryCode,
+                                innerEventJson = formatter.encodeToString(event),
+                                innerEventType = eventType,
+                            )
+                            send(ServerSentEvent(data = formatter.encodeToString(wrapped), event = "progress"))
+
+                            // Track success/fail counts
+                            when (event) {
+                                is GeoNameEnrichmentEvent.Completed -> {
+                                    countrySuccess = event.successCount
+                                    countryFail = event.failedCount
+                                }
+
+                                else -> {}
+                            }
+                        }
+
+                        // Determine country success based on whether we had critical errors
+                        val isCountrySuccess = countryFail == 0 || countrySuccess > 0
+                        if (isCountrySuccess) totalSuccessCountries++ else totalFailCountries++
+
+                        val countryCompletedEvent = MultiCountryProgressEvent.CountryCompleted(
+                            countryIndex = countryIndex,
+                            countryCode = countryCode,
+                            countryName = supportedRegion.nameEn,
+                            success = isCountrySuccess,
+                            successCount = countrySuccess,
+                            failCount = countryFail,
+                            processingTimeMs = System.currentTimeMillis() - countryStartTime,
+                        )
+                        send(ServerSentEvent(data = formatter.encodeToString(countryCompletedEvent), event = "progress"))
+
+                    } catch (e: Exception) {
+                        totalFailCountries++
+                        val countryCompletedEvent = MultiCountryProgressEvent.CountryCompleted(
+                            countryIndex = countryIndex,
+                            countryCode = countryCode,
+                            countryName = supportedRegion.nameEn,
+                            success = false,
+                            errorMessage = e.message,
+                            processingTimeMs = System.currentTimeMillis() - countryStartTime,
+                        )
+                        send(ServerSentEvent(data = formatter.encodeToString(countryCompletedEvent), event = "progress"))
+                    }
+                }
+
+                // Send AllCompleted event
+                val allCompletedEvent = MultiCountryProgressEvent.AllCompleted(
+                    totalCountries = countries.size,
+                    successCount = totalSuccessCountries,
+                    failCount = totalFailCountries,
+                    totalTimeMs = System.currentTimeMillis() - overallStartTime,
+                )
+                send(ServerSentEvent(data = formatter.encodeToString(allCompletedEvent), event = "progress"))
+
+            } catch (e: Exception) {
+                val errorEvent = MultiCountryProgressEvent.Error(
+                    message = e.message ?: "Unknown error occurred",
+                )
+                send(ServerSentEvent(data = formatter.encodeToString(errorEvent), event = "progress"))
+            }
         }
     }
 }

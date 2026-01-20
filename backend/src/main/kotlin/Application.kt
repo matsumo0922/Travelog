@@ -27,10 +27,12 @@ import kotlinx.html.title
 import kotlinx.html.ul
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import route.geoJsonAllCountriesStreamRoute
 import route.geoJsonRoute
 import route.geoJsonStreamRoute
 import route.geoNameEnrichmentRoute
 import route.geoNameEnrichmentStreamRoute
+import route.geoNamesAllCountriesStreamRoute
 import route.revisionRoute
 
 val logger = KtorSimpleLogger("matsumo-me-KMP")
@@ -104,8 +106,10 @@ fun Application.routes() {
     }
     geoJsonRoute()
     geoJsonStreamRoute()
+    geoJsonAllCountriesStreamRoute()
     geoNameEnrichmentRoute()
     geoNameEnrichmentStreamRoute()
+    geoNamesAllCountriesStreamRoute()
     revisionRoute()
 }
 
