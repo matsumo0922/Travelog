@@ -17,7 +17,8 @@ enum class GeoAreaLevel(val value: Int) {
     ADM2(2),
     ADM3(3),
     ADM4(4),
-    ADM5(5);
+    ADM5(5),
+    ;
 
     companion object {
         fun fromInt(value: Int): GeoAreaLevel = entries.first { it.value == value }

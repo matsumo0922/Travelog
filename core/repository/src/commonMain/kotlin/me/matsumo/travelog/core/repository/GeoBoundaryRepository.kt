@@ -21,6 +21,28 @@ import me.matsumo.travelog.core.model.geo.OverpassResult
 import me.matsumo.travelog.core.model.geo.toIso3CountryCode
 import me.matsumo.travelog.core.model.geo.toPolygons
 
+/**
+ * ADM1処理の進捗イベント
+ */
+sealed interface Adm1ProcessingEvent {
+    /**
+     * 処理開始イベント（permit取得時点で発火）
+     */
+    data class Started(
+        val index: Int,
+        val regionName: String,
+        val adm2Count: Int,
+    ) : Adm1ProcessingEvent
+
+    /**
+     * 処理完了イベント
+     */
+    data class Completed(
+        val index: Int,
+        val result: Result<GeoArea>,
+    ) : Adm1ProcessingEvent
+}
+
 class GeoBoundaryRepository(
     private val geoBoundaryDataSource: GeoBoundaryDataSource,
     private val nominatimDataSource: NominatimDataSource,
@@ -126,7 +148,7 @@ class GeoBoundaryRepository(
         countryCode: String,
         regions: List<GeoBoundaryMapper.Adm1Region>,
         maxConcurrent: Int = 3,
-    ): Flow<Pair<Int, Result<GeoArea>>> = channelFlow {
+    ): Flow<Adm1ProcessingEvent> = channelFlow {
         Napier.d(tag = LOG_TAG) {
             "getEnrichedAllAdminsAsFlow: Processing ${regions.size} regions with concurrency=$maxConcurrent"
         }
@@ -137,9 +159,11 @@ class GeoBoundaryRepository(
             regions.mapIndexed { index, adm1 ->
                 launch {
                     semaphore.withPermit {
+                        // permit取得直後に Started を emit（UIが即座に「Processing...」に変わる）
                         Napier.d(tag = LOG_TAG) {
-                            "getEnrichedAllAdminsAsFlow: [${index + 1}/${regions.size}] ${adm1.name} - start"
+                            "getEnrichedAllAdminsAsFlow: [${index + 1}/${regions.size}] ${adm1.name} - started"
                         }
+                        send(Adm1ProcessingEvent.Started(index, adm1.name, adm1.children.size))
 
                         val result = runCatching { processAdm1RegionToGeoArea(adm1, countryCode, index, regions.size) }
 
@@ -149,7 +173,8 @@ class GeoBoundaryRepository(
                             Napier.e(tag = LOG_TAG, throwable = e) { "getEnrichedAllAdminsAsFlow: [${adm1.name}] Failed" }
                         }
 
-                        send(index to result)
+                        // 処理完了時に Completed を emit
+                        send(Adm1ProcessingEvent.Completed(index, result))
                     }
                 }
             }
