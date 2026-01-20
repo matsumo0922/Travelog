@@ -58,10 +58,10 @@ data class MissingNameArea(
  * 補完処理の適用ステータス
  */
 enum class EnrichmentStatus {
-    APPLIED,       // 自動適用（confidence >= 0.8）
-    VALIDATED,     // パターン検証後に適用（0.5 <= confidence < 0.8）
-    SKIPPED,       // スキップ（confidence < 0.5）
-    ERROR,         // エラー発生
+    APPLIED, // 自動適用（confidence >= 0.8）
+    VALIDATED, // パターン検証後に適用（0.5 <= confidence < 0.8）
+    SKIPPED, // スキップ（confidence < 0.5）
+    ERROR, // エラー発生
 }
 
 /**

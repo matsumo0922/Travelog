@@ -64,7 +64,7 @@ fun main(args: Array<String>) = runBlocking {
                 val status = if (country.success) "✓" else "✗"
                 println(
                     "  $status ${country.countryName} (${country.countryCode}): " +
-                            "${country.processedRegions} regions, ${country.processingTimeMs}ms"
+                            "${country.processedRegions} regions, ${country.processingTimeMs}ms",
                 )
                 country.errorMessage?.let { println("    Error: $it") }
             }
@@ -104,7 +104,7 @@ fun main(args: Array<String>) = runBlocking {
                 println(
                     "  $status ${country.countryName}: " +
                             "applied=${country.appliedCount}, validated=${country.validatedCount}, " +
-                            "skipped=${country.skippedCount}, failed=${country.failedCount}"
+                            "skipped=${country.skippedCount}, failed=${country.failedCount}",
                 )
                 country.errorMessage?.let { println("    Error: $it") }
             }
@@ -151,7 +151,7 @@ fun main(args: Array<String>) = runBlocking {
                 println(
                     "  $status ${country.countryName}: " +
                             "applied=${country.appliedCount}, validated=${country.validatedCount}, " +
-                            "skipped=${country.skippedCount}, failed=${country.failedCount}"
+                            "skipped=${country.skippedCount}, failed=${country.failedCount}",
                 )
                 country.errorMessage?.let { println("    Error: $it") }
             }

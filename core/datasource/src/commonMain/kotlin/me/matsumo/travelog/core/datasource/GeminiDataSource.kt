@@ -160,13 +160,17 @@ Only output the JSON, no additional text."""
     private fun buildRequestBody(prompt: String): JsonObject {
         return buildJsonObject {
             putJsonArray("contents") {
-                add(buildJsonObject {
-                    putJsonArray("parts") {
-                        add(buildJsonObject {
-                            put("text", prompt)
-                        })
-                    }
-                })
+                add(
+                    buildJsonObject {
+                        putJsonArray("parts") {
+                            add(
+                                buildJsonObject {
+                                    put("text", prompt)
+                                },
+                            )
+                        }
+                    },
+                )
             }
             putJsonObject("generationConfig") {
                 put("responseMimeType", "application/json")
