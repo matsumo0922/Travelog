@@ -7,6 +7,7 @@ import io.github.jan.supabase.serializer.KotlinXSerializer
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import me.matsumo.travelog.core.common.di.commonModule
 import me.matsumo.travelog.core.datasource.GeminiDataSource
 import me.matsumo.travelog.core.datasource.api.GeoAreaApi
 import me.matsumo.travelog.core.datasource.di.dataSourceModule
@@ -147,6 +148,7 @@ private fun initKoin(): org.koin.core.Koin {
             module {
                 single<SupabaseClient> { supabaseClient }
             },
+            commonModule,
             dataSourceModule,
             repositoryModule,
             module {
