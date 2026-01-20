@@ -51,12 +51,11 @@ private fun HTML.regionListPage() {
     head {
         meta(charset = "UTF-8")
         title("GeoJSON Processing")
-        commonStyles()
-        regionListStyles()
+        tailwindCdn()
     }
-    body {
-        h1 { +"GeoJSON Processing" }
-        p { +"Select a region to process:" }
+    body(classes = "max-w-4xl mx-auto py-10 px-5 font-sans") {
+        h1(classes = "text-gray-800 text-2xl font-bold mb-4") { +"GeoJSON Processing" }
+        p(classes = "text-gray-600 mb-6") { +"Select a region to process:" }
         regionList()
     }
 }
@@ -65,63 +64,35 @@ private fun HTML.progressPage(country: String) {
     head {
         meta(charset = "UTF-8")
         title("GeoJSON Processing - $country")
-        commonStyles()
-        progressStyles()
+        tailwindCdn()
+        logStyles()
     }
-    body {
-        h1 { +"GeoJSON Processing: $country" }
+    body(classes = "max-w-4xl mx-auto py-10 px-5 font-sans") {
+        h1(classes = "text-gray-800 text-2xl font-bold mb-4") { +"GeoJSON Processing: $country" }
         progressContainer()
         logContainer()
-        progressScript(country)
+        script(src = "/static/js/geojson-progress.js") {}
+        script {
+            unsafe {
+                raw("initGeoJsonProgress('$country');")
+            }
+        }
     }
 }
 
 // スタイルコンポーネント
-private fun HEAD.commonStyles() {
-    style {
-        unsafe {
-            raw(
-                """
-                body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
-                h1 { color: #333; }
-                """.trimIndent(),
-            )
-        }
-    }
+private fun HEAD.tailwindCdn() {
+    script(src = "https://cdn.tailwindcss.com") {}
 }
 
-private fun HEAD.regionListStyles() {
+private fun HEAD.logStyles() {
     style {
         unsafe {
             raw(
                 """
-                .region-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-                .region-card { background: #f5f5f5; border-radius: 8px; padding: 16px; text-decoration: none; color: #333; transition: background 0.2s; display: flex; align-items: center; gap: 12px; }
-                .region-card:hover { background: #e0e0e0; }
-                .flag { width: 48px; height: 36px; object-fit: cover; border-radius: 4px; }
-                .region-info { flex: 1; }
-                .region-name { font-weight: 600; margin-bottom: 4px; }
-                .region-count { font-size: 12px; color: #666; }
-                """.trimIndent(),
-            )
-        }
-    }
-}
-
-private fun HEAD.progressStyles() {
-    style {
-        unsafe {
-            raw(
-                """
-                .progress-container { background: #f0f0f0; border-radius: 8px; padding: 20px; margin: 20px 0; }
-                .progress-bar { background: #e0e0e0; border-radius: 4px; height: 24px; overflow: hidden; }
-                .progress-fill { background: #4CAF50; height: 100%; transition: width 0.3s ease; }
-                .status { margin-top: 10px; color: #666; }
-                .log { background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px; max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 13px; }
-                .log-entry { margin: 4px 0; }
-                .success { color: #4CAF50; }
-                .error { color: #f44336; }
-                .info { color: #2196F3; }
+                .log-entry.success { color: #4CAF50; }
+                .log-entry.error { color: #f44336; }
+                .log-entry.info { color: #2196F3; }
                 """.trimIndent(),
             )
         }
@@ -130,7 +101,7 @@ private fun HEAD.progressStyles() {
 
 // UI コンポーネント
 private fun BODY.regionList() {
-    div(classes = "region-list") {
+    div(classes = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4") {
         SupportedRegion.all.forEach { region ->
             regionCard(region)
         }
@@ -138,28 +109,31 @@ private fun BODY.regionList() {
 }
 
 private fun DIV.regionCard(region: SupportedRegion) {
-    a(href = "/geojson/${region.code2}", classes = "region-card") {
+    a(
+        href = "/geojson/${region.code2}",
+        classes = "bg-gray-100 hover:bg-gray-200 rounded-lg p-4 no-underline text-gray-800 transition-colors flex items-center gap-3"
+    ) {
         img(
             src = region.flagUrl,
             alt = region.nameEn,
-            classes = "flag",
+            classes = "w-12 h-9 object-cover rounded",
         )
-        div(classes = "region-info") {
-            div(classes = "region-name") { +region.nameEn }
-            div(classes = "region-count") { +"${region.subRegionCount} regions" }
+        div(classes = "flex-1") {
+            div(classes = "font-semibold mb-1") { +region.nameEn }
+            div(classes = "text-xs text-gray-500") { +"${region.subRegionCount} regions" }
         }
     }
 }
 
 private fun BODY.progressContainer() {
-    div(classes = "progress-container") {
-        div(classes = "progress-bar") {
-            div(classes = "progress-fill") {
+    div(classes = "bg-gray-100 rounded-lg p-5 my-5") {
+        div(classes = "bg-gray-300 rounded h-6 overflow-hidden") {
+            div(classes = "bg-green-500 h-full transition-all duration-300 ease-out") {
                 id = "progressFill"
                 style = "width: 0%"
             }
         }
-        div(classes = "status") {
+        div(classes = "mt-3 text-gray-600") {
             id = "status"
             +"Connecting..."
         }
@@ -167,67 +141,8 @@ private fun BODY.progressContainer() {
 }
 
 private fun BODY.logContainer() {
-    div(classes = "log") {
+    div(classes = "bg-gray-900 text-gray-300 p-4 rounded-lg max-h-96 overflow-y-auto font-mono text-sm") {
         id = "log"
-    }
-}
-
-private fun BODY.progressScript(country: String) {
-    script {
-        unsafe {
-            raw(
-                """
-                const eventSource = new EventSource('/geojson/$country/stream');
-                const log = document.getElementById('log');
-                const progressFill = document.getElementById('progressFill');
-                const status = document.getElementById('status');
-                let totalRegions = 0;
-                let processed = 0;
-
-                function addLog(message, type = 'info') {
-                    const entry = document.createElement('div');
-                    entry.className = 'log-entry ' + type;
-                    entry.textContent = new Date().toLocaleTimeString() + ' - ' + message;
-                    log.appendChild(entry);
-                    log.scrollTop = log.scrollHeight;
-                }
-
-                eventSource.addEventListener('progress', function(e) {
-                    const data = JSON.parse(e.data);
-
-                    if (data.type === 'started') {
-                        totalRegions = data.totalRegions;
-                        status.textContent = 'Processing 0 / ' + totalRegions + ' regions...';
-                        addLog('Started processing ' + totalRegions + ' regions', 'info');
-                    } else if (data.type === 'region_completed') {
-                        processed++;
-                        const percent = Math.round((processed / totalRegions) * 100);
-                        progressFill.style.width = percent + '%';
-                        status.textContent = 'Processing ' + processed + ' / ' + totalRegions + ' regions...';
-                        if (data.success) {
-                            addLog('[' + (data.index + 1) + '/' + totalRegions + '] ' + data.regionName + ' - OK', 'success');
-                        } else {
-                            addLog('[' + (data.index + 1) + '/' + totalRegions + '] ' + data.regionName + ' - Failed: ' + (data.errorMessage || 'Unknown error'), 'error');
-                        }
-                    } else if (data.type === 'completed') {
-                        progressFill.style.width = '100%';
-                        status.textContent = 'Completed! Success: ' + data.successCount + ', Failed: ' + data.failCount;
-                        addLog('Processing completed. Success: ' + data.successCount + ', Failed: ' + data.failCount, data.failCount > 0 ? 'error' : 'success');
-                        eventSource.close();
-                    } else if (data.type === 'error') {
-                        status.textContent = 'Error: ' + data.message;
-                        addLog('Error: ' + data.message, 'error');
-                        eventSource.close();
-                    }
-                });
-
-                eventSource.onerror = function() {
-                    status.textContent = 'Connection lost';
-                    addLog('Connection to server lost', 'error');
-                };
-                """.trimIndent(),
-            )
-        }
     }
 }
 
