@@ -40,8 +40,8 @@ CREATE TABLE IF NOT EXISTS public.geo_areas (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-  -- Constraints
-  CONSTRAINT geo_areas_unique_parent_adm UNIQUE (parent_id, adm_id)
+  -- Constraints (NULLS NOT DISTINCT ensures idempotent upserts for ADM0 where parent_id is NULL)
+  CONSTRAINT geo_areas_unique_parent_adm UNIQUE NULLS NOT DISTINCT (parent_id, adm_id)
 );
 
 -- Comments

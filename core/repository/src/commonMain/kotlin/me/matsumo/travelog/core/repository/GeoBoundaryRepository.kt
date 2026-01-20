@@ -5,7 +5,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import me.matsumo.travelog.core.common.suspendRunCatching
@@ -125,7 +126,7 @@ class GeoBoundaryRepository(
         countryCode: String,
         regions: List<GeoBoundaryMapper.Adm1Region>,
         maxConcurrent: Int = 3,
-    ): Flow<Pair<Int, Result<GeoArea>>> = flow {
+    ): Flow<Pair<Int, Result<GeoArea>>> = channelFlow {
         Napier.d(tag = LOG_TAG) {
             "getEnrichedAllAdminsAsFlow: Processing ${regions.size} regions with concurrency=$maxConcurrent"
         }
@@ -133,8 +134,8 @@ class GeoBoundaryRepository(
         val semaphore = Semaphore(maxConcurrent)
 
         coroutineScope {
-            val deferredResults = regions.mapIndexed { index, adm1 ->
-                async {
+            regions.mapIndexed { index, adm1 ->
+                launch {
                     semaphore.withPermit {
                         Napier.d(tag = LOG_TAG) {
                             "getEnrichedAllAdminsAsFlow: [${index + 1}/${regions.size}] ${adm1.name} - start"
@@ -148,13 +149,9 @@ class GeoBoundaryRepository(
                             Napier.e(tag = LOG_TAG, throwable = e) { "getEnrichedAllAdminsAsFlow: [${adm1.name}] Failed" }
                         }
 
-                        index to result
+                        send(index to result)
                     }
                 }
-            }
-
-            deferredResults.forEach { deferred ->
-                emit(deferred.await())
             }
         }
 
