@@ -1,12 +1,12 @@
-# CLAUDE.md
+# Travelog
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+旅行・地域写真を管理するマルチプラットフォームアプリ。
 
-## プロジェクト概要
+## 技術スタック
 
-旅行・地域写真を管理するマルチプラットフォームアプリ。Compose Multiplatform (CMP) / Kotlin Multiplatform (KMP) で実装。Android / iOS / JVM に対応。
-
-バックエンドは Supabase (PostgreSQL + RLS) を使用。
+- **Compose Multiplatform (CMP) / Kotlin Multiplatform (KMP)**
+- **Supabase** (PostgreSQL + RLS + PostGIS)
+- **対応プラットフォーム**: Android / iOS / JVM
 
 ## コマンド
 
@@ -112,9 +112,15 @@ val homeModule = module {
 
 ## 主要ライブラリ
 
-- **Kotlin**: 2.3.0
-- **Compose Multiplatform**: 1.10.0-rc02
-- **Supabase**: 3.2.5
-- **Koin**: 4.1.1
-- **Ktor**: 3.3.3
-- **Coil3**: 3.3.0（画像読み込み）
+| ライブラリ                 | バージョン       |
+|-----------------------|-------------|
+| Kotlin                | 2.3.0       |
+| Compose Multiplatform | 1.10.0-rc02 |
+| Supabase              | 3.2.5       |
+| Koin                  | 4.1.1       |
+| Ktor                  | 3.3.3       |
+| Coil3                 | 3.3.0       |
+
+## ドキュメント
+
+- [データベース設計](docs/DATABASE.md)
