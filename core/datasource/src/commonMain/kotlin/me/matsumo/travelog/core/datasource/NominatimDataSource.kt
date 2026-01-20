@@ -8,8 +8,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import me.matsumo.travelog.core.model.geo.NominatimResult
 
@@ -17,24 +17,20 @@ class NominatimDataSource(
     private val httpClient: HttpClient,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
-    private val requestMutex = Mutex()
-    private var isFirstRequest = true
-
-    private suspend fun throttle() {
-        requestMutex.withLock {
-            if (!isFirstRequest) delay(MIN_INTERVAL_MS)
-            isFirstRequest = false
-        }
-    }
+    // Nominatim の公式レートリミット: 1 req/sec
+    // Semaphore(1) で同時実行を1つに制限
+    private val rateLimiter = Semaphore(1)
 
     suspend fun search(query: String) = withContext(ioDispatcher) {
-        throttle()
+        rateLimiter.withPermit {
+            delay(MIN_INTERVAL_MS)
 
-        httpClient.get("$BASE_URL/search") {
-            parameter("q", query)
-            parameter("format", "jsonv2")
-            parameter("limit", "1")
-        }.body<List<NominatimResult>>().first()
+            httpClient.get("$BASE_URL/search") {
+                parameter("q", query)
+                parameter("format", "jsonv2")
+                parameter("limit", "1")
+            }.body<List<NominatimResult>>().first()
+        }
     }
 
     companion object {

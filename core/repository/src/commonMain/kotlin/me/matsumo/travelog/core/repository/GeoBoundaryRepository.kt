@@ -194,7 +194,9 @@ class GeoBoundaryRepository(
         }
 
         val overpassElements = runCatching { getAdmins(adm1.name) }
-            .onFailure { Napier.w(tag = LOG_TAG, throwable = it) { "processAdm1RegionToGeoArea: [${adm1.name}] Overpass fetch failed" } }
+            .onFailure {
+                Napier.w(tag = LOG_TAG, throwable = it) { "processAdm1RegionToGeoArea: [${adm1.name}] Overpass fetch failed" }
+            }
             .getOrElse { emptyList() }
             .toMutableList()
 

@@ -24,11 +24,15 @@ class GeoAreaMapper {
     fun toDTO(model: GeoArea, includeGeoJson: Boolean = true): GeoAreaDTO {
         val centerGeoJson = if (includeGeoJson) {
             model.getGeoJsonPoint()?.let { formatter.encodeToString(it) }
-        } else null
+        } else {
+            null
+        }
 
         val polygonsGeoJson = if (includeGeoJson && model.polygons.isNotEmpty()) {
             formatter.encodeToString(model.getGeoJsonMultiPolygon())
-        } else null
+        } else {
+            null
+        }
 
         return GeoAreaDTO(
             id = model.id,
