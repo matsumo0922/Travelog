@@ -187,7 +187,7 @@ class GeoBoundaryRepository(
             }.getOrNull()
 
             GeoBoundaryMapper.EnrichedAdm1Data(
-                name = it.tags.name ?: adm1.name,
+                name = adm1.name, // Always use original GeoJSON name to avoid city name overwrite
                 nameEn = it.tags.nameEn,
                 nameJa = it.tags.nameJa,
                 wikipedia = it.tags.wikipedia,

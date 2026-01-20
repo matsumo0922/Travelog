@@ -4,6 +4,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -32,7 +33,7 @@ class GeoAreaApi internal constructor(
      * Returns map of adm_id -> UUID.
      */
     suspend fun upsertAreasBatch(areas: List<GeoArea>): Map<String, String> {
-        val payload = JsonArray(areas.map { buildAreaParams(it) })
+        val payload = JsonArray(areas.map { buildBatchItemParams(it) })
 
         val result = supabaseClient.postgrest.rpc(
             function = "upsert_geo_areas_batch",
@@ -166,7 +167,29 @@ class GeoAreaApi internal constructor(
         }
     }
 
+    /**
+     * Build params for single upsert RPC (requires p_ prefix for PostgREST function matching)
+     */
     private fun buildAreaParams(area: GeoArea): JsonObject = buildJsonObject {
+        put("p_parent_id", area.parentId?.let { JsonPrimitive(it) } ?: JsonNull)
+        put("p_level", JsonPrimitive(area.level.value))
+        put("p_adm_id", JsonPrimitive(area.admId))
+        put("p_country_code", JsonPrimitive(area.countryCode))
+        put("p_name", JsonPrimitive(area.name))
+        put("p_name_en", area.nameEn?.let { JsonPrimitive(it) } ?: JsonNull)
+        put("p_name_ja", area.nameJa?.let { JsonPrimitive(it) } ?: JsonNull)
+        put("p_iso_code", area.isoCode?.let { JsonPrimitive(it) } ?: JsonNull)
+        put("p_wikipedia", area.wikipedia?.let { JsonPrimitive(it) } ?: JsonNull)
+        put("p_thumbnail_url", area.thumbnailUrl?.let { JsonPrimitive(it) } ?: JsonNull)
+        put("p_center_lat", area.center?.let { JsonPrimitive(it.lat) } ?: JsonNull)
+        put("p_center_lon", area.center?.let { JsonPrimitive(it.lon) } ?: JsonNull)
+        put("p_polygons_geojson", if (area.polygons.isNotEmpty()) area.getGeoJsonMultiPolygon() else JsonNull)
+    }
+
+    /**
+     * Build params for batch upsert JSONB array items (no p_ prefix, keys match SQL function's JSON extraction)
+     */
+    private fun buildBatchItemParams(area: GeoArea): JsonObject = buildJsonObject {
         area.parentId?.let { put("parent_id", JsonPrimitive(it)) }
         put("level", JsonPrimitive(area.level.value))
         put("adm_id", JsonPrimitive(area.admId))
