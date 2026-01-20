@@ -14,12 +14,14 @@ import kotlinx.html.HEAD
 import kotlinx.html.HTML
 import kotlinx.html.a
 import kotlinx.html.body
+import kotlinx.html.button
 import kotlinx.html.div
 import kotlinx.html.h1
 import kotlinx.html.head
 import kotlinx.html.id
 import kotlinx.html.img
 import kotlinx.html.meta
+import kotlinx.html.onClick
 import kotlinx.html.p
 import kotlinx.html.script
 import kotlinx.html.style
@@ -69,14 +71,10 @@ private fun HTML.progressPage(country: String) {
     }
     body(classes = "max-w-4xl mx-auto py-10 px-5 font-sans") {
         h1(classes = "text-gray-800 text-2xl font-bold mb-4") { +"GeoJSON Processing: $country" }
+        controlButtons(country)
         progressContainer()
         logContainer()
         script(src = "/static/js/geojson-progress.js") {}
-        script {
-            unsafe {
-                raw("initGeoJsonProgress('$country');")
-            }
-        }
     }
 }
 
@@ -125,6 +123,28 @@ private fun DIV.regionCard(region: SupportedRegion) {
     }
 }
 
+private fun BODY.controlButtons(country: String) {
+    div(classes = "flex gap-3 mb-5") {
+        button(
+            classes = "bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg " +
+                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+        ) {
+            id = "startBtn"
+            onClick = "startProcessing('$country')"
+            +"Start"
+        }
+        button(
+            classes = "bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg " +
+                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+        ) {
+            id = "stopBtn"
+            onClick = "stopProcessing()"
+            attributes["disabled"] = "true"
+            +"Stop"
+        }
+    }
+}
+
 private fun BODY.progressContainer() {
     div(classes = "bg-gray-100 rounded-lg p-5 my-5") {
         div(classes = "bg-gray-300 rounded h-6 overflow-hidden") {
@@ -135,7 +155,7 @@ private fun BODY.progressContainer() {
         }
         div(classes = "mt-3 text-gray-600") {
             id = "status"
-            +"Connecting..."
+            +"Ready to start"
         }
     }
 }
