@@ -384,21 +384,19 @@ fun Application.geoJsonStreamRoute() {
                                                 if (adm1GeoArea.children.isNotEmpty()) {
                                                     val adm2WithParent = adm1GeoArea.children.map { it.copy(parentId = adm1Id) }
 
-                                                    // Process ADM2 and send progress
+                                                    // Process ADM2 and send progress for each item (real-time updates)
                                                     adm2WithParent.forEachIndexed { adm2Index, adm2 ->
                                                         runCatching { geoAreaRepository.upsertArea(adm2) }
                                                             .onSuccess { adm2Processed++ }
 
-                                                        // Send ADM2 progress every 5 items or at the end
-                                                        if ((adm2Index + 1) % 5 == 0 || adm2Index == adm2WithParent.lastIndex) {
-                                                            val progressEvent = GeoJsonProgressEvent.Adm2Progress(
-                                                                adm1Index = index + 1,
-                                                                processedCount = adm2Index + 1,
-                                                                totalCount = adm2WithParent.size,
-                                                                currentAdm2Name = adm2.name,
-                                                            )
-                                                            send(ServerSentEvent(data = formatter.encodeToString(progressEvent), event = "progress"))
-                                                        }
+                                                        // Send ADM2 progress for each item
+                                                        val progressEvent = GeoJsonProgressEvent.Adm2Progress(
+                                                            adm1Index = index + 1,
+                                                            processedCount = adm2Index + 1,
+                                                            totalCount = adm2WithParent.size,
+                                                            currentAdm2Name = adm2.name,
+                                                        )
+                                                        send(ServerSentEvent(data = formatter.encodeToString(progressEvent), event = "progress"))
                                                     }
                                                 }
                                                 adm2Processed to adm1GeoArea.children.size

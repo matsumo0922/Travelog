@@ -99,6 +99,17 @@ class GeoBoundaryRepository(
         return overpassResult.elements.sortedBy { it.tags.iso31662?.substringAfter("-") ?: "9999" }
     }
 
+    /**
+     * Get administrative boundaries by ISO 3166-2 code.
+     * This bypasses Nominatim, enabling true parallel processing of ADM1 regions.
+     *
+     * @param isoCode ISO 3166-2 code (e.g., "JP-13" for Tokyo)
+     */
+    suspend fun getAdminsByIso(isoCode: String): List<OverpassResult.Element> {
+        val overpassResult = overpassDataSource.getAdminsByIso(isoCode)
+        return overpassResult.elements.sortedBy { it.tags.iso31662?.substringAfter("-") ?: "9999" }
+    }
+
     suspend fun getThumbnailUrl(wikipedia: String): String? {
         val lang = wikipedia.substringBefore(':')
         val title = wikipedia.substringAfter(':')
@@ -190,12 +201,15 @@ class GeoBoundaryRepository(
         total: Int,
     ): GeoArea = coroutineScope {
         Napier.d(tag = LOG_TAG) {
-            "processAdm1RegionToGeoArea: [${index + 1}/$total] ${adm1.name} - start (${adm1.children.size} ADM2 regions)"
+            "processAdm1RegionToGeoArea: [${index + 1}/$total] ${adm1.name} (iso=${adm1.iso}) - start (${adm1.children.size} ADM2 regions)"
         }
 
-        val overpassElements = runCatching { getAdmins(adm1.name) }
+        // Use ISO code to bypass Nominatim rate limit, enabling true parallel processing
+        val overpassElements = runCatching { getAdminsByIso(adm1.iso) }
             .onFailure {
-                Napier.w(tag = LOG_TAG, throwable = it) { "processAdm1RegionToGeoArea: [${adm1.name}] Overpass fetch failed" }
+                Napier.w(tag = LOG_TAG, throwable = it) {
+                    "processAdm1RegionToGeoArea: [${adm1.name}] Overpass fetch failed (iso=${adm1.iso})"
+                }
             }
             .getOrElse { emptyList() }
             .toMutableList()

@@ -34,7 +34,31 @@ class OverpassDataSource(
              out tags center;
         """.trimIndent()
 
-        retryWithBackoff(
+        executeQuery(query)
+    }
+
+    /**
+     * Get administrative boundaries by ISO 3166-2 code.
+     * This allows parallel processing by bypassing the Nominatim rate limit.
+     *
+     * @param isoCode ISO 3166-2 code (e.g., "JP-13" for Tokyo)
+     */
+    suspend fun getAdminsByIso(isoCode: String): OverpassResult = withContext(ioDispatcher) {
+        val query = """
+            [out:json][timeout:60];
+            area["ISO3166-2"="$isoCode"]->.searchArea;
+            (
+              .searchArea;
+              relation["boundary"="administrative"]["admin_level"~"7|8"](area.searchArea);
+            );
+            out tags center;
+        """.trimIndent()
+
+        executeQuery(query)
+    }
+
+    private suspend fun executeQuery(query: String): OverpassResult {
+        return retryWithBackoff(
             maxRetries = MAX_RETRIES,
             initialDelayMs = INITIAL_DELAY_MS,
             maxDelayMs = MAX_DELAY_MS,
