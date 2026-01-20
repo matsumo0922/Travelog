@@ -29,6 +29,7 @@ import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.home_map_area
 import me.matsumo.travelog.core.resource.home_map_region
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
 import me.matsumo.travelog.feature.home.create.country.component.CountrySelectItem
@@ -53,6 +54,7 @@ internal fun RegionSelectRoute(
     AsyncLoadContents(
         modifier = modifier,
         screenState = screenState,
+        retryAction = viewModel::fetch,
     ) {
         RegionSelectScreen(
             modifier = Modifier.fillMaxSize(),
@@ -103,7 +105,14 @@ private fun RegionSelectScreen(
                         .clip(RoundedCornerShape(16.dp))
                         .fillMaxWidth(),
                     supportedRegion = region,
-                    onSelected = { },
+                    onSelected = {
+                        navBackStack.add(
+                            Destination.MapCreate(
+                                selectedCountryCode3 = it.code3,
+                                selectedGroupAdmId = null,
+                            ),
+                        )
+                    },
                 )
             }
 
@@ -125,7 +134,14 @@ private fun RegionSelectScreen(
                 RegionSelectItem(
                     modifier = Modifier.fillMaxWidth(),
                     group = group,
-                    onSelected = { },
+                    onSelected = {
+                        navBackStack.add(
+                            Destination.MapCreate(
+                                selectedCountryCode3 = region.code3,
+                                selectedGroupAdmId = group.admId,
+                            ),
+                        )
+                    },
                 )
             }
         }

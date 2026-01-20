@@ -1,12 +1,10 @@
-package me.matsumo.travelog.feature.home.create.region
+package me.matsumo.travelog.feature.home.create.metadata
 
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.model.SupportedRegion
@@ -16,13 +14,14 @@ import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.screen.ScreenState
 
-class RegionSelectViewModel(
+class MapCreateViewModel(
     private val selectedRegion: SupportedRegion,
+    private val selectedGroupAdmId: String?,
     private val geoRegionRepository: GeoRegionRepository,
 ) : ViewModel() {
 
-    private val _screenState = MutableStateFlow<ScreenState<RegionSelectUiState>>(ScreenState.Loading())
-    val screenState = _screenState.asStateFlow()
+    private val _screenState = MutableStateFlow<ScreenState<MapCreateUiState>>(ScreenState.Loading())
+    val screenState: StateFlow<ScreenState<MapCreateUiState>> = _screenState
 
     init {
         fetch()
@@ -31,11 +30,11 @@ class RegionSelectViewModel(
     fun fetch() {
         viewModelScope.launch {
             _screenState.value = suspendRunCatching {
-                RegionSelectUiState(
+                val group = selectedGroupAdmId?.let { geoRegionRepository.getRegionGroupByAdmId(it) }
+
+                MapCreateUiState(
                     region = selectedRegion,
-                    groups = geoRegionRepository.getGroupsByGroupCode(selectedRegion.code3)
-                        .sortedBy { it.admISO }
-                        .toImmutableList(),
+                    group = group,
                 )
             }.fold(
                 onSuccess = { ScreenState.Idle(it) },
@@ -46,7 +45,7 @@ class RegionSelectViewModel(
 }
 
 @Stable
-data class RegionSelectUiState(
+data class MapCreateUiState(
     val region: SupportedRegion,
-    val groups: ImmutableList<GeoRegionGroup>,
+    val group: GeoRegionGroup?,
 )

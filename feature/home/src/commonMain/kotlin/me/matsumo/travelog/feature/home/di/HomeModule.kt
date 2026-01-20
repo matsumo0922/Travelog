@@ -2,6 +2,7 @@ package me.matsumo.travelog.feature.home.di
 
 import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.feature.home.HomeViewModel
+import me.matsumo.travelog.feature.home.create.metadata.MapCreateViewModel
 import me.matsumo.travelog.feature.home.create.region.RegionSelectViewModel
 import me.matsumo.travelog.feature.home.maps.HomeMapsViewModel
 import me.matsumo.travelog.feature.home.photos.HomePhotosViewModel
@@ -17,6 +18,14 @@ val homeModule = module {
     viewModel { extras ->
         RegionSelectViewModel(
             selectedRegion = SupportedRegion.all.first { it.code3 == extras.get<String>() },
+            geoRegionRepository = get(),
+        )
+    }
+
+    viewModel { extras ->
+        MapCreateViewModel(
+            selectedRegion = SupportedRegion.all.first { it.code3 == extras[0] },
+            selectedGroupAdmId = extras.values.getOrNull(1) as? String,
             geoRegionRepository = get(),
         )
     }

@@ -10,6 +10,7 @@ import me.matsumo.travelog.core.ui.animation.NavigationTransitions
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.home.create.country.countrySelectEntry
+import me.matsumo.travelog.feature.home.create.metadata.mapCreateEntry
 import me.matsumo.travelog.feature.home.create.region.regionSelectEntry
 import me.matsumo.travelog.feature.home.homeEntry
 import me.matsumo.travelog.feature.login.loginEntry
@@ -34,6 +35,7 @@ internal fun AppNavHost(
                 loginEntry()
                 countrySelectEntry()
                 regionSelectEntry()
+                mapCreateEntry()
                 settingEntry()
                 settingLicenseEntry()
             },

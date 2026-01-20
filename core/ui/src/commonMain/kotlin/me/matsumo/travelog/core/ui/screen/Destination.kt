@@ -22,7 +22,10 @@ sealed interface Destination : NavKey {
     ) : Destination
 
     @Serializable
-    data object MapCreate : Destination
+    data class MapCreate(
+        val selectedCountryCode3: String,
+        val selectedGroupAdmId: String? = null,
+    ) : Destination
 
     @Serializable
     data object Login : Destination
