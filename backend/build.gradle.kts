@@ -21,6 +21,8 @@ application {
         localProperties.getJvmArg("SUPABASE_URL"),
         localProperties.getJvmArg("SUPABASE_KEY"),
         localProperties.getJvmArg("GEMINI_API_KEY"),
+        localProperties.getJvmArg("BASIC_AUTH_USERNAME"),
+        localProperties.getJvmArg("BASIC_AUTH_PASSWORD"),
         localProperties.getJvmArg("PORT", defaultValue = "8080"),
         localProperties.getJvmArg("REVISION", defaultValue = "UNKNOWN"),
     )

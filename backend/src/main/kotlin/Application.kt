@@ -4,6 +4,9 @@ import io.ktor.resources.Resource
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.UserIdPrincipal
+import io.ktor.server.auth.basic
 import io.ktor.server.html.respondHtml
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.netty.EngineMain
@@ -60,6 +63,21 @@ fun Application.module() {
     install(Resources)
     install(CallLogging)
     install(SSE)
+    install(Authentication) {
+        basic("auth-basic") {
+            realm = "Travelog API"
+            validate { credentials ->
+                val username = System.getenv("BASIC_AUTH_USERNAME")
+                val password = System.getenv("BASIC_AUTH_PASSWORD")
+
+                if (credentials.name == username && credentials.password == password) {
+                    UserIdPrincipal(credentials.name)
+                } else {
+                    null
+                }
+            }
+        }
+    }
 
     initKoin()
     routes()

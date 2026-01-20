@@ -2,6 +2,7 @@ package route
 
 import formatter
 import io.ktor.server.application.Application
+import io.ktor.server.auth.authenticate
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -47,21 +48,23 @@ fun Application.geoNameEnrichmentRoute() {
     val repository by inject<GeoNameEnrichmentRepository>()
 
     routing {
-        get("/geo-names") {
-            call.respondHtml {
-                geoNameEnrichmentListPage()
+        authenticate("auth-basic") {
+            get("/geo-names") {
+                call.respondHtml {
+                    geoNameEnrichmentListPage()
+                }
             }
-        }
-        get("/geo-names/enrich/{country}") {
-            val country = call.parameters["country"] ?: "JP"
-            val level = call.request.queryParameters["level"]?.toIntOrNull()
-            call.respondHtml {
-                geoNameEnrichmentProgressPage(country, level)
+            get("/geo-names/enrich/{country}") {
+                val country = call.parameters["country"] ?: "JP"
+                val level = call.request.queryParameters["level"]?.toIntOrNull()
+                call.respondHtml {
+                    geoNameEnrichmentProgressPage(country, level)
+                }
             }
-        }
-        get("/geo-names/enrich/all") {
-            call.respondHtml {
-                geoNamesAllCountriesProgressPage()
+            get("/geo-names/enrich/all") {
+                call.respondHtml {
+                    geoNamesAllCountriesProgressPage()
+                }
             }
         }
     }
@@ -71,8 +74,9 @@ fun Application.geoNameEnrichmentStreamRoute() {
     val repository by inject<GeoNameEnrichmentRepository>()
 
     routing {
-        // Get missing names for a country
-        get("/geo-names/missing/{country}") {
+        authenticate("auth-basic") {
+            // Get missing names for a country
+            get("/geo-names/missing/{country}") {
             val country = call.parameters["country"]
             if (country.isNullOrBlank()) {
                 call.respondHtml {
@@ -141,6 +145,7 @@ fun Application.geoNameEnrichmentStreamRoute() {
                 val errorEvent = GeoNameEnrichmentEvent.Error(e.message ?: "Unknown error occurred")
                 send(ServerSentEvent(data = formatter.encodeToString(errorEvent), event = "progress"))
             }
+        }
         }
     }
 }
@@ -826,7 +831,8 @@ fun Application.geoNamesAllCountriesStreamRoute() {
     val repository by inject<GeoNameEnrichmentRepository>()
 
     routing {
-        sse("/geo-names/enrich/all/stream") {
+        authenticate("auth-basic") {
+            sse("/geo-names/enrich/all/stream") {
             val overallStartTime = System.currentTimeMillis()
             val countries = SupportedRegion.all
             val batchSize = call.request.queryParameters["batchSize"]?.toIntOrNull() ?: 10
@@ -949,6 +955,7 @@ fun Application.geoNamesAllCountriesStreamRoute() {
                 )
                 send(ServerSentEvent(data = formatter.encodeToString(errorEvent), event = "progress"))
             }
+        }
         }
     }
 }

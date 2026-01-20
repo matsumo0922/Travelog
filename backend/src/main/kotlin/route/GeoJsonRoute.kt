@@ -3,6 +3,7 @@ package route
 import Route
 import formatter
 import io.ktor.server.application.Application
+import io.ktor.server.auth.authenticate
 import io.ktor.server.html.respondHtml
 import io.ktor.server.resources.get
 import io.ktor.server.routing.get
@@ -52,19 +53,21 @@ import org.koin.ktor.ext.inject
 
 fun Application.geoJsonRoute() {
     routing {
-        get<Route.GeoJsonList> {
-            call.respondHtml {
-                regionListPage()
+        authenticate("auth-basic") {
+            get<Route.GeoJsonList> {
+                call.respondHtml {
+                    regionListPage()
+                }
             }
-        }
-        get<Route.GeoJson> { geoJson ->
-            call.respondHtml {
-                progressPage(geoJson.country)
+            get<Route.GeoJson> { geoJson ->
+                call.respondHtml {
+                    progressPage(geoJson.country)
+                }
             }
-        }
-        get("/geojson/all") {
-            call.respondHtml {
-                allCountriesProgressPage("geojson")
+            get("/geojson/all") {
+                call.respondHtml {
+                    allCountriesProgressPage("geojson")
+                }
             }
         }
     }
@@ -479,7 +482,8 @@ fun Application.geoJsonStreamRoute() {
     val geoAreaRepository by inject<GeoAreaRepository>()
 
     routing {
-        sse("/geojson/{country}/stream") {
+        authenticate("auth-basic") {
+            sse("/geojson/{country}/stream") {
             val country = call.parameters["country"]
             if (country.isNullOrBlank()) {
                 val errorEvent = GeoJsonProgressEvent.Error("Country parameter is required")
@@ -679,6 +683,7 @@ fun Application.geoJsonStreamRoute() {
                 val errorEvent = GeoJsonProgressEvent.Error(e.message ?: "Unknown error occurred")
                 send(ServerSentEvent(data = formatter.encodeToString(errorEvent), event = "progress"))
             }
+        }
         }
     }
 }
@@ -955,7 +960,8 @@ fun Application.geoJsonAllCountriesStreamRoute() {
     val geoAreaRepository by inject<GeoAreaRepository>()
 
     routing {
-        sse("/geojson/all/stream") {
+        authenticate("auth-basic") {
+            sse("/geojson/all/stream") {
             val overallStartTime = System.currentTimeMillis()
             val countries = SupportedRegion.all
 
@@ -1257,6 +1263,7 @@ fun Application.geoJsonAllCountriesStreamRoute() {
                 )
                 send(ServerSentEvent(data = formatter.encodeToString(errorEvent), event = "progress"))
             }
+        }
         }
     }
 }
