@@ -77,7 +77,7 @@ sealed interface GeoNameEnrichmentEvent {
     data class Started(
         val totalCount: Int,
         val countryCode: String,
-        val level: Int,
+        val level: Int? = null,
         val type: String = "started",
     ) : GeoNameEnrichmentEvent
 

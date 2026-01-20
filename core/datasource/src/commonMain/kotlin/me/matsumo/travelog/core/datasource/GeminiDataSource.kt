@@ -97,20 +97,42 @@ $areasJson
 ## Rules for Japanese regions (country_code: JP):
 1. name_ja (Japanese names):
    - Use official kanji/hiragana as registered
+   - ADM1 (都道府県) must end with: 都, 道, 府, or 県
    - ADM2 (市区町村) must end with: 市, 町, 村, 区, or 郡
-   - Use the full official name (e.g., "忠岡町" not just "忠岡")
+   - Use the full official name (e.g., "東京都", "大阪府", "忠岡町")
 
 2. name_en (English names):
    - Use modified Hepburn romanization
-   - Include the administrative suffix (e.g., "Tadaoka Town", "Osaka City")
+   - ADM1: Include suffix (e.g., "Tokyo Metropolis", "Osaka Prefecture", "Hokkaido")
+   - ADM2: Include suffix (e.g., "Tadaoka Town", "Osaka City")
+
+## Rules for Korean regions (country_code: KR):
+1. name_ja: Use standard Japanese katakana transliteration (e.g., "ソウル特別市")
+2. name_en: Use official romanization (e.g., "Seoul", "Busan")
+
+## Rules for Taiwanese regions (country_code: TW):
+1. name_ja: Use traditional Chinese characters or Japanese reading (e.g., "台北市")
+2. name_en: Use official romanization (e.g., "Taipei City", "New Taipei City")
+
+## Rules for Chinese regions (country_code: CN):
+1. name_ja: Use Japanese reading of Chinese characters (e.g., "北京市" → "ペキン市")
+2. name_en: Use Pinyin romanization (e.g., "Beijing", "Shanghai")
+
+## Rules for US regions (country_code: US):
+1. name_ja: Use standard Japanese katakana transliteration (e.g., "カリフォルニア州")
+2. name_en: Use official English name (e.g., "California", "New York")
 
 ## Rules for German regions (country_code: DE):
-1. name_ja: Use standard Japanese katakana transliteration
+1. name_ja: Use standard Japanese katakana transliteration (e.g., "バイエルン州")
 2. name_en: Use the official German name or common English equivalent
 
 ## Rules for British regions (country_code: GB):
-1. name_ja: Use standard Japanese katakana transliteration
+1. name_ja: Use standard Japanese katakana transliteration (e.g., "イングランド")
 2. name_en: Use the official English name
+
+## Rules for French regions (country_code: FR):
+1. name_ja: Use standard Japanese katakana transliteration (e.g., "イル＝ド＝フランス")
+2. name_en: Use the official French name or common English equivalent
 
 ## Confidence scoring:
 - 1.0: Certain (official name found)
@@ -266,9 +288,9 @@ Only output the JSON, no additional text."""
         private const val TAG = "GeminiDataSource"
         private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
         private const val MAX_CONCURRENT_REQUESTS = 5
-        private const val MIN_INTERVAL_MS = 1000L
+        private const val MIN_INTERVAL_MS = 3000L // 3秒間隔
         private const val MAX_RETRIES = 5
-        private const val INITIAL_DELAY_MS = 1000L
-        private const val MAX_DELAY_MS = 1000L // 30秒
+        private const val INITIAL_DELAY_MS = 5000L // 5秒
+        private const val MAX_DELAY_MS = 30000L // 30秒
     }
 }

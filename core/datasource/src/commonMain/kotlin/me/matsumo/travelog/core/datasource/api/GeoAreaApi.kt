@@ -170,13 +170,13 @@ class GeoAreaApi internal constructor(
     /**
      * Fetch areas with missing name_en or name_ja.
      * @param countryCode The country code to filter by
-     * @param level The administrative level to filter by
+     * @param level The administrative level to filter by (null for all levels)
      * @param missingNameEn If true, returns areas where name_en is null
      * @param missingNameJa If true, returns areas where name_ja is null
      */
     suspend fun fetchAreasWithMissingNames(
         countryCode: String,
-        level: Int,
+        level: Int? = null,
         missingNameEn: Boolean = true,
         missingNameJa: Boolean = true,
     ): List<GeoAreaDTO> {
@@ -184,7 +184,7 @@ class GeoAreaApi internal constructor(
             .select {
                 filter {
                     eq("country_code", countryCode)
-                    eq("level", level)
+                    level?.let { eq("level", it) }
                     if (missingNameEn && missingNameJa) {
                         or {
                             exact("name_en", null)
@@ -246,14 +246,14 @@ class GeoAreaApi internal constructor(
     }
 
     /**
-     * Get count of areas with missing names by country and level.
+     * Get count of areas with missing names by country (optionally filtered by level).
      */
-    suspend fun getMissingNamesCount(countryCode: String, level: Int): MissingNamesCount {
+    suspend fun getMissingNamesCount(countryCode: String, level: Int? = null): MissingNamesCount {
         val result = supabaseClient.postgrest.rpc(
             function = "get_missing_names_count",
             parameters = buildJsonObject {
                 put("p_country_code", JsonPrimitive(countryCode))
-                put("p_level", JsonPrimitive(level))
+                level?.let { put("p_level", JsonPrimitive(it)) }
             },
         ).decodeAs<JsonObject>()
 

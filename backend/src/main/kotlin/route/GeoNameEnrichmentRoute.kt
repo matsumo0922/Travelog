@@ -53,7 +53,7 @@ fun Application.geoNameEnrichmentRoute() {
         }
         get("/geo-names/enrich/{country}") {
             val country = call.parameters["country"] ?: "JP"
-            val level = call.request.queryParameters["level"]?.toIntOrNull() ?: 2
+            val level = call.request.queryParameters["level"]?.toIntOrNull()
             call.respondHtml {
                 geoNameEnrichmentProgressPage(country, level)
             }
@@ -77,7 +77,8 @@ fun Application.geoNameEnrichmentStreamRoute() {
                 return@get
             }
 
-            val level = call.request.queryParameters["level"]?.toIntOrNull() ?: 2
+            val level = call.request.queryParameters["level"]?.toIntOrNull()
+            val levelLabel = level?.let { "Level $it" } ?: "All Levels"
 
             runCatching {
                 val areas = repository.getAreasWithMissingNames(country, level)
@@ -90,7 +91,7 @@ fun Application.geoNameEnrichmentStreamRoute() {
                     body(classes = "bg-gray-100 min-h-screen") {
                         div(classes = "max-w-6xl mx-auto py-10 px-5") {
                             h1(classes = "text-2xl font-bold text-gray-800 mb-4") {
-                                +"Missing Names: $country (Level $level)"
+                                +"Missing Names: $country ($levelLabel)"
                             }
                             p(classes = "text-gray-600 mb-6") {
                                 +"Found ${areas.size} areas with missing names"
@@ -117,7 +118,7 @@ fun Application.geoNameEnrichmentStreamRoute() {
                 return@sse
             }
 
-            val level = call.request.queryParameters["level"]?.toIntOrNull() ?: 2
+            val level = call.request.queryParameters["level"]?.toIntOrNull()
             val dryRun = call.request.queryParameters["dryRun"]?.toBoolean() ?: false
             val batchSize = call.request.queryParameters["batchSize"]?.toIntOrNull() ?: 10
 
@@ -152,7 +153,8 @@ private fun HTML.geoNameEnrichmentListPage() {
     }
 }
 
-private fun HTML.geoNameEnrichmentProgressPage(country: String, level: Int) {
+private fun HTML.geoNameEnrichmentProgressPage(country: String, level: Int?) {
+    val levelLabel = level?.let { "Level $it" } ?: "All Levels"
     head {
         meta(charset = "UTF-8")
         title("Geo Name Enrichment - $country")
@@ -161,7 +163,7 @@ private fun HTML.geoNameEnrichmentProgressPage(country: String, level: Int) {
     }
     body(classes = "min-h-screen bg-gray-100") {
         div(classes = "max-w-6xl mx-auto py-10 px-5") {
-            h1(classes = "text-gray-800 text-2xl font-bold mb-4") { +"Geo Name Enrichment: $country (Level $level)" }
+            h1(classes = "text-gray-800 text-2xl font-bold mb-4") { +"Geo Name Enrichment: $country ($levelLabel)" }
             enrichmentControlButtons(country, level)
             enrichmentStatisticsBar()
             enrichmentProgressContainer()
@@ -220,7 +222,7 @@ private fun BODY.countrySelectionGrid() {
 
 private fun DIV.countryCard(region: SupportedRegion) {
     a(
-        href = "/geo-names/enrich/${region.code2}?level=2",
+        href = "/geo-names/enrich/${region.code2}",
         classes = "bg-white hover:bg-gray-50 rounded-lg p-4 no-underline text-gray-800 transition-colors flex items-center gap-3 shadow-sm",
     ) {
         img(src = region.flagUrl, classes = "w-12 h-8 object-cover rounded") {
@@ -233,14 +235,15 @@ private fun DIV.countryCard(region: SupportedRegion) {
     }
 }
 
-private fun DIV.enrichmentControlButtons(country: String, level: Int) {
+private fun DIV.enrichmentControlButtons(country: String, level: Int?) {
+    val levelParam = level?.toString() ?: "null"
     div(classes = "flex gap-3 mb-5 items-center") {
         button(
             classes = "bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg " +
                     "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
         ) {
             id = "startBtn"
-            onClick = "startEnrichment('$country', $level, false)"
+            onClick = "startEnrichment('$country', $levelParam, false)"
             +"Start"
         }
         button(
@@ -248,7 +251,7 @@ private fun DIV.enrichmentControlButtons(country: String, level: Int) {
                     "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
         ) {
             id = "dryRunBtn"
-            onClick = "startEnrichment('$country', $level, true)"
+            onClick = "startEnrichment('$country', $levelParam, true)"
             +"Dry Run"
         }
         button(
@@ -397,7 +400,7 @@ private fun DIV.missingNamesTable(areas: List<me.matsumo.travelog.core.model.gem
     }
 }
 
-private fun DIV.enrichmentScript(country: String, level: Int) {
+private fun DIV.enrichmentScript(country: String, level: Int?) {
     script {
         unsafe {
             raw(
@@ -414,7 +417,10 @@ private fun DIV.enrichmentScript(country: String, level: Int) {
                     document.getElementById('resultsBody').innerHTML = '';
                     logEntries = 0;
 
-                    const url = '/geo-names/enrich/' + country + '/stream?level=' + level + '&dryRun=' + dryRun + '&batchSize=' + batchSize;
+                    let url = '/geo-names/enrich/' + country + '/stream?dryRun=' + dryRun + '&batchSize=' + batchSize;
+                    if (level !== null) {
+                        url += '&level=' + level;
+                    }
                     eventSource = new EventSource(url);
 
                     eventSource.addEventListener('progress', function(event) {

@@ -22,11 +22,11 @@ class GeoNameEnrichmentRepository(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     /**
-     * Get areas with missing names for a country and level.
+     * Get areas with missing names for a country (optionally filtered by level).
      */
     suspend fun getAreasWithMissingNames(
         countryCode: String,
-        level: Int,
+        level: Int? = null,
     ): List<MissingNameArea> {
         val dtos = geoAreaApi.fetchAreasWithMissingNames(countryCode, level)
         val parentIds = dtos.mapNotNull { it.parentId }.distinct()
@@ -51,7 +51,7 @@ class GeoNameEnrichmentRepository(
     /**
      * Get count of areas with missing names.
      */
-    suspend fun getMissingNamesCount(countryCode: String, level: Int): MissingNamesCount {
+    suspend fun getMissingNamesCount(countryCode: String, level: Int? = null): MissingNamesCount {
         return geoAreaApi.getMissingNamesCount(countryCode, level)
     }
 
@@ -59,13 +59,13 @@ class GeoNameEnrichmentRepository(
      * Enrich geo names using Gemini API and emit progress events.
      *
      * @param countryCode The country code to process
-     * @param level The administrative level to process
+     * @param level The administrative level to process (null for all levels)
      * @param batchSize Number of areas to process in each batch
      * @param dryRun If true, don't actually update the database
      */
     fun enrichGeoNamesAsFlow(
         countryCode: String,
-        level: Int,
+        level: Int? = null,
         batchSize: Int = BATCH_SIZE,
         dryRun: Boolean = false,
     ): Flow<GeoNameEnrichmentEvent> = flow {
@@ -125,7 +125,7 @@ class GeoNameEnrichmentRepository(
                     result.results.forEach { item ->
                         val area = batch.find { it.admId == item.admId }
                         if (area != null) {
-                            val status = determineStatus(item, countryCode)
+                            val status = determineStatus(item, countryCode, area.level)
 
                             emit(
                                 GeoNameEnrichmentEvent.ItemResult(
@@ -218,11 +218,11 @@ class GeoNameEnrichmentRepository(
     /**
      * Determine the status of an enrichment result based on confidence and validation.
      */
-    private fun determineStatus(item: GeoNameEnrichmentItem, countryCode: String): EnrichmentStatus {
+    private fun determineStatus(item: GeoNameEnrichmentItem, countryCode: String, level: Int): EnrichmentStatus {
         return when {
             item.confidence >= HIGH_CONFIDENCE_THRESHOLD -> EnrichmentStatus.APPLIED
             item.confidence >= MEDIUM_CONFIDENCE_THRESHOLD -> {
-                if (validateNamePattern(item, countryCode)) {
+                if (validateNamePattern(item, countryCode, level)) {
                     EnrichmentStatus.VALIDATED
                 } else {
                     EnrichmentStatus.SKIPPED
@@ -236,19 +236,24 @@ class GeoNameEnrichmentRepository(
     /**
      * Validate name pattern based on country-specific rules.
      */
-    private fun validateNamePattern(item: GeoNameEnrichmentItem, countryCode: String): Boolean {
+    private fun validateNamePattern(item: GeoNameEnrichmentItem, countryCode: String, level: Int): Boolean {
         return when (countryCode) {
-            "JP" -> validateJapanesePattern(item.nameJa)
+            "JP" -> validateJapanesePattern(item.nameJa, level)
             else -> true // For other countries, trust medium confidence
         }
     }
 
     /**
      * Validate Japanese administrative region name pattern.
-     * ADM2 should end with 市, 町, 村, 区, or 郡
+     * ADM1 (都道府県) should end with 都, 道, 府, or 県
+     * ADM2 (市区町村) should end with 市, 町, 村, 区, or 郡
      */
-    private fun validateJapanesePattern(nameJa: String): Boolean {
-        val validSuffixes = listOf("市", "町", "村", "区", "郡")
+    private fun validateJapanesePattern(nameJa: String, level: Int): Boolean {
+        val validSuffixes = when (level) {
+            1 -> listOf("都", "道", "府", "県")
+            2 -> listOf("市", "町", "村", "区", "郡")
+            else -> return true // For other levels, trust the result
+        }
         return validSuffixes.any { nameJa.endsWith(it) }
     }
 
