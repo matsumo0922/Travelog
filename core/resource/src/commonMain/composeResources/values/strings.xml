@@ -80,12 +80,13 @@
     <string name="home_map_selected_area">選択中の地域</string>
     <string name="home_map_metadata">メタデータ</string>
     <string name="home_map_icon_title">アイコン</string>
-    <string name="home_map_icon_description">マップを代表する画像を選ぼう！</string>
+    <string name="home_map_icon_description">マップを代表する画像を選ぼう！(オプション)</string>
+    <string name="home_map_icon_tap">タップしてアイコンを選択</string>
     <string name="home_map_title_title">タイトル</string>
     <string name="home_map_title_description">マップや思い出を表すタイトルをつけよう！</string>
     <string name="home_map_title_placeholder">思い出の旅行</string>
     <string name="home_map_description_title">説明</string>
-    <string name="home_map_description_description">マップや思い出を紹介しよう！</string>
+    <string name="home_map_description_description">マップや思い出を紹介しよう！(オプション)</string>
     <string name="home_map_description_placeholder">2025年の新婚旅行の思い出</string>
     <string name="home_map_create">この内容で作成</string>
 

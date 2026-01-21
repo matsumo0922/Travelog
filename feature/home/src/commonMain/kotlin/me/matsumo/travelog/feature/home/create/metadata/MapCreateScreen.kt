@@ -3,8 +3,6 @@ package me.matsumo.travelog.feature.home.create.metadata
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -21,6 +19,7 @@ import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
 import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateBottomBar
+import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateMetadataSection
 import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateSelectedAreaSection
 import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateTopAppBar
 import org.koin.compose.viewmodel.koinViewModel
@@ -74,10 +73,7 @@ private fun MapCreateScreen(
         },
         bottomBar = {
             MapCreateBottomBar(
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .padding(24.dp, 8.dp)
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 onClick = { },
             )
         },
@@ -90,6 +86,12 @@ private fun MapCreateScreen(
                 MapCreateSelectedAreaSection(
                     modifier = Modifier.fillMaxWidth(),
                     selectedArea = selectedArea,
+                )
+            }
+
+            item {
+                MapCreateMetadataSection(
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
