@@ -112,7 +112,7 @@ fun DIV.allCountriesCard(href: String, gradientClasses: String = "from-blue-500 
 fun BODY.countrySelectionGrid(
     hrefBuilder: (SupportedRegion) -> String,
     allHref: String?,
-    allGradientClasses: String = "from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+    allGradientClasses: String = "from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
 ) {
     div(classes = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4") {
         if (allHref != null) {
@@ -190,7 +190,7 @@ fun DIV.progressContainer(
     gradientClasses: String = "from-blue-500 to-green-500",
     statusId: String = "status",
     fillId: String = "progressFill",
-    initialStatus: String = "Ready to start"
+    initialStatus: String = "Ready to start",
 ) {
     div(classes = "bg-white rounded-lg p-5 mb-5 shadow-sm") {
         div(classes = "bg-gray-200 rounded-full h-4 overflow-hidden") {

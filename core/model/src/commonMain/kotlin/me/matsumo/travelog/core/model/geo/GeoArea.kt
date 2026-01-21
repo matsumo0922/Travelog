@@ -80,6 +80,16 @@ data class GeoArea(
     val children: List<GeoArea> = emptyList(),
 ) {
     /**
+     * Check if this area is a country (root level).
+     */
+    val isCountry: Boolean get() = level == GeoAreaLevel.ADM0
+
+    /**
+     * Get the child count for display (e.g., "47 regions")
+     */
+    val childCount: Int get() = children.size
+
+    /**
      * Build GeoJSON MultiPolygon for API payload.
      */
     fun getGeoJsonMultiPolygon() = buildJsonObject {
@@ -126,11 +136,6 @@ data class GeoArea(
     }
 
     /**
-     * Check if this area is a country (root level).
-     */
-    val isCountry: Boolean get() = level == GeoAreaLevel.ADM0
-
-    /**
      * Get display name with fallback order: name_ja -> name_en -> name
      */
     fun getLocalizedName(preferJapanese: Boolean = true): String {
@@ -140,11 +145,6 @@ data class GeoArea(
             nameEn ?: name
         }
     }
-
-    /**
-     * Get the child count for display (e.g., "47 regions")
-     */
-    val childCount: Int get() = children.size
 
     companion object {
         /**

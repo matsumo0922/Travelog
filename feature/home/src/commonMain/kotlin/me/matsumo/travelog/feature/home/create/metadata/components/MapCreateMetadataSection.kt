@@ -116,9 +116,9 @@ internal fun MapCreateMetadataSection(
                         lineLimits = TextFieldLineLimits.SingleLine,
                         placeholder = {
                             Text(stringResource(Res.string.home_map_title_placeholder))
-                        }
+                        },
                     )
-                }
+                },
             )
 
             CommonSectionItem(
@@ -133,9 +133,9 @@ internal fun MapCreateMetadataSection(
                         lineLimits = TextFieldLineLimits.MultiLine(),
                         placeholder = {
                             Text(stringResource(Res.string.home_map_description_placeholder))
-                        }
+                        },
                     )
-                }
+                },
             )
 
             CommonSectionItem(
@@ -151,7 +151,7 @@ internal fun MapCreateMetadataSection(
                         selectedFile = iconFile,
                         onFileSelected = onIconFileChange,
                     )
-                }
+                },
             )
         }
     }

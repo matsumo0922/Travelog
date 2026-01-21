@@ -85,7 +85,7 @@ private fun IdleScreen(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = it
+            contentPadding = it,
         ) {
             items(
                 items = maps,
