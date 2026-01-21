@@ -6,8 +6,8 @@ import me.matsumo.travelog.core.model.db.Image
 class ImageRepository(
     private val imageApi: ImageApi,
 ) {
-    suspend fun createImage(image: Image) {
-        imageApi.createImage(image)
+    suspend fun createImage(image: Image): Image {
+        return imageApi.createImage(image)
     }
 
     suspend fun getImage(id: String): Image? {

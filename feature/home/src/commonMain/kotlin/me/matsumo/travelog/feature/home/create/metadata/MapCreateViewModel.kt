@@ -122,7 +122,7 @@ class MapCreateViewModel(
                     return@launch
                 }
 
-                iconImageId = uploadResult.getOrThrow().storageKey
+                iconImageId = uploadResult.getOrThrow().imageId
             }
 
             // Create map

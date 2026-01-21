@@ -7,9 +7,12 @@ import me.matsumo.travelog.core.model.db.Image
 class ImageApi internal constructor(
     private val supabaseClient: SupabaseClient,
 ) {
-    suspend fun createImage(image: Image) {
-        supabaseClient.from(TABLE_NAME)
-            .insert(image)
+    suspend fun createImage(image: Image): Image {
+        return supabaseClient.from(TABLE_NAME)
+            .insert(image) {
+                select()
+            }
+            .decodeSingle()
     }
 
     suspend fun getImage(id: String): Image? {

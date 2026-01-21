@@ -35,9 +35,10 @@ class UploadMapIconUseCase(
             takenLng = metadata?.takenLng,
             exif = metadata?.exif,
         )
-        imageRepository.createImage(image)
+        val createdImage = imageRepository.createImage(image)
 
         return UploadMapIconResult(
+            imageId = createdImage.id!!,
             storageKey = uploadResult.storageKey,
             publicUrl = uploadResult.publicUrl,
         )
@@ -45,6 +46,7 @@ class UploadMapIconUseCase(
 }
 
 data class UploadMapIconResult(
+    val imageId: String,
     val storageKey: String,
     val publicUrl: String,
 )
