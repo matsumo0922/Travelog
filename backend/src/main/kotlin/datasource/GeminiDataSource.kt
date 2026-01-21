@@ -1,4 +1,4 @@
-package me.matsumo.travelog.core.datasource
+package datasource
 
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
@@ -9,7 +9,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -25,8 +24,8 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import me.matsumo.travelog.core.common.retryWithBackoff
-import me.matsumo.travelog.core.model.gemini.GeoNameBatchResult
-import me.matsumo.travelog.core.model.gemini.MissingNameArea
+import model.GeoNameBatchResult
+import model.MissingNameArea
 
 class GeminiDataSource(
     private val httpClient: HttpClient,
@@ -230,7 +229,7 @@ Only output the JSON, no additional text."""
             if (errorCode == "429" || errorMessage.contains("Resource exhausted", ignoreCase = true)) {
                 throw RateLimitException("Rate limit exceeded: $errorMessage")
             }
-            throw IllegalStateException("Gemini API Error: $errorMessage (code: $errorCode)")
+            error("Gemini API Error: $errorMessage (code: $errorCode)")
         }
 
         // promptFeedback のチェック（コンテンツがブロックされた場合）
@@ -239,7 +238,7 @@ Only output the JSON, no additional text."""
             val blockReason = promptFeedback["blockReason"]?.jsonPrimitive?.content
             if (blockReason != null) {
                 Napier.e(tag = TAG) { "Prompt blocked: reason=$blockReason, feedback=$promptFeedback" }
-                throw IllegalStateException("Prompt blocked by Gemini: $blockReason")
+                error("Prompt blocked by Gemini: $blockReason")
             }
         }
 
@@ -248,11 +247,11 @@ Only output the JSON, no additional text."""
             // candidates がない場合、レスポンス全体をエラーメッセージに含める
             val responsePreview = response.toString().take(500)
             Napier.e(tag = TAG) { "No candidates in response. Response preview: $responsePreview" }
-            throw IllegalStateException("No candidates in response. Response: $responsePreview")
+            error("No candidates in response. Response: $responsePreview")
         }
 
         val firstCandidate = candidates.firstOrNull()?.jsonObject
-            ?: throw IllegalStateException("Empty candidates array")
+            ?: error("Empty candidates array")
 
         // finishReason のチェック
         val finishReason = firstCandidate["finishReason"]?.jsonPrimitive?.content
@@ -261,21 +260,21 @@ Only output the JSON, no additional text."""
             if (finishReason == "SAFETY") {
                 val safetyRatings = firstCandidate["safetyRatings"]?.jsonArray
                 Napier.e(tag = TAG) { "Content blocked due to safety. Ratings: $safetyRatings" }
-                throw IllegalStateException("Content blocked due to safety filters: $safetyRatings")
+                error("Content blocked due to safety filters: $safetyRatings")
             }
         }
 
         val content = firstCandidate["content"]?.jsonObject
-            ?: throw IllegalStateException("No content in candidate")
+            ?: error("No content in candidate")
 
         val parts = content["parts"]?.jsonArray
-            ?: throw IllegalStateException("No parts in content")
+            ?: error("No parts in content")
 
         val firstPart = parts.firstOrNull()?.jsonObject
-            ?: throw IllegalStateException("Empty parts array")
+            ?: error("Empty parts array")
 
         val text = firstPart["text"]?.jsonPrimitive?.content
-            ?: throw IllegalStateException("No text in part")
+            ?: error("No text in part")
 
         Napier.d(tag = TAG) { "Parsed text: $text" }
 

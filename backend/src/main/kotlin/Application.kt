@@ -7,7 +7,6 @@ import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.UserIdPrincipal
 import io.ktor.server.auth.basic
-import io.ktor.server.auth.bearer
 import io.ktor.server.html.respondHtml
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.netty.EngineMain
@@ -31,7 +30,6 @@ import kotlinx.html.title
 import kotlinx.html.ul
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import route.batchApiRoute
 import route.geoJsonAllCountriesStreamRoute
 import route.geoJsonRoute
 import route.geoJsonStreamRoute
@@ -74,18 +72,6 @@ fun Application.module() {
 
                 if (credentials.name == username && credentials.password == password) {
                     UserIdPrincipal(credentials.name)
-                } else {
-                    null
-                }
-            }
-        }
-
-        bearer("auth-api-key") {
-            realm = "Travelog Batch API"
-            authenticate { credential ->
-                val expectedKey = System.getenv("BATCH_API_KEY")
-                if (!expectedKey.isNullOrBlank() && credential.token == expectedKey) {
-                    UserIdPrincipal("batch-api")
                 } else {
                     null
                 }
@@ -142,7 +128,6 @@ fun Application.routes() {
     geoNameEnrichmentRoute()
     geoNameEnrichmentStreamRoute()
     geoNamesAllCountriesStreamRoute()
-    batchApiRoute()
     revisionRoute()
 }
 

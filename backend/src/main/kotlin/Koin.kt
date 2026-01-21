@@ -1,3 +1,4 @@
+import datasource.GeminiDataSource
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
@@ -6,17 +7,13 @@ import io.ktor.client.HttpClient
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import me.matsumo.travelog.core.common.di.commonModule
-import me.matsumo.travelog.core.datasource.GeminiDataSource
 import me.matsumo.travelog.core.datasource.api.GeoAreaApi
 import me.matsumo.travelog.core.datasource.di.dataSourceModule
-import me.matsumo.travelog.core.repository.GeoAreaRepository
-import me.matsumo.travelog.core.repository.GeoBoundaryRepository
-import me.matsumo.travelog.core.repository.GeoNameEnrichmentRepository
 import me.matsumo.travelog.core.repository.di.repositoryModule
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
-import service.BatchProcessingService
+import repository.GeoNameEnrichmentRepository
 
 fun Application.initKoin() {
     val supabaseClient = createSupabaseClient(
@@ -43,13 +40,6 @@ fun Application.initKoin() {
             module {
                 single { GeminiDataSource(get<HttpClient>(), geminiApiKey) }
                 single { GeoNameEnrichmentRepository(get<GeoAreaApi>(), get<GeminiDataSource>()) }
-                single {
-                    BatchProcessingService(
-                        geoBoundaryRepository = get<GeoBoundaryRepository>(),
-                        geoAreaRepository = get<GeoAreaRepository>(),
-                        geoNameEnrichmentRepository = get<GeoNameEnrichmentRepository>(),
-                    )
-                }
             },
         )
     }

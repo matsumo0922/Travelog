@@ -1,4 +1,4 @@
-package me.matsumo.travelog.core.model.gemini
+package model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

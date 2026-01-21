@@ -27,6 +27,44 @@ make detekt
 ./gradlew :backend:run
 ```
 
+### Heroku バッチ処理
+
+GeoJSONデータの取り込みと名前補完をHeroku One-off Dynoで実行:
+
+```bash
+# 全国処理（GeoJSON + 名前補完を順次実行）
+heroku run batch geojson -a <app-name>
+
+# 特定の国のみ処理
+heroku run batch geojson JP,US -a <app-name>
+
+# バッチサイズ指定（デフォルト: 10）
+heroku run batch geojson JP 20 -a <app-name>
+
+# 名前補完のみ実行
+heroku run batch geo-names -a <app-name>
+
+# 名前補完（オプション付き）
+# geo-names [対象国] [バッチサイズ] [dryRun]
+heroku run batch geo-names JP 10 false -a <app-name>
+```
+
+**デタッチモード（推奨）**: 長時間処理の場合、SSH接続が切れても処理が継続:
+
+```bash
+# デタッチモードで実行
+heroku run:detached batch geojson -a <app-name>
+
+# ログを確認
+heroku logs --tail -a <app-name>
+```
+
+**必要な環境変数**:
+
+- `SUPABASE_URL`, `SUPABASE_KEY`
+- `GEMINI_API_KEY`（名前補完用）
+- `BATCH_API_KEY`（API経由の場合）
+
 ## アーキテクチャ
 
 ### モジュール構成

@@ -1,19 +1,18 @@
-package me.matsumo.travelog.core.repository
+package repository
 
+import datasource.GeminiDataSource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import me.matsumo.travelog.core.datasource.GeminiDataSource
 import me.matsumo.travelog.core.datasource.api.GeoAreaApi
 import me.matsumo.travelog.core.datasource.api.MissingNamesCount
 import me.matsumo.travelog.core.datasource.api.NameUpdateItem
-import me.matsumo.travelog.core.model.gemini.EnrichmentStatus
-import me.matsumo.travelog.core.model.gemini.GeoNameEnrichmentEvent
-import me.matsumo.travelog.core.model.gemini.GeoNameEnrichmentItem
-import me.matsumo.travelog.core.model.gemini.MissingNameArea
+import model.EnrichmentStatus
+import model.GeoNameEnrichmentEvent
+import model.GeoNameEnrichmentItem
+import model.MissingNameArea
 import kotlin.time.TimeSource
 
 class GeoNameEnrichmentRepository(
