@@ -68,3 +68,6 @@ iosApp/Pods
 
 # Claude
 .claude/settings.local.json
+
+# Database backup (contains sensitive data)
+backup/

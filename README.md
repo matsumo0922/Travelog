@@ -159,6 +159,28 @@ val homeModule = module {
 | Ktor                  | 3.3.3       |
 | Coil3                 | 3.3.0       |
 
+## データベースバックアップ
+
+Supabase CLI を使用してバックアップを取得:
+
+```bash
+# プロジェクトをリンク（初回のみ）
+supabase link --project-ref qeebhaorzbqxkeokorvf
+
+# ロール
+supabase db dump -f backup/roles.sql --role-only
+
+# スキーマ（定義）
+supabase db dump -f backup/schema.sql
+
+# データ（中身）
+supabase db dump -f backup/data.sql --data-only --use-copy
+```
+
+バックアップファイルは `backup/` ディレクトリに保存されます。
+
+**リストア時の注意**: 循環外部キー制約があるため、データリストア時は `--disable-triggers` オプションが必要な場合があります。
+
 ## ドキュメント
 
 - [データベース設計](docs/DATABASE.md)
