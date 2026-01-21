@@ -14,6 +14,13 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":core:model"))
             implementation(project(":core:repository"))
+            implementation(project(":core:datasource"))
+            implementation(libs.bundles.filekit)
+            implementation(libs.koin.core)
+        }
+
+        androidMain.dependencies {
+            implementation(libs.androidx.core)
         }
     }
 }

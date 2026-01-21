@@ -29,8 +29,7 @@ val homeModule = module {
             geoAreaRepository = get(),
             sessionRepository = get(),
             mapRepository = get(),
-            imageRepository = get(),
-            storageRepository = get(),
+            uploadMapIconUseCase = get(),
         )
     }
 }
