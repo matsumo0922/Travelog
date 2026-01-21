@@ -124,10 +124,10 @@ class GeoAreaRepository(
     }
 
     /**
-     * Get a single area by adm_id and parent_id.
+     * Get a single area by adm_id.
      */
-    suspend fun getAreaByAdmId(admId: String, parentId: String? = null): GeoArea? = withContext(ioDispatcher) {
-        geoAreaApi.fetchAreaByAdmId(admId, parentId)?.let { geoAreaMapper.toDomain(it) }
+    suspend fun getAreaByAdmId(admId: String): GeoArea? = withContext(ioDispatcher) {
+        geoAreaApi.fetchAreaByAdmId(admId)?.let { geoAreaMapper.toDomain(it) }
     }
 
     /**

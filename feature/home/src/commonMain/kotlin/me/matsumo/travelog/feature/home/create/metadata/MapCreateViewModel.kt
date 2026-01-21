@@ -34,16 +34,15 @@ class MapCreateViewModel(
                 // If selectedAreaAdmId is null, fetch country level (ADM0)
                 // If selectedAreaAdmId is provided, fetch that specific area (ADM1)
                 val selectedArea = if (selectedAreaAdmId != null) {
-                    geoAreaRepository.getAreaByAdmId(selectedAreaAdmId, parentId = null)
+                    geoAreaRepository.getAreaByAdmId(selectedAreaAdmId)
                 } else {
                     // Country level - fetch ADM0
-                    geoAreaRepository.getAreasByLevel(selectedRegion.code2, GeoAreaLevel.ADM0)
-                        .firstOrNull()
+                    geoAreaRepository.getAreasByLevel(selectedRegion.code2, GeoAreaLevel.ADM0).firstOrNull()
                 }
 
                 MapCreateUiState(
                     region = selectedRegion,
-                    selectedArea = selectedArea,
+                    selectedArea = selectedArea!!,
                 )
             }.fold(
                 onSuccess = { ScreenState.Idle(it) },
@@ -56,5 +55,5 @@ class MapCreateViewModel(
 @Stable
 data class MapCreateUiState(
     val region: SupportedRegion,
-    val selectedArea: GeoArea?,
+    val selectedArea: GeoArea,
 )

@@ -139,32 +139,17 @@ class GeoAreaApi internal constructor(
             .decodeSingleOrNull()
 
     /**
-     * Fetch a single area by adm_id and parent_id.
-     * For root level areas (parentId = null), queries for level = 0.
+     * Fetch a single area by adm_id.
      */
-    suspend fun fetchAreaByAdmId(admId: String, parentId: String?): GeoAreaDTO? {
-        return if (parentId != null) {
-            supabaseClient.from(VIEW_NAME)
-                .select {
-                    filter {
-                        eq("adm_id", admId)
-                        eq("parent_id", parentId)
-                    }
-                    limit(1)
+    suspend fun fetchAreaByAdmId(admId: String): GeoAreaDTO? {
+        return supabaseClient.from(VIEW_NAME)
+            .select {
+                filter {
+                    eq("adm_id", admId)
                 }
-                .decodeSingleOrNull()
-        } else {
-            // For root level, query by adm_id and level = 0
-            supabaseClient.from(VIEW_NAME)
-                .select {
-                    filter {
-                        eq("adm_id", admId)
-                        eq("level", 0)
-                    }
-                    limit(1)
-                }
-                .decodeSingleOrNull()
-        }
+                limit(1)
+            }
+            .decodeSingleOrNull()
     }
 
     /**
