@@ -56,6 +56,17 @@ data class GeoArea(
     @SerialName("center")
     val center: Coordinate? = null,
 
+    /**
+     * Boundary polygons in MultiPolygon format.
+     *
+     * This is a List because a single administrative area can have
+     * multiple disjoint polygons (e.g., islands, exclaves).
+     * Each PolygonWithHoles represents one polygon with optional holes.
+     *
+     * Note: This is NOT related to children hierarchy.
+     * - children: administrative hierarchy (ADM0 -> ADM1 -> ADM2)
+     * - polygons: geographic discontinuity (main land + islands)
+     */
     @SerialName("polygons")
     val polygons: List<PolygonWithHoles> = emptyList(),
 
@@ -124,7 +135,7 @@ data class GeoArea(
      */
     fun getLocalizedName(preferJapanese: Boolean = true): String {
         return if (preferJapanese) {
-            nameJa ?: nameEn ?: name
+            nameJa ?: name
         } else {
             nameEn ?: name
         }

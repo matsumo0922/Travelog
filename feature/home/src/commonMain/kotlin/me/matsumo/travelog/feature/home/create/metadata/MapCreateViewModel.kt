@@ -40,9 +40,12 @@ class MapCreateViewModel(
                     geoAreaRepository.getAreasByLevel(selectedRegion.code2, GeoAreaLevel.ADM0).firstOrNull()
                 }
 
+                val children = selectedArea?.id?.let { geoAreaRepository.getChildren(it) } ?: emptyList()
+                val selectedAreaWithChildren = selectedArea!!.copy(children = children)
+
                 MapCreateUiState(
                     region = selectedRegion,
-                    selectedArea = selectedArea!!,
+                    selectedArea = selectedAreaWithChildren,
                 )
             }.fold(
                 onSuccess = { ScreenState.Idle(it) },

@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +21,7 @@ import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
 import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateBottomBar
+import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateSelectedAreaSection
 import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateTopAppBar
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -88,10 +87,9 @@ private fun MapCreateScreen(
             contentPadding = contentPadding + PaddingValues(16.dp),
         ) {
             item {
-                Text(
+                MapCreateSelectedAreaSection(
                     modifier = Modifier.fillMaxWidth(),
-                    text = "region: ${region.code3}  selectedArea: ${selectedArea.nameJa}",
-                    style = MaterialTheme.typography.titleLarge,
+                    selectedArea = selectedArea,
                 )
             }
         }

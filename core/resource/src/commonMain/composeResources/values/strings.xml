@@ -77,6 +77,8 @@
     <string name="home_map_select_region_loading_message">地域の詳細情報を取得中…</string>
     <string name="home_map_region">地域</string>
     <string name="home_map_area">行政地区</string>
+    <string name="home_map_selected_area">選択中の地域</string>
+    <string name="home_map_metadata">メタデータ</string>
     <string name="home_map_icon_title">アイコン</string>
     <string name="home_map_icon_description">マップを代表する画像を選ぼう！</string>
     <string name="home_map_title_title">タイトル</string>
