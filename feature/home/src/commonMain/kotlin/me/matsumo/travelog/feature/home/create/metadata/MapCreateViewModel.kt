@@ -14,15 +14,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.model.SupportedRegion
-import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.model.geo.GeoAreaLevel
 import me.matsumo.travelog.core.repository.GeoAreaRepository
-import me.matsumo.travelog.core.repository.MapRepository
 import me.matsumo.travelog.core.repository.SessionRepository
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.screen.ScreenState
+import me.matsumo.travelog.core.usecase.CreateMapUseCase
 import me.matsumo.travelog.core.usecase.UploadMapIconUseCase
 
 class MapCreateViewModel(
@@ -30,8 +29,8 @@ class MapCreateViewModel(
     private val selectedAreaAdmId: String?,
     private val geoAreaRepository: GeoAreaRepository,
     private val sessionRepository: SessionRepository,
-    private val mapRepository: MapRepository,
     private val uploadMapIconUseCase: UploadMapIconUseCase,
+    private val createMapUseCase: CreateMapUseCase,
 ) : ViewModel() {
 
     private val _screenState = MutableStateFlow<ScreenState<MapCreateUiState>>(ScreenState.Loading())
@@ -136,14 +135,13 @@ class MapCreateViewModel(
             }
 
             val mapResult = suspendRunCatching {
-                val map = Map(
-                    ownerUserId = userId,
+                createMapUseCase(
+                    userId = userId,
                     rootGeoAreaId = geoAreaId,
-                    title = currentState.title.trim(),
-                    description = currentState.description.takeIf { it.isNotBlank() }?.trim(),
+                    title = currentState.title,
+                    description = currentState.description,
                     iconImageId = iconImageId,
                 )
-                mapRepository.createMap(map)
             }
 
             if (mapResult.isFailure) {

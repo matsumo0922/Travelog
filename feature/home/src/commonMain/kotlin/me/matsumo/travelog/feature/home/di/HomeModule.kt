@@ -28,8 +28,8 @@ val homeModule = module {
             selectedAreaAdmId = extras.values.getOrNull(1) as? String,
             geoAreaRepository = get(),
             sessionRepository = get(),
-            mapRepository = get(),
             uploadMapIconUseCase = get(),
+            createMapUseCase = get(),
         )
     }
 }
