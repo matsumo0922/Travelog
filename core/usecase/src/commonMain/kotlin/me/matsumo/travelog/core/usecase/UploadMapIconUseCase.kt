@@ -30,10 +30,10 @@ class UploadMapIconUseCase(
             fileSize = uploadResult.fileSize,
             width = metadata?.width,
             height = metadata?.height,
-            takenAt = null,
-            takenLat = null,
-            takenLng = null,
-            exif = null,
+            takenAt = metadata?.takenAt,
+            takenLat = metadata?.takenLat,
+            takenLng = metadata?.takenLng,
+            exif = metadata?.exif,
         )
         imageRepository.createImage(image)
 
