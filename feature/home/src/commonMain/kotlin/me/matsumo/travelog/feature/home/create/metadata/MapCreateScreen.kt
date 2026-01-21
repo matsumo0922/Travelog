@@ -8,17 +8,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.vinceglb.filekit.PlatformFile
 import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
 import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateBottomBar
+import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateDialog
 import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateMetadataSection
 import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateSelectedAreaSection
 import me.matsumo.travelog.feature.home.create.metadata.components.MapCreateTopAppBar
@@ -36,7 +39,18 @@ internal fun MapCreateRoute(
         parametersOf(selectedCountryCode3, selectedGroupAdmId)
     },
 ) {
+    val navBackStack = LocalNavBackStack.current
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val dialogState by viewModel.dialogState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(viewModel.navigateToHome) {
+        viewModel.navigateToHome.collect {
+            // Remove all screens except the first (Home)
+            while (navBackStack.size > 1) {
+                navBackStack.removeLastOrNull()
+            }
+        }
+    }
 
     AsyncLoadContents(
         modifier = modifier,
@@ -47,20 +61,46 @@ internal fun MapCreateRoute(
             modifier = Modifier.fillMaxSize(),
             region = it.region,
             selectedArea = it.selectedArea,
+            title = it.title,
+            description = it.description,
+            iconFile = it.iconFile,
+            dialogState = dialogState,
+            onTitleChange = viewModel::updateTitle,
+            onDescriptionChange = viewModel::updateDescription,
+            onIconFileChange = viewModel::updateIconFile,
+            onBackClicked = { navBackStack.removeLastOrNull() },
+            onCreateClicked = viewModel::createMap,
+            onDialogRetry = viewModel::createMap,
+            onDialogCancel = viewModel::dismissDialog,
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Suppress("UnusedParameter", "UnusedPrivateProperty")
 @Composable
 private fun MapCreateScreen(
     region: SupportedRegion,
     selectedArea: GeoArea,
+    title: String,
+    description: String,
+    iconFile: PlatformFile?,
+    dialogState: MapCreateDialogState,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onIconFileChange: (PlatformFile?) -> Unit,
+    onBackClicked: () -> Unit,
+    onCreateClicked: () -> Unit,
+    onDialogRetry: () -> Unit,
+    onDialogCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val navBackStack = LocalNavBackStack.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    MapCreateDialog(
+        dialogState = dialogState,
+        onRetry = onDialogRetry,
+        onCancel = onDialogCancel,
+    )
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -68,13 +108,13 @@ private fun MapCreateScreen(
             MapCreateTopAppBar(
                 modifier = Modifier.fillMaxWidth(),
                 scrollBehavior = scrollBehavior,
-                onBackClicked = { },
+                onBackClicked = onBackClicked,
             )
         },
         bottomBar = {
             MapCreateBottomBar(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { },
+                onClick = onCreateClicked,
             )
         },
     ) { contentPadding ->
@@ -92,6 +132,12 @@ private fun MapCreateScreen(
             item {
                 MapCreateMetadataSection(
                     modifier = Modifier.fillMaxWidth(),
+                    title = title,
+                    description = description,
+                    iconFile = iconFile,
+                    onTitleChange = onTitleChange,
+                    onDescriptionChange = onDescriptionChange,
+                    onIconFileChange = onIconFileChange,
                 )
             }
         }

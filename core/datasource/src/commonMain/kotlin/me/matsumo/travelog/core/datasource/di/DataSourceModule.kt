@@ -20,6 +20,7 @@ import me.matsumo.travelog.core.datasource.api.ImageApi
 import me.matsumo.travelog.core.datasource.api.ImageCommentApi
 import me.matsumo.travelog.core.datasource.api.MapApi
 import me.matsumo.travelog.core.datasource.api.MapRegionApi
+import me.matsumo.travelog.core.datasource.api.StorageApi
 import me.matsumo.travelog.core.datasource.api.UserApi
 import me.matsumo.travelog.core.datasource.helper.GeoAreaMapper
 import org.koin.core.module.Module
@@ -65,6 +66,7 @@ val dataSourceModule = module {
     single { ImageApi(get()) }
     single { ImageCommentApi(get()) }
     single { GeoAreaApi(get()) }
+    single { StorageApi(get()) }
 
     singleOf(::AppSettingDataSource)
     singleOf(::GeoBoundaryDataSource)

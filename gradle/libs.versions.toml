@@ -201,6 +201,7 @@ supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
 supabase-realtime = { module = "io.github.jan-tennert.supabase:realtime-kt" }
 supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt" }
 supabase-compose-auth = { module = "io.github.jan-tennert.supabase:compose-auth" }
+supabase-storage = { module = "io.github.jan-tennert.supabase:storage-kt" }
 
 # UI
 calf-ui = { module = "com.mohamedrejeb.calf:calf-ui", version.ref = "calf" }
@@ -301,6 +302,7 @@ supabase = [
     "supabase-realtime",
     "supabase-auth",
     "supabase-compose-auth",
+    "supabase-storage",
 ]
 
 koin = [

@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldLineLimits
-import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Description
@@ -23,11 +23,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,6 +45,7 @@ import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.home_map_description_description
@@ -63,10 +63,26 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun MapCreateMetadataSection(
+    title: String,
+    description: String,
+    iconFile: PlatformFile?,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onIconFileChange: (PlatformFile?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val title = rememberTextFieldState()
-    val description = rememberTextFieldState()
+    val titleState = remember { TextFieldState(title) }
+    val descriptionState = remember { TextFieldState(description) }
+
+    LaunchedEffect(titleState) {
+        snapshotFlow { titleState.text.toString() }
+            .collectLatest { onTitleChange(it) }
+    }
+
+    LaunchedEffect(descriptionState) {
+        snapshotFlow { descriptionState.text.toString() }
+            .collectLatest { onDescriptionChange(it) }
+    }
 
     Column(
         modifier = modifier,
@@ -96,7 +112,7 @@ internal fun MapCreateMetadataSection(
                 extra = {
                     OutlinedTextField(
                         modifier = Modifier.fillMaxWidth(),
-                        state = title,
+                        state = titleState,
                         lineLimits = TextFieldLineLimits.SingleLine,
                         placeholder = {
                             Text(stringResource(Res.string.home_map_title_placeholder))
@@ -113,7 +129,7 @@ internal fun MapCreateMetadataSection(
                 extra = {
                     OutlinedTextField(
                         modifier = Modifier.fillMaxWidth(),
-                        state = description,
+                        state = descriptionState,
                         lineLimits = TextFieldLineLimits.MultiLine(),
                         placeholder = {
                             Text(stringResource(Res.string.home_map_description_placeholder))
@@ -132,6 +148,8 @@ internal fun MapCreateMetadataSection(
                         modifier = Modifier
                             .aspectRatio(3 / 2f)
                             .fillMaxWidth(),
+                        selectedFile = iconFile,
+                        onFileSelected = onIconFileChange,
                     )
                 }
             )
@@ -142,16 +160,17 @@ internal fun MapCreateMetadataSection(
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun IconSelectItem(
+    selectedFile: PlatformFile?,
+    onFileSelected: (PlatformFile?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
-    var selectedFile by remember { mutableStateOf<PlatformFile?>(null) }
 
     fun launchImagePicker() {
         scope.launch {
             runCatching {
                 FileKit.openFilePicker(FileKitType.Image, FileKitMode.Single)?.also { file ->
-                    selectedFile = file
+                    onFileSelected(file)
                 }
             }.onFailure {
                 Napier.e(it) { "Failed to pick image" }

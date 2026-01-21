@@ -10,6 +10,7 @@ import io.github.jan.supabase.logging.LogLevel
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.serializer.KotlinXSerializer
+import io.github.jan.supabase.storage.Storage
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -88,6 +89,7 @@ val appModule = module {
 
             install(Postgrest)
             install(Realtime)
+            install(Storage)
             install(Auth) {
                 flowType = FlowType.PKCE
                 scheme = "https"

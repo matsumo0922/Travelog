@@ -89,6 +89,10 @@
     <string name="home_map_description_description">マップや思い出を紹介しよう！(オプション)</string>
     <string name="home_map_description_placeholder">2025年の新婚旅行の思い出</string>
     <string name="home_map_create">この内容で作成</string>
+    <string name="home_map_creating">マップを作成中…</string>
+    <string name="home_map_uploading_image">画像をアップロード中…</string>
+    <string name="home_map_create_error">マップの作成に失敗しました</string>
+    <string name="error_title_required">タイトルを入力してください</string>
 
     <!-- Login -->
     <string name="login_title">ログイン</string>

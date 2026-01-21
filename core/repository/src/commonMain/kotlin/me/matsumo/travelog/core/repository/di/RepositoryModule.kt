@@ -9,6 +9,7 @@ import me.matsumo.travelog.core.repository.ImageRepository
 import me.matsumo.travelog.core.repository.MapRegionRepository
 import me.matsumo.travelog.core.repository.MapRepository
 import me.matsumo.travelog.core.repository.SessionRepository
+import me.matsumo.travelog.core.repository.StorageRepository
 import me.matsumo.travelog.core.repository.UserRepository
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -24,4 +25,5 @@ val repositoryModule = module {
     singleOf(::MapRegionRepository)
     singleOf(::ImageRepository)
     singleOf(::ImageCommentRepository)
+    singleOf(::StorageRepository)
 }
