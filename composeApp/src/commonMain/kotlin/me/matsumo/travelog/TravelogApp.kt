@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
+import coil3.request.crossfade
 import coil3.svg.SvgDecoder
 import io.github.vinceglb.filekit.coil.addPlatformFileSupport
 import me.matsumo.travelog.core.model.AppSetting
@@ -34,6 +35,7 @@ private fun SetupCoil() {
                 add(SvgDecoder.Factory())
                 addPlatformFileSupport()
             }
+            .crossfade(true)
             .build()
     }
 }
