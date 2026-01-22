@@ -21,15 +21,11 @@ class HomeMapsViewModel(
     val screenState: StateFlow<ScreenState<HomeMapsUiState>>
         field: MutableStateFlow<ScreenState<HomeMapsUiState>> = MutableStateFlow(ScreenState.Loading())
 
-    init {
-        fetch()
-    }
-
     fun fetch() {
         viewModelScope.launch {
+            screenState.value = ScreenState.Loading()
             screenState.value = suspendRunCatching {
-                val userInfo = sessionRepository.getCurrentUserInfo()
-                    ?: return@suspendRunCatching HomeMapsUiState(emptyList())
+                val userInfo = sessionRepository.getCurrentUserInfo() ?: return@suspendRunCatching HomeMapsUiState(emptyList())
                 val maps = mapRepository.getMapsByUserId(userInfo.id)
 
                 HomeMapsUiState(maps)

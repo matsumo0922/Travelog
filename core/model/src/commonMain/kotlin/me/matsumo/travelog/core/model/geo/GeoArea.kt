@@ -101,7 +101,7 @@ data class GeoArea(
                     JsonArray(
                         polygon.map { ring ->
                             JsonArray(
-                                Companion.closeRing(ring).map { coord ->
+                                closeRing(ring).map { coord ->
                                     JsonArray(
                                         listOf(
                                             JsonPrimitive(coord.lon),
