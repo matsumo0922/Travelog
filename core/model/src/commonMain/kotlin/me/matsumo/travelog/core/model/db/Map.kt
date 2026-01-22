@@ -1,5 +1,6 @@
 package me.matsumo.travelog.core.model.db
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant
@@ -10,6 +11,7 @@ import kotlin.time.Instant
  * References geo_areas via root_geo_area_id for geographical scope.
  * Country code can be derived from the referenced geo_area.
  */
+@Immutable
 @Serializable
 data class Map(
     @SerialName("id")
