@@ -58,5 +58,5 @@ class MapDetailViewModel(
 data class MapDetailUiState(
     val map: Map,
     val geoArea: GeoArea,
-    val regions: ImmutableList<MapRegion>
+    val regions: ImmutableList<MapRegion>,
 )

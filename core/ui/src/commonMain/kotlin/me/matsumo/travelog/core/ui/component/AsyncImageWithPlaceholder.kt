@@ -23,7 +23,7 @@ fun AsyncImageWithPlaceholder(
     AsyncImage(
         modifier = modifier.placeholder(
             enabled = isLoading,
-            highlight = PlaceholderDefaults.pulse
+            highlight = PlaceholderDefaults.pulse,
         ),
         model = model,
         contentDescription = contentDescription,

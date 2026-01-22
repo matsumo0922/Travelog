@@ -53,7 +53,7 @@ internal fun MapDetailTopSection(
 
             Button(onPhotosClicked) {
                 Text(
-                    text = stringResource(Res.string.map_photo_list)
+                    text = stringResource(Res.string.map_photo_list),
                 )
             }
         }

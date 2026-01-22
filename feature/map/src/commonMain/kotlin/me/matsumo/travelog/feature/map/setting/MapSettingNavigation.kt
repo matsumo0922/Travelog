@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import kotlinx.collections.immutable.toImmutableList
 import me.matsumo.travelog.core.ui.screen.Destination
 
 fun EntryProviderScope<NavKey>.mapSettingEntry() {
@@ -13,7 +14,7 @@ fun EntryProviderScope<NavKey>.mapSettingEntry() {
             mapId = it.mapId,
             initialMap = it.map,
             initialTotalChildCount = it.totalChildCount,
-            initialRegions = it.regions,
+            initialRegions = it.regions?.toImmutableList(),
         )
     }
 }

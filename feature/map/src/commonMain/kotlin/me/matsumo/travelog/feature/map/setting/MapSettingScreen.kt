@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vinceglb.filekit.PlatformFile
+import kotlinx.collections.immutable.ImmutableList
 import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
@@ -31,7 +32,7 @@ internal fun MapSettingScreen(
     mapId: String,
     initialMap: Map?,
     initialTotalChildCount: Int?,
-    initialRegions: List<MapRegion>?,
+    initialRegions: ImmutableList<MapRegion>?,
     modifier: Modifier = Modifier,
     viewModel: MapSettingViewModel = koinViewModel(
         key = mapId,

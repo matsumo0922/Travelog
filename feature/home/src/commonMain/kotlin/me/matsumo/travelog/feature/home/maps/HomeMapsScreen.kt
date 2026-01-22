@@ -55,7 +55,6 @@ internal fun HomeMapsScreen(
         IdleScreen(
             modifier = Modifier.fillMaxSize(),
             maps = it.maps.toImmutableList(),
-            onDeleteMap = viewModel::deleteMap,
         )
     }
 }
@@ -63,7 +62,6 @@ internal fun HomeMapsScreen(
 @Composable
 private fun IdleScreen(
     maps: ImmutableList<Map>,
-    onDeleteMap: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current

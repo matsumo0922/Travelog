@@ -34,16 +34,6 @@ class HomeMapsViewModel(
             )
         }
     }
-
-    fun deleteMap(mapId: String) {
-        viewModelScope.launch {
-            suspendRunCatching {
-                mapRepository.deleteMap(mapId)
-            }.onSuccess {
-                fetch()
-            }
-        }
-    }
 }
 
 @Stable
