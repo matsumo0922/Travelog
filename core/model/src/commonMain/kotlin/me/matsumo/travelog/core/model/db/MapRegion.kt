@@ -1,5 +1,6 @@
 package me.matsumo.travelog.core.model.db
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant
@@ -9,6 +10,7 @@ import kotlin.time.Instant
  *
  * References geo_areas via geo_area_id for geographical data.
  */
+@Immutable
 @Serializable
 data class MapRegion(
     @SerialName("id")

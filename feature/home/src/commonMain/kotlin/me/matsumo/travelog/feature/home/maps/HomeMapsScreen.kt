@@ -92,6 +92,7 @@ private fun IdleScreen(
                 )
             }
         },
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         LazyVerticalGrid(
             modifier = Modifier.fillMaxSize(),

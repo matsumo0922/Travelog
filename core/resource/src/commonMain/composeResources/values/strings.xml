@@ -97,6 +97,9 @@
     <!-- Login -->
     <string name="login_title">ログイン</string>
 
+    <!-- Map Detail -->
+    <string name="map_photo_list">写真一覧</string>
+
     <!-- Account -->
     <string name="account_title">アカウント</string>
     <string name="account_display_name">ニックネーム</string>

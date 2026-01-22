@@ -3,11 +3,14 @@ package me.matsumo.travelog.feature.map
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.model.db.Map
+import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.repository.GeoAreaRepository
 import me.matsumo.travelog.core.repository.MapRegionRepository
@@ -36,10 +39,12 @@ class MapDetailViewModel(
                 val map = mapRepository.getMap(mapId) ?: error("Map not found")
                 val geoArea = geoAreaRepository.getAreaById(map.rootGeoAreaId) ?: error("Geo area not found")
                 val childAreas = geoAreaRepository.getChildren(map.rootGeoAreaId)
+                val regions = mapRegionRepository.getMapRegionsByMapId(mapId)
 
                 MapDetailUiState(
                     map = map,
                     geoArea = geoArea.copy(children = childAreas),
+                    regions = regions.toImmutableList(),
                 )
             }.fold(
                 onSuccess = { ScreenState.Idle(it) },
@@ -53,4 +58,5 @@ class MapDetailViewModel(
 data class MapDetailUiState(
     val map: Map,
     val geoArea: GeoArea,
+    val regions: ImmutableList<MapRegion>
 )
