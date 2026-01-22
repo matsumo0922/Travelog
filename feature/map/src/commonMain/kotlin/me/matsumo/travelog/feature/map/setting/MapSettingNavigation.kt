@@ -12,8 +12,6 @@ fun EntryProviderScope<NavKey>.mapSettingEntry() {
             modifier = Modifier.fillMaxSize(),
             mapId = it.mapId,
             initialMap = it.map,
-            initialGeoAreaId = it.geoAreaId,
-            initialGeoAreaName = it.geoAreaName,
             initialTotalChildCount = it.totalChildCount,
             initialRegions = it.regions,
         )

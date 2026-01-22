@@ -22,10 +22,8 @@ val mapModule = module {
         MapSettingViewModel(
             mapId = extras[0] as String,
             initialMap = extras[1] as? Map,
-            initialGeoAreaId = extras[2] as? String,
-            initialGeoAreaName = extras[3] as? String,
-            initialTotalChildCount = extras[4] as? Int,
-            initialRegions = extras[5] as? List<MapRegion>,
+            initialTotalChildCount = extras[2] as? Int,
+            initialRegions = extras[3] as? List<MapRegion>,
             mapRepository = get(),
             mapRegionRepository = get(),
             geoAreaRepository = get(),

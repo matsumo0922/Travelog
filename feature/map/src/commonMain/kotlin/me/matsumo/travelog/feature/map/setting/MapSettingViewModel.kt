@@ -30,8 +30,6 @@ import me.matsumo.travelog.core.usecase.UploadMapIconUseCase
 class MapSettingViewModel(
     private val mapId: String,
     private val initialMap: Map?,
-    private val initialGeoAreaId: String?,
-    private val initialGeoAreaName: String?,
     private val initialTotalChildCount: Int?,
     private val initialRegions: List<MapRegion>?,
     private val mapRepository: MapRepository,
@@ -62,14 +60,18 @@ class MapSettingViewModel(
                 val regions = initialRegions?.toImmutableList()
                     ?: mapRegionRepository.getMapRegionsByMapId(mapId).toImmutableList()
 
-                // GeoArea は children を含めるために常に取得が必要
+                // GeoArea は基本情報のみ取得（children は不要）
                 val geoArea = geoAreaRepository.getAreaById(map.rootGeoAreaId) ?: error("Geo area not found")
-                val childAreas = geoAreaRepository.getChildren(map.rootGeoAreaId)
+
+                // totalChildCount は初期データがあればそれを使用、なければ children を取得して計算
+                val totalChildCount = initialTotalChildCount
+                    ?: geoAreaRepository.getChildren(map.rootGeoAreaId).size
 
                 MapSettingUiState(
                     map = map,
-                    geoArea = geoArea.copy(children = childAreas),
+                    geoArea = geoArea,
                     regions = regions,
+                    totalChildCount = totalChildCount,
                     iconFile = null,
                 )
             }.fold(
@@ -148,7 +150,6 @@ class MapSettingViewModel(
     }
 
     private fun uploadIcon(file: PlatformFile) {
-        val currentState = (_screenState.value as? ScreenState.Idle)?.data ?: return
         val userId = sessionRepository.getCurrentUserInfo()?.id ?: return
 
         viewModelScope.launch {
@@ -163,17 +164,27 @@ class MapSettingViewModel(
                 return@launch
             }
 
-            val iconImageId = uploadResult.getOrThrow().imageId
+            val result = uploadResult.getOrThrow()
 
             _dialogState.value = MapSettingDialogState.Loading.UpdatingMap
 
-            val updatedMap = currentState.map.copy(iconImageId = iconImageId)
+            // 最新の状態を取得（iconFile が更新されている可能性があるため）
+            val latestState = (_screenState.value as? ScreenState.Idle)?.data ?: return@launch
+            val updatedMap = latestState.map.copy(
+                iconImageId = result.imageId,
+                iconImageUrl = result.publicUrl,
+            )
+
             val updateResult = suspendRunCatching {
                 mapRepository.updateMap(updatedMap)
             }
 
             if (updateResult.isSuccess) {
-                fetch()
+                // fetch() を呼ばずに直接状態を更新（iconFile もクリア）
+                _screenState.update {
+                    val current = (it as? ScreenState.Idle)?.data ?: return@update it
+                    ScreenState.Idle(current.copy(map = updatedMap, iconFile = null))
+                }
                 _dialogState.value = MapSettingDialogState.None
             } else {
                 _dialogState.value = MapSettingDialogState.Error.UpdateFailed
@@ -204,10 +215,10 @@ data class MapSettingUiState(
     val map: Map,
     val geoArea: GeoArea,
     val regions: ImmutableList<MapRegion>,
+    val totalChildCount: Int,
     val iconFile: PlatformFile?,
 ) {
     val regionCount: Int get() = regions.size
-    val totalChildCount: Int get() = geoArea.childCount
 }
 
 sealed interface MapSettingDialogState {

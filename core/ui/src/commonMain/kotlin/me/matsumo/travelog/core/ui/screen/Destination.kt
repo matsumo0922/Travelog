@@ -41,8 +41,6 @@ sealed interface Destination : NavKey {
     data class MapSetting(
         val mapId: String,
         val map: Map? = null,
-        val geoAreaId: String? = null,
-        val geoAreaName: String? = null,
         val totalChildCount: Int? = null,
         val regions: List<MapRegion>? = null,
     ) : Destination

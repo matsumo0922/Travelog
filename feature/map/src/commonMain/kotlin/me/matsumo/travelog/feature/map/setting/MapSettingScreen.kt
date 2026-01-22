@@ -30,8 +30,6 @@ import org.koin.core.parameter.parametersOf
 internal fun MapSettingScreen(
     mapId: String,
     initialMap: Map?,
-    initialGeoAreaId: String?,
-    initialGeoAreaName: String?,
     initialTotalChildCount: Int?,
     initialRegions: List<MapRegion>?,
     modifier: Modifier = Modifier,
@@ -41,8 +39,6 @@ internal fun MapSettingScreen(
         parametersOf(
             mapId,
             initialMap,
-            initialGeoAreaId,
-            initialGeoAreaName,
             initialTotalChildCount,
             initialRegions,
         )
