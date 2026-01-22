@@ -222,6 +222,7 @@ filekit-coil = { module = "io.github.vinceglb:filekit-coil", version.ref = "file
 coil3-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3" }
 coil3-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil3" }
 coil3-network = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil3" }
+placeholder = { module = "com.revenuecat.purchases:placeholder", version = "1.0.2" }
 desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
 libraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "libraries" }
 libraries-ui = { module = "com.mikepenz:aboutlibraries-compose", version.ref = "libraries" }
@@ -255,6 +256,7 @@ ui-common = [
     "coil3-compose",
     "coil3-svg",
     "coil3-network",
+    "placeholder",
     "kolor",
 ]
 

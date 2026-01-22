@@ -21,8 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import me.matsumo.travelog.core.model.db.Map
+import me.matsumo.travelog.core.ui.component.AsyncImageWithPlaceholder
 
 @Composable
 internal fun MapItem(
@@ -38,7 +38,7 @@ internal fun MapItem(
         ),
     ) {
         if (map.iconImageUrl != null) {
-            AsyncImage(
+            AsyncImageWithPlaceholder(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(4 / 3f),
