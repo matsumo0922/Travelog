@@ -1,31 +1,41 @@
 package me.matsumo.travelog.feature.map
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
-import me.matsumo.travelog.core.ui.component.GeoCanvasMap
+import me.matsumo.travelog.core.resource.Res
+import me.matsumo.travelog.core.resource.map_photo_add
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
-import me.matsumo.travelog.core.ui.utils.plus
+import me.matsumo.travelog.feature.map.components.MapDetailCanvasSection
 import me.matsumo.travelog.feature.map.components.MapDetailTopAppBar
+import me.matsumo.travelog.feature.map.components.MapDetailTopSection
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -55,6 +65,7 @@ internal fun MapDetailScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun IdleScreen(
     map: Map,
@@ -63,38 +74,70 @@ private fun IdleScreen(
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             MapDetailTopAppBar(
                 modifier = Modifier.fillMaxWidth(),
-                map = map,
-                area = geoArea,
-                regions = regions,
-                onPhotosClicked = {},
+                scrollBehavior = scrollBehavior,
                 onShareClicked = { },
                 onSettingsClicked = { },
                 onBackClicked = { navBackStack.removeLastOrNull() },
             )
         },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { },
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AddPhotoAlternate,
+                    contentDescription = null,
+                )
+
+                Text(
+                    modifier = Modifier.padding(start = 8.dp),
+                    text = stringResource(Res.string.map_photo_add),
+                )
+            }
+        },
         containerColor = MaterialTheme.colorScheme.surface,
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .padding(paddingValues + PaddingValues(16.dp))
-                .fillMaxSize()
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainer),
-            contentAlignment = Alignment.Center,
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = paddingValues,
         ) {
-            GeoCanvasMap(
-                modifier = Modifier.fillMaxSize(),
-                areas = geoArea.children.toImmutableList(),
-                strokeColor = MaterialTheme.colorScheme.outline,
-                strokeWidth = 0.5f,
-                fillColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-            )
+            item {
+                MapDetailTopSection(
+                    modifier = Modifier.fillMaxWidth(),
+                    map = map,
+                    area = geoArea,
+                    regions = regions,
+                    onPhotosClicked = {},
+                )
+            }
+
+            item {
+                MapDetailCanvasSection(
+                    modifier = Modifier.fillMaxWidth(),
+                    geoArea = geoArea,
+                )
+            }
+
+            items(100) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    text = "test",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
         }
     }
 }

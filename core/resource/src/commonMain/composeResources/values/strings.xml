@@ -99,6 +99,8 @@
 
     <!-- Map Detail -->
     <string name="map_photo_list">写真一覧</string>
+    <string name="map_photo_add">写真を追加</string>
+    <string name="map_region_list">地域一覧</string>
 
     <!-- Account -->
     <string name="account_title">アカウント</string>
