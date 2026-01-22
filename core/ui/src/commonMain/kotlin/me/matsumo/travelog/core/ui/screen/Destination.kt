@@ -8,6 +8,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.model.db.MapRegion
+import me.matsumo.travelog.core.model.geo.GeoArea
 
 @Immutable
 @Serializable
@@ -46,6 +47,12 @@ sealed interface Destination : NavKey {
     ) : Destination
 
     @Serializable
+    data class MapSelectRegion(
+        val mapId: String,
+        val geoArea: GeoArea,
+    ) : Destination
+
+    @Serializable
     sealed interface Setting : Destination {
         @Serializable
         data object Root : Setting
@@ -65,6 +72,7 @@ sealed interface Destination : NavKey {
                     subclass(Login::class, Login.serializer())
                     subclass(MapDetail::class, MapDetail.serializer())
                     subclass(MapSetting::class, MapSetting.serializer())
+                    subclass(MapSelectRegion::class, MapSelectRegion.serializer())
                     subclass(Setting.Root::class, Setting.Root.serializer())
                     subclass(Setting.License::class, Setting.License.serializer())
                 }

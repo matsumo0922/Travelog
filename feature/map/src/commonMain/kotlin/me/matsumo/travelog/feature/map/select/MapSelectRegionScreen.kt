@@ -1,0 +1,93 @@
+package me.matsumo.travelog.feature.map.select
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.collections.immutable.ImmutableList
+import me.matsumo.travelog.core.model.geo.GeoArea
+import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
+import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
+import me.matsumo.travelog.feature.map.select.components.MapSelectRegionItem
+import me.matsumo.travelog.feature.map.select.components.MapSelectRegionTopAppBar
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
+
+@Composable
+internal fun MapSelectRegionScreen(
+    mapId: String,
+    geoArea: GeoArea,
+    modifier: Modifier = Modifier,
+    viewModel: MapSelectRegionViewModel = koinViewModel(
+        key = "$mapId-${geoArea.id}",
+    ) {
+        parametersOf(mapId, geoArea)
+    },
+) {
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+
+    AsyncLoadContents(
+        modifier = modifier,
+        screenState = screenState,
+        retryAction = viewModel::fetch,
+    ) {
+        IdleScreen(
+            modifier = Modifier.fillMaxSize(),
+            sortedChildren = it.sortedChildren,
+            onRegionClicked = { /* TODO: implement later */ },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun IdleScreen(
+    sortedChildren: ImmutableList<GeoArea>,
+    onRegionClicked: (GeoArea) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val navBackStack = LocalNavBackStack.current
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            MapSelectRegionTopAppBar(
+                modifier = Modifier.fillMaxWidth(),
+                onBackClicked = { navBackStack.removeLastOrNull() },
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) { paddingValues ->
+        LazyVerticalGrid(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            items(
+                items = sortedChildren,
+                key = { it.id ?: it.admId },
+            ) { area ->
+                MapSelectRegionItem(
+                    area = area,
+                    onClick = { onRegionClicked(area) },
+                )
+            }
+        }
+    }
+}

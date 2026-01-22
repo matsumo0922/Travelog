@@ -36,6 +36,7 @@ fun GeoCanvasMap(
     strokeColor: Color = Color.Black,
     fillColor: Color = Color.Gray.copy(alpha = 0.3f),
     strokeWidth: Float = 0.1f,
+    enableZoom: Boolean = true,
 ) {
     val zoomState = rememberZoomState()
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -76,7 +77,7 @@ fun GeoCanvasMap(
         modifier = modifier
             .fillMaxSize()
             .onSizeChanged { canvasSize = it }
-            .zoomable(zoomState),
+            .then(if (enableZoom) Modifier.zoomable(zoomState) else Modifier),
     ) {
         drawGeoJson(
             paths = paths,

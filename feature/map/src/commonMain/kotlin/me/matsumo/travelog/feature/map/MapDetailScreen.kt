@@ -97,7 +97,16 @@ private fun IdleScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { },
+                onClick = {
+                    map.id?.let { mapId ->
+                        navBackStack.add(
+                            Destination.MapSelectRegion(
+                                mapId = mapId,
+                                geoArea = geoArea,
+                            ),
+                        )
+                    }
+                },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
             ) {
                 Icon(

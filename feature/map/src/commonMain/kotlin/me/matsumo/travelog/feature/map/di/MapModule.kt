@@ -2,7 +2,9 @@ package me.matsumo.travelog.feature.map.di
 
 import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.model.db.MapRegion
+import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.feature.map.MapDetailViewModel
+import me.matsumo.travelog.feature.map.select.MapSelectRegionViewModel
 import me.matsumo.travelog.feature.map.setting.MapSettingViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -29,6 +31,13 @@ val mapModule = module {
             geoAreaRepository = get(),
             sessionRepository = get(),
             uploadMapIconUseCase = get(),
+        )
+    }
+
+    viewModel { extras ->
+        MapSelectRegionViewModel(
+            mapId = extras[0] as String,
+            geoArea = extras[1] as GeoArea,
         )
     }
 }
