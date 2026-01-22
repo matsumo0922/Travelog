@@ -33,15 +33,15 @@ internal fun MapItem(
         modifier = modifier,
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        ),
     ) {
-        if (map.iconImageId != null) {
+        if (map.iconImageUrl != null) {
             AsyncImage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(4 / 3f),
-                model = map.iconImageId,
+                model = map.iconImageUrl,
                 contentDescription = null,
             )
         } else {

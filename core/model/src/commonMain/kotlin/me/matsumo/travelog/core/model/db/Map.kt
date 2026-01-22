@@ -3,6 +3,7 @@ package me.matsumo.travelog.core.model.db
 import androidx.compose.runtime.Immutable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlin.time.Instant
 
 /**
@@ -35,6 +36,9 @@ data class Map(
 
     @SerialName("icon_image_id")
     val iconImageId: String? = null,
+
+    @Transient
+    val iconImageUrl: String? = null,
 
     @SerialName("created_at")
     val createdAt: Instant? = null,

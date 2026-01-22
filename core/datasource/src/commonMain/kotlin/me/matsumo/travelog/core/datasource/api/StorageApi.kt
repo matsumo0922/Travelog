@@ -26,6 +26,10 @@ class StorageApi internal constructor(
         supabaseClient.storage.from(bucket).delete(path)
     }
 
+    fun getPublicUrl(bucket: String, path: String): String {
+        return supabaseClient.storage.from(bucket).publicUrl(path)
+    }
+
     companion object {
         const val BUCKET_MAP_ICONS = "map-icons"
     }

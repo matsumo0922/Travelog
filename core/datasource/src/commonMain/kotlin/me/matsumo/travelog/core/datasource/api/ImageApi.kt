@@ -23,6 +23,15 @@ class ImageApi internal constructor(
             .decodeSingleOrNull()
     }
 
+    suspend fun getImagesByIds(ids: List<String>): List<Image> {
+        if (ids.isEmpty()) return emptyList()
+        return supabaseClient.from(TABLE_NAME)
+            .select {
+                filter { Image::id isIn ids }
+            }
+            .decodeList()
+    }
+
     suspend fun getImagesByMapRegionId(mapRegionId: String): List<Image> {
         return supabaseClient.from(TABLE_NAME)
             .select {

@@ -41,6 +41,10 @@ class StorageRepository(
     suspend fun deleteMapIcon(storageKey: String) {
         storageApi.deleteImage(StorageApi.BUCKET_MAP_ICONS, storageKey)
     }
+
+    fun getMapIconPublicUrl(storageKey: String): String {
+        return storageApi.getPublicUrl(StorageApi.BUCKET_MAP_ICONS, storageKey)
+    }
 }
 
 data class UploadResult(

@@ -14,6 +14,10 @@ class ImageRepository(
         return imageApi.getImage(id)
     }
 
+    suspend fun getImagesByIds(ids: List<String>): List<Image> {
+        return imageApi.getImagesByIds(ids)
+    }
+
     suspend fun getImagesByMapRegionId(mapRegionId: String): List<Image> {
         return imageApi.getImagesByMapRegionId(mapRegionId)
     }

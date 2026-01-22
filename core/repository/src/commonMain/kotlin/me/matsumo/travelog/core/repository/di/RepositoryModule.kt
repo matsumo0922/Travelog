@@ -21,9 +21,9 @@ val repositoryModule = module {
     singleOf(::GeoAreaRepository)
     singleOf(::SessionRepository)
     singleOf(::UserRepository)
-    singleOf(::MapRepository)
-    singleOf(::MapRegionRepository)
     singleOf(::ImageRepository)
     singleOf(::ImageCommentRepository)
     singleOf(::StorageRepository)
+    singleOf(::MapRepository)
+    singleOf(::MapRegionRepository)
 }
