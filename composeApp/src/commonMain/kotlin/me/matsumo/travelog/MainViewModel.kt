@@ -32,6 +32,15 @@ class MainViewModel(
                 isAuthenticated = hasSession,
             )
         }
+
+        viewModelScope.launch {
+            settingRepository.setting.collect { setting ->
+                val currentState = _startupState.value
+                if (currentState is AppStartupState.Ready) {
+                    _startupState.value = currentState.copy(setting = setting)
+                }
+            }
+        }
     }
 
     fun setAdsSdkInitialized() {
