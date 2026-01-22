@@ -68,6 +68,7 @@ private fun IdleScreen(
                 .padding(paddingValues),
             areas = geoArea.children.toImmutableList(),
             strokeColor = MaterialTheme.colorScheme.outline,
+            strokeWidth = 0.5f,
             fillColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
         )
     }

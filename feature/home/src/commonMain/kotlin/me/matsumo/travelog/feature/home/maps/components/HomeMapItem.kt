@@ -25,7 +25,7 @@ import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.ui.component.AsyncImageWithPlaceholder
 
 @Composable
-internal fun MapItem(
+internal fun HomeMapItem(
     map: Map,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

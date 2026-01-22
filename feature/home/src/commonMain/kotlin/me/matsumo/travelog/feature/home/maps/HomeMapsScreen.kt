@@ -31,8 +31,8 @@ import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
+import me.matsumo.travelog.feature.home.maps.components.HomeMapItem
 import me.matsumo.travelog.feature.home.maps.components.HomeMapsTopAppBar
-import me.matsumo.travelog.feature.home.maps.components.MapItem
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -104,7 +104,7 @@ private fun IdleScreen(
                 items = maps,
                 key = { map -> map.id.orEmpty() },
             ) { map ->
-                MapItem(
+                HomeMapItem(
                     modifier = Modifier.fillMaxWidth(),
                     map = map,
                     onClick = {
