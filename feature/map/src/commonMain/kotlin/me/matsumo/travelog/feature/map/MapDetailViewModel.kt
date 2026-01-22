@@ -3,14 +3,11 @@ package me.matsumo.travelog.feature.map
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.model.db.Map
-import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.repository.GeoAreaRepository
 import me.matsumo.travelog.core.repository.MapRegionRepository
@@ -37,22 +34,12 @@ class MapDetailViewModel(
         viewModelScope.launch {
             _screenState.value = suspendRunCatching {
                 val map = mapRepository.getMap(mapId) ?: error("Map not found")
-                val regions = mapRegionRepository.getMapRegionsByMapId(mapId)
-
-                val regionsWithAreas = regions.map { region ->
-                    async {
-                        val geoArea = geoAreaRepository.getAreaById(region.geoAreaId)
-                        if (geoArea != null) {
-                            MapRegionWithArea(region, geoArea)
-                        } else {
-                            null
-                        }
-                    }
-                }.awaitAll().filterNotNull()
+                val geoArea = geoAreaRepository.getAreaById(map.rootGeoAreaId) ?: error("Geo area not found")
+                val childAreas = geoAreaRepository.getChildren(map.rootGeoAreaId)
 
                 MapDetailUiState(
                     map = map,
-                    regionsWithAreas = regionsWithAreas,
+                    geoArea = geoArea.copy(children = childAreas),
                 )
             }.fold(
                 onSuccess = { ScreenState.Idle(it) },
@@ -65,11 +52,5 @@ class MapDetailViewModel(
 @Stable
 data class MapDetailUiState(
     val map: Map,
-    val regionsWithAreas: List<MapRegionWithArea>,
-)
-
-@Stable
-data class MapRegionWithArea(
-    val region: MapRegion,
     val geoArea: GeoArea,
 )

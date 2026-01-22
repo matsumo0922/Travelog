@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.model.geo.GeoArea
@@ -40,7 +39,7 @@ internal fun MapDetailScreen(
         IdleScreen(
             modifier = Modifier.fillMaxSize(),
             map = it.map,
-            areas = it.regionsWithAreas.map { regionWithArea -> regionWithArea.geoArea }.toImmutableList(),
+            geoArea = it.geoArea,
         )
     }
 }
@@ -48,7 +47,7 @@ internal fun MapDetailScreen(
 @Composable
 private fun IdleScreen(
     map: Map,
-    areas: ImmutableList<GeoArea>,
+    geoArea: GeoArea,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
@@ -67,7 +66,7 @@ private fun IdleScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            areas = areas,
+            areas = geoArea.children.toImmutableList(),
             strokeColor = MaterialTheme.colorScheme.outline,
             fillColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
         )
