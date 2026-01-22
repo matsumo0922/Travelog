@@ -61,7 +61,7 @@ internal fun MapSettingTextEditDialog(
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(text = stringResource(description))
 
