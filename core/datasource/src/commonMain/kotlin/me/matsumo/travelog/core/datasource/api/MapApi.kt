@@ -14,7 +14,9 @@ class MapApi internal constructor(
 
     suspend fun updateMap(map: Map) {
         supabaseClient.from(TABLE_NAME)
-            .update(map)
+            .update(map) {
+                filter { Map::id eq map.id }
+            }
     }
 
     suspend fun getMap(id: String): Map? {

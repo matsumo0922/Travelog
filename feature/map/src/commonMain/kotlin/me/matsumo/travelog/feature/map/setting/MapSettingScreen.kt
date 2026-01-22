@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vinceglb.filekit.PlatformFile
+import me.matsumo.travelog.core.model.db.Map
+import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.map.setting.components.MapSettingConfirmDialog
@@ -27,11 +29,23 @@ import org.koin.core.parameter.parametersOf
 @Composable
 internal fun MapSettingScreen(
     mapId: String,
+    initialMap: Map?,
+    initialGeoAreaId: String?,
+    initialGeoAreaName: String?,
+    initialTotalChildCount: Int?,
+    initialRegions: List<MapRegion>?,
     modifier: Modifier = Modifier,
     viewModel: MapSettingViewModel = koinViewModel(
         key = mapId,
     ) {
-        parametersOf(mapId)
+        parametersOf(
+            mapId,
+            initialMap,
+            initialGeoAreaId,
+            initialGeoAreaName,
+            initialTotalChildCount,
+            initialRegions,
+        )
     },
 ) {
     val navBackStack = LocalNavBackStack.current

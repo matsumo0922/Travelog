@@ -6,6 +6,8 @@ import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
+import me.matsumo.travelog.core.model.db.Map
+import me.matsumo.travelog.core.model.db.MapRegion
 
 @Immutable
 @Serializable
@@ -38,6 +40,11 @@ sealed interface Destination : NavKey {
     @Serializable
     data class MapSetting(
         val mapId: String,
+        val map: Map? = null,
+        val geoAreaId: String? = null,
+        val geoAreaName: String? = null,
+        val totalChildCount: Int? = null,
+        val regions: List<MapRegion>? = null,
     ) : Destination
 
     @Serializable

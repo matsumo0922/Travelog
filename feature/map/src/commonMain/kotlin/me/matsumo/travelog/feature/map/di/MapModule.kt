@@ -1,5 +1,7 @@
 package me.matsumo.travelog.feature.map.di
 
+import me.matsumo.travelog.core.model.db.Map
+import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.feature.map.MapDetailViewModel
 import me.matsumo.travelog.feature.map.setting.MapSettingViewModel
 import org.koin.core.module.dsl.viewModel
@@ -16,8 +18,14 @@ val mapModule = module {
     }
 
     viewModel { extras ->
+        @Suppress("UNCHECKED_CAST")
         MapSettingViewModel(
-            mapId = extras.get<String>(),
+            mapId = extras[0] as String,
+            initialMap = extras[1] as? Map,
+            initialGeoAreaId = extras[2] as? String,
+            initialGeoAreaName = extras[3] as? String,
+            initialTotalChildCount = extras[4] as? Int,
+            initialRegions = extras[5] as? List<MapRegion>,
             mapRepository = get(),
             mapRegionRepository = get(),
             geoAreaRepository = get(),

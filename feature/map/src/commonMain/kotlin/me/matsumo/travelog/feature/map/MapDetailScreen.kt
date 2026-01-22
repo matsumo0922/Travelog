@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
@@ -72,6 +73,7 @@ private fun IdleScreen(
 ) {
     val navBackStack = LocalNavBackStack.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val isJapanese = Locale.current.language == "ja"
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -80,7 +82,20 @@ private fun IdleScreen(
                 modifier = Modifier.fillMaxWidth(),
                 scrollBehavior = scrollBehavior,
                 onShareClicked = { },
-                onSettingsClicked = { map.id?.let { navBackStack.add(Destination.MapSetting(it)) } },
+                onSettingsClicked = {
+                    map.id?.let { mapId ->
+                        navBackStack.add(
+                            Destination.MapSetting(
+                                mapId = mapId,
+                                map = map,
+                                geoAreaId = geoArea.id,
+                                geoAreaName = geoArea.getLocalizedName(isJapanese),
+                                totalChildCount = geoArea.childCount,
+                                regions = regions.toList(),
+                            ),
+                        )
+                    }
+                },
                 onBackClicked = { navBackStack.removeLastOrNull() },
             )
         },

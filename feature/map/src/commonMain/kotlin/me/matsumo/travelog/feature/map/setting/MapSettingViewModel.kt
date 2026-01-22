@@ -29,6 +29,11 @@ import me.matsumo.travelog.core.usecase.UploadMapIconUseCase
 
 class MapSettingViewModel(
     private val mapId: String,
+    private val initialMap: Map?,
+    private val initialGeoAreaId: String?,
+    private val initialGeoAreaName: String?,
+    private val initialTotalChildCount: Int?,
+    private val initialRegions: List<MapRegion>?,
     private val mapRepository: MapRepository,
     private val mapRegionRepository: MapRegionRepository,
     private val geoAreaRepository: GeoAreaRepository,
@@ -52,15 +57,19 @@ class MapSettingViewModel(
     fun fetch() {
         viewModelScope.launch {
             _screenState.value = suspendRunCatching {
-                val map = mapRepository.getMap(mapId) ?: error("Map not found")
+                // 初期データがあればそれを優先使用、なければAPIから取得
+                val map = initialMap ?: mapRepository.getMap(mapId) ?: error("Map not found")
+                val regions = initialRegions?.toImmutableList()
+                    ?: mapRegionRepository.getMapRegionsByMapId(mapId).toImmutableList()
+
+                // GeoArea は children を含めるために常に取得が必要
                 val geoArea = geoAreaRepository.getAreaById(map.rootGeoAreaId) ?: error("Geo area not found")
                 val childAreas = geoAreaRepository.getChildren(map.rootGeoAreaId)
-                val regions = mapRegionRepository.getMapRegionsByMapId(mapId)
 
                 MapSettingUiState(
                     map = map,
                     geoArea = geoArea.copy(children = childAreas),
-                    regions = regions.toImmutableList(),
+                    regions = regions,
                     iconFile = null,
                 )
             }.fold(
