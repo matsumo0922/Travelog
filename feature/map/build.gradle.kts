@@ -17,6 +17,7 @@ kotlin {
             implementation(project(":core:model"))
             implementation(project(":core:repository"))
             implementation(project(":core:datasource"))
+            implementation(project(":core:usecase"))
             implementation(project(":core:ui"))
             implementation(project(":core:resource"))
         }

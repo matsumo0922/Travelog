@@ -185,4 +185,45 @@
     <string name="setting_other_developer_mode_description">[Warning] Do not enable this mode if you are not a developer.</string>
     <string name="setting_other_developer_mode_dialog_title">Developer Mode</string>
     <string name="setting_other_developer_mode_dialog_description">You are trying to turn on this mode.Please enter the developer's PIN.\n\n[Warning] When this mode is turned on, you will not be able to receive any support.</string>
+
+    <!-- Map Setting -->
+    <string name="map_setting_title">マップ設定</string>
+
+    <!-- Map Setting - Statistics Section -->
+    <string name="map_setting_statistics">統計</string>
+    <string name="map_setting_statistics_region_name">地域名</string>
+    <string name="map_setting_statistics_fill_percentage">達成率</string>
+    <string name="map_setting_statistics_photo_count">写真数</string>
+
+    <!-- Map Setting - Metadata Section -->
+    <string name="map_setting_metadata">メタデータ</string>
+    <string name="map_setting_metadata_title">タイトル</string>
+    <string name="map_setting_metadata_description">説明</string>
+    <string name="map_setting_metadata_description_empty">説明を追加</string>
+    <string name="map_setting_metadata_icon">代表画像</string>
+    <string name="map_setting_metadata_icon_hint">タップして変更</string>
+
+    <!-- Map Setting - Edit Dialogs -->
+    <string name="map_setting_edit_title">タイトルを編集</string>
+    <string name="map_setting_edit_title_description">マップのタイトルを変更します</string>
+    <string name="map_setting_edit_description">説明を編集</string>
+    <string name="map_setting_edit_description_description">マップの説明を変更します</string>
+
+    <!-- Map Setting - Details Section -->
+    <string name="map_setting_details">詳細・操作</string>
+    <string name="map_setting_details_map_id">マップID</string>
+    <string name="map_setting_details_geo_area_id">地域ID</string>
+    <string name="map_setting_details_created_at">作成日時</string>
+    <string name="map_setting_details_delete">マップを削除</string>
+    <string name="map_setting_details_delete_hint">マップと全てのデータを削除します</string>
+
+    <!-- Map Setting - Dialogs -->
+    <string name="map_setting_delete_title">マップの削除</string>
+    <string name="map_setting_delete_message">このマップを削除すると、関連する全ての写真と記録が削除されます。この操作は取り消しできません。</string>
+    <string name="map_setting_uploading">画像をアップロード中…</string>
+    <string name="map_setting_updating">更新中…</string>
+    <string name="map_setting_deleting">削除中…</string>
+    <string name="map_setting_error_update">更新に失敗しました</string>
+    <string name="map_setting_error_upload">アップロードに失敗しました</string>
+    <string name="map_setting_error_delete">削除に失敗しました</string>
 </resources>

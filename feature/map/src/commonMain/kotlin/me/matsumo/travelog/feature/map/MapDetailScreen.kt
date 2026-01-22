@@ -1,13 +1,10 @@
 package me.matsumo.travelog.feature.map
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,7 +17,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,6 +27,7 @@ import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.map_photo_add
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.map.components.MapDetailCanvasSection
 import me.matsumo.travelog.feature.map.components.MapDetailTopAppBar
@@ -83,7 +80,7 @@ private fun IdleScreen(
                 modifier = Modifier.fillMaxWidth(),
                 scrollBehavior = scrollBehavior,
                 onShareClicked = { },
-                onSettingsClicked = { },
+                onSettingsClicked = { map.id?.let { navBackStack.add(Destination.MapSetting(it)) } },
                 onBackClicked = { navBackStack.removeLastOrNull() },
             )
         },
@@ -124,18 +121,6 @@ private fun IdleScreen(
                 MapDetailCanvasSection(
                     modifier = Modifier.fillMaxWidth(),
                     geoArea = geoArea,
-                )
-            }
-
-            items(100) {
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    text = "test",
-                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
         }

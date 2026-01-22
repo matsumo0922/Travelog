@@ -88,16 +88,15 @@ fun CommonSectionItem(
             }
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier.size(iconSize),
-            )
-
-            if (extra != null) {
+        if (extra != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier.size(iconSize),
+                )
                 extra()
             }
         }
