@@ -108,7 +108,9 @@ private fun IdleScreen(
                     modifier = Modifier.fillMaxWidth(),
                     map = map,
                     onClick = {
-
+                        map.id?.let { mapId ->
+                            navBackStack.add(Destination.MapDetail(mapId))
+                        }
                     },
                 )
             }

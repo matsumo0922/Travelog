@@ -108,6 +108,7 @@ kotlin {
             implementation(project(":feature:home"))
             implementation(project(":feature:setting"))
             implementation(project(":feature:login"))
+            implementation(project(":feature:map"))
         }
 
         androidMain.dependencies {

@@ -31,6 +31,11 @@ sealed interface Destination : NavKey {
     data object Login : Destination
 
     @Serializable
+    data class MapDetail(
+        val mapId: String,
+    ) : Destination
+
+    @Serializable
     sealed interface Setting : Destination {
         @Serializable
         data object Root : Setting
@@ -48,6 +53,7 @@ sealed interface Destination : NavKey {
                     subclass(RegionSelect::class, RegionSelect.serializer())
                     subclass(MapCreate::class, MapCreate.serializer())
                     subclass(Login::class, Login.serializer())
+                    subclass(MapDetail::class, MapDetail.serializer())
                     subclass(Setting.Root::class, Setting.Root.serializer())
                     subclass(Setting.License::class, Setting.License.serializer())
                 }

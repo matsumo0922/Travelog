@@ -6,6 +6,7 @@ import me.matsumo.travelog.core.repository.di.repositoryModule
 import me.matsumo.travelog.core.usecase.di.useCaseModule
 import me.matsumo.travelog.feature.home.di.homeModule
 import me.matsumo.travelog.feature.login.di.loginModule
+import me.matsumo.travelog.feature.map.di.mapModule
 import me.matsumo.travelog.feature.setting.di.settingModule
 import org.koin.core.KoinApplication
 
@@ -20,4 +21,5 @@ fun KoinApplication.applyModules() {
     modules(homeModule)
     modules(settingModule)
     modules(loginModule)
+    modules(mapModule)
 }
