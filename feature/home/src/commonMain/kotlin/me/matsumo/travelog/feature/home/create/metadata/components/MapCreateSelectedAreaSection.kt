@@ -20,6 +20,7 @@ import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.home_map_selected_area
 import me.matsumo.travelog.core.resource.unit_region
+import me.matsumo.travelog.core.ui.utils.getLocalizedName
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

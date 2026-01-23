@@ -1,8 +1,6 @@
 package me.matsumo.travelog.core.model.geo
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.ui.text.intl.Locale
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
@@ -134,18 +132,6 @@ data class GeoArea(
                     ),
                 ),
             )
-        }
-    }
-
-    /**
-     * Get display name with fallback order: name_ja -> name_en -> name
-     */
-    @Composable
-    fun getLocalizedName(): String {
-        return if (Locale.current.language == "ja") {
-            nameJa ?: name
-        } else {
-            nameEn ?: name
         }
     }
 

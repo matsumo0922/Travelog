@@ -19,6 +19,7 @@ import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.map_photo_list
 import me.matsumo.travelog.core.ui.theme.semiBold
+import me.matsumo.travelog.core.ui.utils.getLocalizedName
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

@@ -22,6 +22,7 @@ import me.matsumo.travelog.core.resource.map_setting_statistics_fill_percentage
 import me.matsumo.travelog.core.resource.map_setting_statistics_photo_count
 import me.matsumo.travelog.core.resource.map_setting_statistics_region_name
 import me.matsumo.travelog.core.ui.component.CommonSectionItem
+import me.matsumo.travelog.core.ui.utils.getLocalizedName
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

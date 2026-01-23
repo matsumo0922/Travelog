@@ -16,8 +16,11 @@ import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
+import me.matsumo.travelog.core.ui.utils.getLocalizedName
 import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoFab
 import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoTopAppBar
+import me.matsumo.travelog.feature.map.photo.components.TilePhotoGrid
+import me.matsumo.travelog.feature.map.photo.components.model.PlacedGridItem
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -43,6 +46,8 @@ internal fun MapAddPhotoRoute(
             modifier = Modifier.fillMaxSize(),
             geoArea = it.geoArea,
             mapRegions = it.mapRegions,
+            placedItems = it.placedItems,
+            rowCount = it.rowCount,
         )
     }
 }
@@ -52,6 +57,8 @@ internal fun MapAddPhotoRoute(
 private fun MapAddPhotoScreen(
     geoArea: GeoArea,
     mapRegions: ImmutableList<MapRegion>,
+    placedItems: ImmutableList<PlacedGridItem>,
+    rowCount: Int,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
@@ -72,6 +79,11 @@ private fun MapAddPhotoScreen(
         },
         containerColor = MaterialTheme.colorScheme.surface,
     ) { paddingValues ->
-
+        TilePhotoGrid(
+            modifier = Modifier.fillMaxSize(),
+            placedItems = placedItems,
+            rowCount = rowCount,
+            contentPadding = paddingValues,
+        )
     }
 }
