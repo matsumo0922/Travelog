@@ -37,10 +37,7 @@ class MapDetailViewModel(
         viewModelScope.launch {
             _screenState.value = suspendRunCatching {
                 val map = mapRepository.getMap(mapId) ?: error("Map not found")
-                val geoArea = geoAreaRepository.getAreaByIdWithChildren(
-                    areaId = map.rootGeoAreaId,
-                    useCache = true,
-                ) ?: error("Geo area not found")
+                val geoArea = geoAreaRepository.getAreaByIdWithChildren(map.rootGeoAreaId, true) ?: error("Geo area not found")
                 val regions = mapRegionRepository.getMapRegionsByMapId(mapId)
 
                 MapDetailUiState(
