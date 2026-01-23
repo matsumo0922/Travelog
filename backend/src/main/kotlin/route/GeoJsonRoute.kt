@@ -14,11 +14,11 @@ import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.model.geo.GeoJsonProgressEvent
 import me.matsumo.travelog.core.model.geo.MultiCountryProgressEvent
-import me.matsumo.travelog.core.repository.Adm1ProcessingEvent
 import me.matsumo.travelog.core.repository.GeoAreaRepository
-import me.matsumo.travelog.core.repository.GeoBoundaryMapper
-import me.matsumo.travelog.core.repository.GeoBoundaryRepository
 import org.koin.ktor.ext.inject
+import repository.Adm1ProcessingEvent
+import repository.GeoBoundaryMapper
+import repository.GeoBoundaryRepository
 import ui.geojson.allCountriesProgressPage
 import ui.geojson.progressPage
 import ui.geojson.regionListPage

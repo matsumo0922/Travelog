@@ -1,4 +1,4 @@
-package me.matsumo.travelog.core.repository
+package repository
 
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.json.JsonObject

@@ -1,4 +1,4 @@
-package me.matsumo.travelog.core.datasource
+package datasource
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -9,7 +9,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import me.matsumo.travelog.core.common.retryWithBackoff
 import me.matsumo.travelog.core.model.geo.OverpassResult

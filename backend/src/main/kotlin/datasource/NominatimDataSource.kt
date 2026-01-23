@@ -1,4 +1,4 @@
-package me.matsumo.travelog.core.datasource
+package datasource
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -6,7 +6,6 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit

@@ -11,10 +11,6 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
 import me.matsumo.travelog.core.common.formatter
 import me.matsumo.travelog.core.datasource.AppSettingDataSource
-import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
-import me.matsumo.travelog.core.datasource.NominatimDataSource
-import me.matsumo.travelog.core.datasource.OverpassDataSource
-import me.matsumo.travelog.core.datasource.WikipediaDataSource
 import me.matsumo.travelog.core.datasource.api.GeoAreaApi
 import me.matsumo.travelog.core.datasource.api.ImageApi
 import me.matsumo.travelog.core.datasource.api.ImageCommentApi
@@ -69,11 +65,6 @@ val dataSourceModule = module {
     single { StorageApi(get()) }
 
     singleOf(::AppSettingDataSource)
-    singleOf(::GeoBoundaryDataSource)
-    singleOf(::OverpassDataSource)
-    singleOf(::NominatimDataSource)
-    singleOf(::WikipediaDataSource)
-
     singleOf(::GeoAreaMapper)
 
     includes(dataSourcePlatformModule)

@@ -1,4 +1,4 @@
-package me.matsumo.travelog.core.datasource
+package datasource
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get

@@ -1,5 +1,9 @@
-package me.matsumo.travelog.core.repository
+package repository
 
+import datasource.GeoBoundaryDataSource
+import datasource.NominatimDataSource
+import datasource.OverpassDataSource
+import datasource.WikipediaDataSource
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -10,10 +14,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import me.matsumo.travelog.core.common.suspendRunCatching
-import me.matsumo.travelog.core.datasource.GeoBoundaryDataSource
-import me.matsumo.travelog.core.datasource.NominatimDataSource
-import me.matsumo.travelog.core.datasource.OverpassDataSource
-import me.matsumo.travelog.core.datasource.WikipediaDataSource
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.model.geo.GeoBoundaryLevel
 import me.matsumo.travelog.core.model.geo.GeoJsonData
