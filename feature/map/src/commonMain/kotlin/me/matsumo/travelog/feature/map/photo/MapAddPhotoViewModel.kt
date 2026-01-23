@@ -48,7 +48,7 @@ class MapAddPhotoViewModel(
                 val mapRegions = mapRegionRepository.getMapRegionsByMapIdAndGeoAreaId(mapId, geoAreaId)
 
                 val mockPhotos = MockPhotoGenerator.generateMockPhotos(
-                    count = 50,
+                    count = 500,
                     config = gridConfig,
                 )
 

@@ -12,10 +12,10 @@ data class SpanSize(
 @Immutable
 data class GridSpanConfig(
     val columnCount: Int = 4,
-    val specialSizeInterval: Int = 5,
+    val specialSizeInterval: Int = 10,
     val availableSpecialSizes: List<SpanSize> = listOf(
-        SpanSize(2, 1, weight = 3f),
-        SpanSize(1, 2, weight = 2f),
-        SpanSize(2, 2, weight = 1f),
+        SpanSize(2, 2, weight = 2f),
+        SpanSize(2, 3, weight = 1f),
+        SpanSize(3, 2, weight = 1f),
     ),
 )
