@@ -15,6 +15,7 @@ import me.matsumo.travelog.feature.home.create.region.regionSelectEntry
 import me.matsumo.travelog.feature.home.homeEntry
 import me.matsumo.travelog.feature.login.loginEntry
 import me.matsumo.travelog.feature.map.mapDetailEntry
+import me.matsumo.travelog.feature.map.photo.mapPhotoAddEntry
 import me.matsumo.travelog.feature.map.select.mapSelectRegionEntry
 import me.matsumo.travelog.feature.map.setting.mapSettingEntry
 import me.matsumo.travelog.feature.setting.oss.settingLicenseEntry
@@ -42,6 +43,7 @@ internal fun AppNavHost(
                 mapDetailEntry()
                 mapSettingEntry()
                 mapSelectRegionEntry()
+                mapPhotoAddEntry()
                 settingEntry()
                 settingLicenseEntry()
             },
