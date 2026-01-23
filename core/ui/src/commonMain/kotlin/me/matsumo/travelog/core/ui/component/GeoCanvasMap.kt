@@ -33,9 +33,9 @@ import net.engawapg.lib.zoomable.zoomable
 fun GeoCanvasMap(
     areas: ImmutableList<GeoArea>,
     modifier: Modifier = Modifier,
-    strokeColor: Color = Color.Black,
-    fillColor: Color = Color.Gray.copy(alpha = 0.3f),
-    strokeWidth: Float = 0.1f,
+    strokeColor: Color = Color(0xFF33691E),
+    fillColor: Color = Color(0xFF9CCC65).copy(alpha = 0.6f),
+    strokeWidth: Float = 0.5f,
     enableZoom: Boolean = true,
 ) {
     val zoomState = rememberZoomState()

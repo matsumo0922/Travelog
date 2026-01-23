@@ -32,9 +32,6 @@ internal fun MapDetailCanvasSection(
         GeoCanvasMap(
             modifier = Modifier.fillMaxSize(),
             areas = geoArea.children.toImmutableList(),
-            strokeColor = MaterialTheme.colorScheme.outline,
-            strokeWidth = 0.5f,
-            fillColor = MaterialTheme.colorScheme.primaryContainer,
         )
     }
 }
