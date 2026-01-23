@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun MapPhotoAddTopAppBar(
+internal fun MapAddPhotoTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier,

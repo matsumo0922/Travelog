@@ -3,7 +3,7 @@ package me.matsumo.travelog.feature.map.di
 import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.feature.map.MapDetailViewModel
-import me.matsumo.travelog.feature.map.photo.MapPhotoAddViewModel
+import me.matsumo.travelog.feature.map.photo.MapAddPhotoViewModel
 import me.matsumo.travelog.feature.map.select.MapSelectRegionViewModel
 import me.matsumo.travelog.feature.map.setting.MapSettingViewModel
 import org.koin.core.module.dsl.viewModel
@@ -43,7 +43,7 @@ val mapModule = module {
     }
 
     viewModel { extras ->
-        MapPhotoAddViewModel(
+        MapAddPhotoViewModel(
             mapId = extras[0] as String,
             geoAreaId = extras[1] as String,
             geoAreaRepository = get(),

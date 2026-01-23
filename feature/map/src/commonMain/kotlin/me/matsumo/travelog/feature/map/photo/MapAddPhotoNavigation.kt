@@ -6,9 +6,9 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import me.matsumo.travelog.core.ui.screen.Destination
 
-fun EntryProviderScope<NavKey>.mapPhotoAddEntry() {
-    entry<Destination.MapPhotoAdd> {
-        MapPhotoAddRoute(
+fun EntryProviderScope<NavKey>.mapAddPhotoEntry() {
+    entry<Destination.MapAddPhoto> {
+        MapAddPhotoRoute(
             modifier = Modifier.fillMaxSize(),
             mapId = it.mapId,
             geoAreaId = it.geoAreaId,

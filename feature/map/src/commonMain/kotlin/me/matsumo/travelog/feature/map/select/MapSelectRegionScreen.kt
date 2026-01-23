@@ -94,7 +94,7 @@ private fun MapSelectRegionScreen(
                     area = area,
                     onClick = {
                         area.id?.let {
-                            navBackStack.add(Destination.MapPhotoAdd(mapId, it))
+                            navBackStack.add(Destination.MapAddPhoto(mapId, it))
                         }
                     },
                 )

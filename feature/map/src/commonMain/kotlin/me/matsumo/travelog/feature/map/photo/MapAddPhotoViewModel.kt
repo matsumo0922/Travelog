@@ -18,15 +18,15 @@ import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.screen.ScreenState
 
-class MapPhotoAddViewModel(
+class MapAddPhotoViewModel(
     private val mapId: String,
     private val geoAreaId: String,
     private val geoAreaRepository: GeoAreaRepository,
     private val mapRegionRepository: MapRegionRepository,
 ) : ViewModel() {
 
-    private val _screenState = MutableStateFlow<ScreenState<MapPhotoAddUiState>>(ScreenState.Loading())
-    val screenState: StateFlow<ScreenState<MapPhotoAddUiState>> = _screenState.asStateFlow()
+    private val _screenState = MutableStateFlow<ScreenState<MapAddPhotoUiState>>(ScreenState.Loading())
+    val screenState: StateFlow<ScreenState<MapAddPhotoUiState>> = _screenState.asStateFlow()
 
     init {
         fetch()
@@ -39,7 +39,7 @@ class MapPhotoAddViewModel(
                 val mapRegions = mapRegionRepository.getMapRegionsByMapId(mapId)
                     .filter { it.geoAreaId == geoAreaId }
 
-                MapPhotoAddUiState(
+                MapAddPhotoUiState(
                     geoArea = geoArea!!,
                     mapRegions = mapRegions.toImmutableList(),
                 )
@@ -52,7 +52,7 @@ class MapPhotoAddViewModel(
 }
 
 @Stable
-data class MapPhotoAddUiState(
+data class MapAddPhotoUiState(
     val geoArea: GeoArea,
     val mapRegions: ImmutableList<MapRegion>,
 )

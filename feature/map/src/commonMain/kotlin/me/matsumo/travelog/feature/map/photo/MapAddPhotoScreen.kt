@@ -18,16 +18,16 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
-import me.matsumo.travelog.feature.map.photo.components.MapPhotoAddTopAppBar
+import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoTopAppBar
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
-internal fun MapPhotoAddRoute(
+internal fun MapAddPhotoRoute(
     mapId: String,
     geoAreaId: String,
     modifier: Modifier = Modifier,
-    viewModel: MapPhotoAddViewModel = koinViewModel(
+    viewModel: MapAddPhotoViewModel = koinViewModel(
         key = "$mapId-$geoAreaId",
     ) {
         parametersOf(mapId, geoAreaId)
@@ -40,7 +40,7 @@ internal fun MapPhotoAddRoute(
         screenState = screenState,
         retryAction = viewModel::fetch,
     ) {
-        MapPhotoAddScreen(
+        MapAddPhotoScreen(
             modifier = Modifier.fillMaxSize(),
             uiState = it,
         )
@@ -49,8 +49,8 @@ internal fun MapPhotoAddRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MapPhotoAddScreen(
-    uiState: MapPhotoAddUiState,
+private fun MapAddPhotoScreen(
+    uiState: MapAddPhotoUiState,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
@@ -59,7 +59,7 @@ private fun MapPhotoAddScreen(
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            MapPhotoAddTopAppBar(
+            MapAddPhotoTopAppBar(
                 modifier = Modifier.fillMaxWidth(),
                 scrollBehavior = scrollBehavior,
                 onBackClicked = { navBackStack.removeLastOrNull() },
@@ -75,7 +75,7 @@ private fun MapPhotoAddScreen(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "MapPhotoAddScreen\n${uiState.geoArea.getLocalizedName()}",
+                text = "MapAddPhotoScreen\n${uiState.geoArea.getLocalizedName()}",
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
