@@ -37,7 +37,10 @@ class MapSelectRegionViewModel(
         viewModelScope.launch {
             _screenState.value = ScreenState.Loading()
 
-            val geoArea = geoAreaRepository.getFromCache(geoAreaId)
+            val geoArea = geoAreaRepository.getAreaByIdWithChildren(
+                areaId = geoAreaId,
+                useCache = true,
+            )
             if (geoArea == null) {
                 _screenState.value = ScreenState.Error(Res.string.error_network)
                 return@launch

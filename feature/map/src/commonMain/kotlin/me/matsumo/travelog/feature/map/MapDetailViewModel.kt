@@ -37,28 +37,21 @@ class MapDetailViewModel(
         viewModelScope.launch {
             _screenState.value = suspendRunCatching {
                 val map = mapRepository.getMap(mapId) ?: error("Map not found")
-                val geoArea = geoAreaRepository.getAreaById(map.rootGeoAreaId) ?: error("Geo area not found")
-                val childAreas = geoAreaRepository.getChildren(map.rootGeoAreaId)
+                val geoArea = geoAreaRepository.getAreaByIdWithChildren(
+                    areaId = map.rootGeoAreaId,
+                    useCache = true,
+                ) ?: error("Geo area not found")
                 val regions = mapRegionRepository.getMapRegionsByMapId(mapId)
 
                 MapDetailUiState(
                     map = map,
-                    geoArea = geoArea.copy(children = childAreas),
+                    geoArea = geoArea,
                     regions = regions.toImmutableList(),
                 )
             }.fold(
                 onSuccess = { ScreenState.Idle(it) },
                 onFailure = { ScreenState.Error(Res.string.error_network) },
             )
-        }
-    }
-
-    fun saveGeoAreaToCache(geoArea: GeoArea, onComplete: (String) -> Unit) {
-        viewModelScope.launch {
-            suspendRunCatching {
-                geoAreaRepository.saveToCache(geoArea)
-            }
-            geoArea.id?.let { onComplete(it) }
         }
     }
 }

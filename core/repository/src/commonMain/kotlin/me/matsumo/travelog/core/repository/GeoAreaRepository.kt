@@ -128,6 +128,35 @@ class GeoAreaRepository(
     }
 
     /**
+     * Get area with children, with automatic caching.
+     * - useCache=true: キャッシュ優先 → キャッシュミス時API取得 → 結果をキャッシュ保存
+     */
+    suspend fun getAreaByIdWithChildren(
+        areaId: String,
+        useCache: Boolean = false,
+    ): GeoArea? = withContext(ioDispatcher) {
+        if (useCache) {
+            geoAreaCacheDataSource.load(areaId)?.let { cached ->
+                if (cached.children.isNotEmpty()) {
+                    return@withContext cached
+                }
+            }
+        }
+
+        val area = geoAreaApi.fetchAreaById(areaId)?.let { geoAreaMapper.toDomain(it) }
+            ?: return@withContext null
+
+        val children = geoAreaApi.fetchChildren(areaId).map { geoAreaMapper.toDomain(it) }
+        val areaWithChildren = area.copy(children = children)
+
+        if (useCache) {
+            geoAreaCacheDataSource.save(areaWithChildren)
+        }
+
+        areaWithChildren
+    }
+
+    /**
      * Get a single area by adm_id.
      */
     suspend fun getAreaByAdmId(admId: String): GeoArea? = withContext(ioDispatcher) {
