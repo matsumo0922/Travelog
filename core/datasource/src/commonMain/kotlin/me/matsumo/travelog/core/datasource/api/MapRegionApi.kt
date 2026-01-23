@@ -33,6 +33,20 @@ class MapRegionApi internal constructor(
             .decodeList()
     }
 
+    suspend fun getMapRegionsByMapIdAndGeoAreaId(
+        mapId: String,
+        geoAreaId: String,
+    ): List<MapRegion> {
+        return supabaseClient.from(TABLE_NAME)
+            .select {
+                filter {
+                    MapRegion::mapId eq mapId
+                    MapRegion::geoAreaId eq geoAreaId
+                }
+            }
+            .decodeList()
+    }
+
     suspend fun deleteMapRegion(id: String) {
         supabaseClient.from(TABLE_NAME)
             .delete {

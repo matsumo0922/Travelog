@@ -36,8 +36,7 @@ class MapAddPhotoViewModel(
         viewModelScope.launch {
             _screenState.value = suspendRunCatching {
                 val geoArea = geoAreaRepository.getAreaByIdWithChildren(geoAreaId)
-                val mapRegions = mapRegionRepository.getMapRegionsByMapId(mapId)
-                    .filter { it.geoAreaId == geoAreaId }
+                val mapRegions = mapRegionRepository.getMapRegionsByMapIdAndGeoAreaId(mapId, geoAreaId)
 
                 MapAddPhotoUiState(
                     geoArea = geoArea!!,

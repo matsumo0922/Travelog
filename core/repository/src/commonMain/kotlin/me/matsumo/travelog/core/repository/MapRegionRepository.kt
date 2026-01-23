@@ -22,6 +22,13 @@ class MapRegionRepository(
         return mapRegionApi.getMapRegionsByMapId(mapId)
     }
 
+    suspend fun getMapRegionsByMapIdAndGeoAreaId(
+        mapId: String,
+        geoAreaId: String,
+    ): List<MapRegion> {
+        return mapRegionApi.getMapRegionsByMapIdAndGeoAreaId(mapId, geoAreaId)
+    }
+
     suspend fun deleteMapRegion(id: String) {
         mapRegionApi.deleteMapRegion(id)
     }
