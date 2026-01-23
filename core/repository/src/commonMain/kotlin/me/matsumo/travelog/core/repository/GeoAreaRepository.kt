@@ -4,10 +4,13 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import me.matsumo.travelog.core.datasource.GeoAreaCacheDataSource
 import me.matsumo.travelog.core.datasource.api.GeoAreaApi
 import me.matsumo.travelog.core.datasource.helper.GeoAreaMapper
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.model.geo.GeoAreaLevel
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 
 /**
  * Repository for managing geo areas in the database.
@@ -18,6 +21,7 @@ import me.matsumo.travelog.core.model.geo.GeoAreaLevel
 class GeoAreaRepository(
     private val geoAreaApi: GeoAreaApi,
     private val geoAreaMapper: GeoAreaMapper,
+    private val geoAreaCacheDataSource: GeoAreaCacheDataSource,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     /**
@@ -135,5 +139,33 @@ class GeoAreaRepository(
      */
     suspend fun getAvailableCountryCodes(): List<String> = withContext(ioDispatcher) {
         geoAreaApi.fetchDistinctCountryCodes()
+    }
+
+    /**
+     * Save GeoArea to disk cache.
+     */
+    suspend fun saveToCache(geoArea: GeoArea) {
+        geoAreaCacheDataSource.save(geoArea)
+    }
+
+    /**
+     * Load GeoArea from disk cache.
+     */
+    suspend fun getFromCache(geoAreaId: String, maxAge: Duration = 7.days): GeoArea? {
+        return geoAreaCacheDataSource.load(geoAreaId, maxAge)
+    }
+
+    /**
+     * Clear all cached GeoArea data.
+     */
+    suspend fun clearCache() {
+        geoAreaCacheDataSource.clearAll()
+    }
+
+    /**
+     * Get current cache size in bytes.
+     */
+    suspend fun getCacheSize(): Long {
+        return geoAreaCacheDataSource.getCacheSize()
     }
 }

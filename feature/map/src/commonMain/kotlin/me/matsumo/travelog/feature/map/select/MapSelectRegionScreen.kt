@@ -31,12 +31,12 @@ import org.koin.core.parameter.parametersOf
 @Composable
 internal fun MapSelectRegionScreen(
     mapId: String,
-    geoArea: GeoArea,
+    geoAreaId: String,
     modifier: Modifier = Modifier,
     viewModel: MapSelectRegionViewModel = koinViewModel(
-        key = "$mapId-${geoArea.id}",
+        key = "$mapId-$geoAreaId",
     ) {
-        parametersOf(mapId, geoArea)
+        parametersOf(mapId, geoAreaId)
     },
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()

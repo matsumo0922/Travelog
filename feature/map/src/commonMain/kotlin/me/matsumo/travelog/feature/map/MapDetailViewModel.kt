@@ -52,6 +52,15 @@ class MapDetailViewModel(
             )
         }
     }
+
+    fun saveGeoAreaToCache(geoArea: GeoArea, onComplete: (String) -> Unit) {
+        viewModelScope.launch {
+            suspendRunCatching {
+                geoAreaRepository.saveToCache(geoArea)
+            }
+            geoArea.id?.let { onComplete(it) }
+        }
+    }
 }
 
 @Stable

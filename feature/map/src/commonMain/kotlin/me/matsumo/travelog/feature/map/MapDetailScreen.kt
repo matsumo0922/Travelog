@@ -53,6 +53,7 @@ internal fun MapDetailScreen(
             map = it.map,
             geoArea = it.geoArea,
             regions = it.regions,
+            onSaveGeoAreaAndNavigate = viewModel::saveGeoAreaToCache,
         )
     }
 }
@@ -63,6 +64,7 @@ private fun IdleScreen(
     map: Map,
     geoArea: GeoArea,
     regions: ImmutableList<MapRegion>,
+    onSaveGeoAreaAndNavigate: (GeoArea, (String) -> Unit) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
@@ -94,12 +96,14 @@ private fun IdleScreen(
             FloatingActionButton(
                 onClick = {
                     map.id?.let { mapId ->
-                        navBackStack.add(
-                            Destination.MapSelectRegion(
-                                mapId = mapId,
-                                geoArea = geoArea,
-                            ),
-                        )
+                        onSaveGeoAreaAndNavigate(geoArea) { geoAreaId ->
+                            navBackStack.add(
+                                Destination.MapSelectRegion(
+                                    mapId = mapId,
+                                    geoAreaId = geoAreaId,
+                                ),
+                            )
+                        }
                     }
                 },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,

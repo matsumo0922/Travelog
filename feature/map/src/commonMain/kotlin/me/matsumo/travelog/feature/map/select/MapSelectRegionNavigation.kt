@@ -11,7 +11,7 @@ fun EntryProviderScope<NavKey>.mapSelectRegionEntry() {
         MapSelectRegionScreen(
             modifier = Modifier.fillMaxSize(),
             mapId = it.mapId,
-            geoArea = it.geoArea,
+            geoAreaId = it.geoAreaId,
         )
     }
 }

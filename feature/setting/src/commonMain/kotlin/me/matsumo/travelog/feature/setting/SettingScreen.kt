@@ -29,6 +29,7 @@ internal fun SettingScreen(
     val uriHandler = LocalUriHandler.current
     val setting by viewModel.setting.collectAsStateWithLifecycle()
     val sessionStatus by viewModel.sessionStatus.collectAsStateWithLifecycle()
+    val cacheSize by viewModel.cacheSize.collectAsStateWithLifecycle()
 
     LaunchedEffect(sessionStatus) {
         if ((sessionStatus as? SessionStatus.NotAuthenticated)?.isSignOut == true) {
@@ -81,6 +82,7 @@ internal fun SettingScreen(
                 SettingOthersSection(
                     modifier = Modifier.fillMaxWidth(),
                     setting = setting,
+                    cacheSize = cacheSize,
                     onTeamsOfServiceClicked = {
                         uriHandler.openUri("https://www.matsumo.me/application/all/team_of_service")
                     },
@@ -90,6 +92,7 @@ internal fun SettingScreen(
                     onOpenSourceLicenseClicked = {
                         navBackStack.add(Destination.Setting.License)
                     },
+                    onClearCacheClicked = viewModel::clearGeoAreaCache,
                     onDeveloperModeChanged = viewModel::setDeveloperMode,
                 )
             }

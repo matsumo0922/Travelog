@@ -184,6 +184,8 @@
     <string name="setting_other_privacy_policy">プライバシーポリシー</string>
     <string name="setting_other_open_source_license">オープンソースライセンス</string>
     <string name="setting_other_open_source_license_description">OSSライブラリのライセンスを表示します。</string>
+    <string name="setting_other_clear_cache">キャッシュを削除</string>
+    <string name="setting_other_clear_cache_description">地図データのキャッシュ: %1$s</string>
     <string name="setting_other_developer_mode">開発モード</string>
     <string name="setting_other_developer_mode_description">[Warning] Do not enable this mode if you are not a developer.</string>
     <string name="setting_other_developer_mode_dialog_title">Developer Mode</string>

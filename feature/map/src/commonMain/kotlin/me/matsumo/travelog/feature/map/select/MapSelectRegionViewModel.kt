@@ -14,11 +14,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.matsumo.travelog.core.model.geo.GeoArea
+import me.matsumo.travelog.core.repository.GeoAreaRepository
+import me.matsumo.travelog.core.resource.Res
+import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.screen.ScreenState
 
 class MapSelectRegionViewModel(
     private val mapId: String,
-    private val geoArea: GeoArea,
+    private val geoAreaId: String,
+    private val geoAreaRepository: GeoAreaRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
@@ -31,6 +35,14 @@ class MapSelectRegionViewModel(
 
     fun fetch() {
         viewModelScope.launch {
+            _screenState.value = ScreenState.Loading()
+
+            val geoArea = geoAreaRepository.getFromCache(geoAreaId)
+            if (geoArea == null) {
+                _screenState.value = ScreenState.Error(Res.string.error_network)
+                return@launch
+            }
+
             val sortedChildren = withContext(ioDispatcher) {
                 geoArea.children.sortedWith(
                     compareBy(

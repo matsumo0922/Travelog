@@ -1,5 +1,7 @@
 package me.matsumo.travelog.core.datasource.di
 
+import me.matsumo.travelog.core.datasource.GeoAreaCacheDataSource
+import me.matsumo.travelog.core.datasource.GeoAreaCacheDataSourceImpl
 import me.matsumo.travelog.core.datasource.GeoBoundaryCacheDataSource
 import me.matsumo.travelog.core.datasource.GeoBoundaryCacheDataSourceImpl
 import me.matsumo.travelog.core.datasource.helper.PreferenceHelper
@@ -18,5 +20,9 @@ internal actual val dataSourcePlatformModule: Module = module {
         GeoBoundaryCacheDataSourceImpl(
             ioDispatcher = get(),
         )
+    }
+
+    single<GeoAreaCacheDataSource> {
+        GeoAreaCacheDataSourceImpl()
     }
 }
