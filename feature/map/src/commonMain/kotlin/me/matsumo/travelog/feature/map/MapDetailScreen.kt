@@ -3,16 +3,14 @@ package me.matsumo.travelog.feature.map
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,15 +22,12 @@ import kotlinx.collections.immutable.ImmutableList
 import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
-import me.matsumo.travelog.core.resource.Res
-import me.matsumo.travelog.core.resource.map_photo_add
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.map.components.MapDetailCanvasSection
 import me.matsumo.travelog.feature.map.components.MapDetailTopAppBar
 import me.matsumo.travelog.feature.map.components.MapDetailTopSection
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -96,7 +91,7 @@ private fun IdleScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
+            FloatingActionButton(
                 onClick = {
                     map.id?.let { mapId ->
                         navBackStack.add(
@@ -112,11 +107,6 @@ private fun IdleScreen(
                 Icon(
                     imageVector = Icons.Default.AddPhotoAlternate,
                     contentDescription = null,
-                )
-
-                Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = stringResource(Res.string.map_photo_add),
                 )
             }
         },
