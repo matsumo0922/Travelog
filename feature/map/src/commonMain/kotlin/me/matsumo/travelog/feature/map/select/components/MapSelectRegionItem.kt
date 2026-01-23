@@ -41,8 +41,9 @@ internal fun MapSelectRegionItem(
             GeoCanvasMap(
                 areas = persistentListOf(area),
                 enableZoom = false,
-                strokeColor = MaterialTheme.colorScheme.onSurface,
-                fillColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                strokeColor = MaterialTheme.colorScheme.outline,
+                strokeWidth = 0.5f,
+                fillColor = MaterialTheme.colorScheme.primaryFixed,
             )
         }
 
