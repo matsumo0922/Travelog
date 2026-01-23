@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import me.matsumo.travelog.core.model.geo.GeoArea
@@ -75,7 +74,7 @@ private fun AreaItem(
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = selectedArea.getLocalizedName(Locale.current.language == "ja"),
+                text = selectedArea.getLocalizedName(),
                 style = MaterialTheme.typography.titleMedium,
             )
 

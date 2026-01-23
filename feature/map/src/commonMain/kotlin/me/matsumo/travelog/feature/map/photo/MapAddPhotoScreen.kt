@@ -1,23 +1,22 @@
 package me.matsumo.travelog.feature.map.photo
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.collections.immutable.ImmutableList
+import me.matsumo.travelog.core.model.db.MapRegion
+import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
+import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoFab
 import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoTopAppBar
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -42,7 +41,8 @@ internal fun MapAddPhotoRoute(
     ) {
         MapAddPhotoScreen(
             modifier = Modifier.fillMaxSize(),
-            uiState = it,
+            geoArea = it.geoArea,
+            mapRegions = it.mapRegions,
         )
     }
 }
@@ -50,7 +50,8 @@ internal fun MapAddPhotoRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MapAddPhotoScreen(
-    uiState: MapAddPhotoUiState,
+    geoArea: GeoArea,
+    mapRegions: ImmutableList<MapRegion>,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
@@ -61,23 +62,16 @@ private fun MapAddPhotoScreen(
         topBar = {
             MapAddPhotoTopAppBar(
                 modifier = Modifier.fillMaxWidth(),
+                areaName = geoArea.getLocalizedName(),
                 scrollBehavior = scrollBehavior,
                 onBackClicked = { navBackStack.removeLastOrNull() },
             )
         },
+        floatingActionButton = {
+            MapAddPhotoFab()
+        },
         containerColor = MaterialTheme.colorScheme.surface,
-        contentWindowInsets = WindowInsets(0),
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "MapAddPhotoScreen\n${uiState.geoArea.getLocalizedName()}",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
+
     }
 }

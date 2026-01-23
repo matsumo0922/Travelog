@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.resource.Res
@@ -33,8 +32,6 @@ internal fun MapSettingStatisticsSection(
     photoCount: Int,
     modifier: Modifier = Modifier,
 ) {
-    val isJapanese = Locale.current.language == "ja"
-
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -59,7 +56,7 @@ internal fun MapSettingStatisticsSection(
             CommonSectionItem(
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(Res.string.map_setting_statistics_region_name),
-                description = geoArea.getLocalizedName(isJapanese),
+                description = geoArea.getLocalizedName(),
                 icon = Icons.Default.Map,
             )
 

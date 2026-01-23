@@ -14,13 +14,16 @@ import androidx.compose.ui.Modifier
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MapAddPhotoTopAppBar(
+    areaName: String,
     scrollBehavior: TopAppBarScrollBehavior,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     CenterAlignedTopAppBar(
         modifier = modifier,
-        title = { Text(text = "Add Photo") },
+        title = {
+            Text(text = areaName)
+        },
         navigationIcon = {
             IconButton(onClick = onBackClicked) {
                 Icon(

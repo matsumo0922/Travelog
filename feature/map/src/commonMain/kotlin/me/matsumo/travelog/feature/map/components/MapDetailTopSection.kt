@@ -11,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import me.matsumo.travelog.core.model.db.Map
@@ -35,7 +34,7 @@ internal fun MapDetailTopSection(
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
-            text = "${area.getLocalizedName(Locale.current.language == "ja")}・${regions.size}/${area.childCount}",
+            text = "${area.getLocalizedName()}・${regions.size}/${area.childCount}",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
