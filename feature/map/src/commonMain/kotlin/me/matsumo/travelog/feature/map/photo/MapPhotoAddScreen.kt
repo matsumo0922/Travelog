@@ -23,7 +23,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
-internal fun MapPhotoAddScreen(
+internal fun MapPhotoAddRoute(
     mapId: String,
     geoAreaId: String,
     modifier: Modifier = Modifier,
@@ -40,7 +40,7 @@ internal fun MapPhotoAddScreen(
         screenState = screenState,
         retryAction = viewModel::fetch,
     ) {
-        IdleScreen(
+        MapPhotoAddScreen(
             modifier = Modifier.fillMaxSize(),
             uiState = it,
         )
@@ -49,7 +49,7 @@ internal fun MapPhotoAddScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun IdleScreen(
+private fun MapPhotoAddScreen(
     uiState: MapPhotoAddUiState,
     modifier: Modifier = Modifier,
 ) {

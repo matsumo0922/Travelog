@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.repository.GeoAreaRepository
 import me.matsumo.travelog.core.resource.Res
@@ -35,33 +36,26 @@ class MapSelectRegionViewModel(
 
     fun fetch() {
         viewModelScope.launch {
-            _screenState.value = ScreenState.Loading()
+            _screenState.value = suspendRunCatching {
+                val geoArea = geoAreaRepository.getAreaByIdWithChildren(geoAreaId)!!
+                val sortedChildren = withContext(ioDispatcher) {
+                    geoArea.children.sortedWith(
+                        compareBy(
+                            { it.isoCode == null },
+                            { it.isoCode?.substringAfter("-")?.toIntOrNull() ?: Int.MAX_VALUE },
+                            { it.name },
+                        ),
+                    )
+                }
 
-            val geoArea = geoAreaRepository.getAreaByIdWithChildren(
-                areaId = geoAreaId,
-                useCache = true,
-            )
-            if (geoArea == null) {
-                _screenState.value = ScreenState.Error(Res.string.error_network)
-                return@launch
-            }
-
-            val sortedChildren = withContext(ioDispatcher) {
-                geoArea.children.sortedWith(
-                    compareBy(
-                        { it.isoCode == null },
-                        { it.isoCode?.substringAfter("-")?.toIntOrNull() ?: Int.MAX_VALUE },
-                        { it.name },
-                    ),
-                )
-            }
-
-            _screenState.value = ScreenState.Idle(
                 MapSelectRegionUiState(
                     mapId = mapId,
                     geoArea = geoArea,
                     sortedChildren = sortedChildren.toImmutableList(),
-                ),
+                )
+            }.fold(
+                onSuccess = { ScreenState.Idle(it) },
+                onFailure = { ScreenState.Error(Res.string.error_network) },
             )
         }
     }

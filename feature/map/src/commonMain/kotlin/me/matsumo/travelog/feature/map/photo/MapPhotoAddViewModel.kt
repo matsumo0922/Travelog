@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.repository.GeoAreaRepository
@@ -33,22 +34,18 @@ class MapPhotoAddViewModel(
 
     fun fetch() {
         viewModelScope.launch {
-            _screenState.value = ScreenState.Loading()
+            _screenState.value = suspendRunCatching {
+                val geoArea = geoAreaRepository.getAreaByIdWithChildren(geoAreaId)
+                val mapRegions = mapRegionRepository.getMapRegionsByMapId(mapId)
+                    .filter { it.geoAreaId == geoAreaId }
 
-            val geoArea = geoAreaRepository.getAreaByIdWithChildren(geoAreaId, useCache = true)
-            if (geoArea == null) {
-                _screenState.value = ScreenState.Error(Res.string.error_network)
-                return@launch
-            }
-
-            val mapRegions = mapRegionRepository.getMapRegionsByMapId(mapId)
-                .filter { it.geoAreaId == geoAreaId }
-
-            _screenState.value = ScreenState.Idle(
                 MapPhotoAddUiState(
-                    geoArea = geoArea,
+                    geoArea = geoArea!!,
                     mapRegions = mapRegions.toImmutableList(),
-                ),
+                )
+            }.fold(
+                onSuccess = { ScreenState.Idle(it) },
+                onFailure = { ScreenState.Error(Res.string.error_network) },
             )
         }
     }

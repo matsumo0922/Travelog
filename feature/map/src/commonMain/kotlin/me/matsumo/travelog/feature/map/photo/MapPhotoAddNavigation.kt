@@ -8,7 +8,7 @@ import me.matsumo.travelog.core.ui.screen.Destination
 
 fun EntryProviderScope<NavKey>.mapPhotoAddEntry() {
     entry<Destination.MapPhotoAdd> {
-        MapPhotoAddScreen(
+        MapPhotoAddRoute(
             modifier = Modifier.fillMaxSize(),
             mapId = it.mapId,
             geoAreaId = it.geoAreaId,

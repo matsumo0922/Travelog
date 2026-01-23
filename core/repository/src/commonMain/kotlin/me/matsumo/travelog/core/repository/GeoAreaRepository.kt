@@ -133,7 +133,7 @@ class GeoAreaRepository(
      */
     suspend fun getAreaByIdWithChildren(
         areaId: String,
-        useCache: Boolean = false,
+        useCache: Boolean = true,
     ): GeoArea? = withContext(ioDispatcher) {
         if (useCache) {
             geoAreaCacheDataSource.load(areaId)?.let { cached ->

@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.map.select.components.MapSelectRegionItem
 import me.matsumo.travelog.feature.map.select.components.MapSelectRegionTopAppBar
@@ -48,6 +49,7 @@ internal fun MapSelectRegionRoute(
     ) {
         MapSelectRegionScreen(
             modifier = Modifier.fillMaxSize(),
+            mapId = it.mapId,
             sortedChildren = it.sortedChildren,
         )
     }
@@ -56,6 +58,7 @@ internal fun MapSelectRegionRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MapSelectRegionScreen(
+    mapId: String,
     sortedChildren: ImmutableList<GeoArea>,
     modifier: Modifier = Modifier,
 ) {
@@ -90,7 +93,9 @@ private fun MapSelectRegionScreen(
                 MapSelectRegionItem(
                     area = area,
                     onClick = {
-                        // TODO
+                        area.id?.let {
+                            navBackStack.add(Destination.MapPhotoAdd(mapId, it))
+                        }
                     },
                 )
             }
