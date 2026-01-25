@@ -20,7 +20,7 @@ import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.resource.error_temp_file_not_found
 import me.matsumo.travelog.core.ui.screen.ScreenState
 import me.matsumo.travelog.core.usecase.TempFileStorage
-import me.matsumo.travelog.core.usecase.UploadMapIconUseCase
+import me.matsumo.travelog.core.usecase.UploadMapRegionImageUseCase
 
 class PhotoCropEditorViewModel(
     private val mapId: String,
@@ -30,7 +30,7 @@ class PhotoCropEditorViewModel(
     private val geoAreaRepository: GeoAreaRepository,
     private val mapRegionRepository: MapRegionRepository,
     private val sessionRepository: SessionRepository,
-    private val uploadMapIconUseCase: UploadMapIconUseCase,
+    private val uploadMapRegionImageUseCase: UploadMapRegionImageUseCase,
     private val tempFileStorage: TempFileStorage,
 ) : ViewModel() {
 
@@ -121,7 +121,7 @@ class PhotoCropEditorViewModel(
                     ?: throw IllegalStateException("User not logged in")
 
                 // 3. Upload image and get imageId
-                val uploadResult = uploadMapIconUseCase(file, userId)
+                val uploadResult = uploadMapRegionImageUseCase(file, userId)
                 val imageId = uploadResult.imageId
 
                 // 4. Create or update MapRegion

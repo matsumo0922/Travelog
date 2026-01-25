@@ -19,6 +19,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
 import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
@@ -53,6 +54,7 @@ internal fun MapDetailRoute(
             map = it.map,
             geoArea = it.geoArea,
             regions = it.regions,
+            regionImageUrls = it.regionImageUrls,
         )
     }
 }
@@ -63,6 +65,7 @@ private fun MapDetailScreen(
     map: Map,
     geoArea: GeoArea,
     regions: ImmutableList<MapRegion>,
+    regionImageUrls: ImmutableMap<String, String>,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
@@ -134,6 +137,7 @@ private fun MapDetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     geoArea = geoArea,
                     regions = regions,
+                    regionImageUrls = regionImageUrls,
                 )
             }
         }

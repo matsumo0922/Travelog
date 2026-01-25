@@ -17,6 +17,8 @@ val mapModule = module {
             mapRepository = get(),
             mapRegionRepository = get(),
             geoAreaRepository = get(),
+            imageRepository = get(),
+            storageRepository = get(),
         )
     }
 
@@ -61,7 +63,7 @@ val mapModule = module {
             geoAreaRepository = get(),
             mapRegionRepository = get(),
             sessionRepository = get(),
-            uploadMapIconUseCase = get(),
+            uploadMapRegionImageUseCase = get(),
             tempFileStorage = get(),
         )
     }

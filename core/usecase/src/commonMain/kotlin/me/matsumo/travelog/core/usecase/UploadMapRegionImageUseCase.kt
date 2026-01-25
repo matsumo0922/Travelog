@@ -1,27 +1,23 @@
 package me.matsumo.travelog.core.usecase
 
 import io.github.vinceglb.filekit.PlatformFile
+import me.matsumo.travelog.core.datasource.api.StorageApi
 import me.matsumo.travelog.core.model.db.Image
 import me.matsumo.travelog.core.repository.ImageRepository
 import me.matsumo.travelog.core.repository.StorageRepository
-import kotlin.uuid.ExperimentalUuidApi
 
-class UploadMapIconUseCase(
+class UploadMapRegionImageUseCase(
     private val storageRepository: StorageRepository,
     private val imageRepository: ImageRepository,
 ) {
-    @OptIn(ExperimentalUuidApi::class)
     suspend operator fun invoke(
         file: PlatformFile,
         userId: String,
-    ): UploadMapIconResult {
-        // Extract image metadata
+    ): UploadMapRegionImageResult {
         val metadata = extractImageMetadata(file)
 
-        // Upload to storage
-        val uploadResult = storageRepository.uploadMapIcon(file, userId)
+        val uploadResult = storageRepository.uploadMapRegionImage(file, userId)
 
-        // Create image record in database
         val image = Image(
             uploaderUserId = userId,
             mapRegionId = null,
@@ -34,19 +30,20 @@ class UploadMapIconUseCase(
             takenLat = metadata?.takenLat,
             takenLng = metadata?.takenLng,
             exif = metadata?.exif,
+            bucketName = StorageApi.BUCKET_MAP_REGION_IMAGES,
         )
         val createdImage = imageRepository.createImage(image)
 
-        return UploadMapIconResult(
+        return UploadMapRegionImageResult(
             imageId = createdImage.id!!,
             storageKey = uploadResult.storageKey,
-            publicUrl = uploadResult.publicUrl!!,
+            bucketName = uploadResult.bucketName,
         )
     }
 }
 
-data class UploadMapIconResult(
+data class UploadMapRegionImageResult(
     val imageId: String,
     val storageKey: String,
-    val publicUrl: String,
+    val bucketName: String,
 )

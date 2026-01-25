@@ -43,6 +43,9 @@ data class Image(
     @SerialName("exif")
     val exif: JsonElement?,
 
+    @SerialName("bucket_name")
+    val bucketName: String? = null,
+
     @SerialName("created_at")
     val createdAt: Instant? = null,
 )

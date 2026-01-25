@@ -30,7 +30,12 @@ class StorageApi internal constructor(
         return supabaseClient.storage.from(bucket).publicUrl(path)
     }
 
+    suspend fun createSignedUrl(bucket: String, path: String, expiresIn: kotlin.time.Duration): String {
+        return supabaseClient.storage.from(bucket).createSignedUrl(path, expiresIn)
+    }
+
     companion object {
         const val BUCKET_MAP_ICONS = "map-icons"
+        const val BUCKET_MAP_REGION_IMAGES = "map-region-images"
     }
 }
