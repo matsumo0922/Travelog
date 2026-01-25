@@ -16,7 +16,7 @@ import kotlin.math.min
 /**
  * Helper class for rendering GeoJSON data on Canvas
  */
-internal object GeoJsonRenderer {
+object GeoJsonRenderer {
     data class Bounds(
         val minLon: Double,
         val maxLon: Double,

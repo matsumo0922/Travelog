@@ -1,5 +1,6 @@
 package me.matsumo.travelog.core.ui.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.scrollable
@@ -110,6 +111,7 @@ fun <T : TileGridItem> TileGrid(
     contentPadding: PaddingValues = PaddingValues(16.dp),
     state: LazyTileGridState = rememberLazyTileGridState(),
     header: (@Composable () -> Unit)? = null,
+    onItemClick: ((item: T) -> Unit)? = null,
     itemContent: @Composable (item: T) -> Unit,
 ) {
     BoxWithConstraints(
@@ -128,9 +130,10 @@ fun <T : TileGridItem> TileGrid(
 
         var headerHeightPx by remember { mutableIntStateOf(0) }
 
-        // rememberUpdatedState で最新の itemContent/header を保持（ラムダ参照が変わっても追従）
+        // rememberUpdatedState で最新の itemContent/header/onItemClick を保持（ラムダ参照が変わっても追従）
         val currentItemContent by rememberUpdatedState(itemContent)
         val currentHeader by rememberUpdatedState(header)
+        val currentOnItemClick by rememberUpdatedState(onItemClick)
 
         // placedItems と hasHeader だけをキーにし、コンテンツは rememberUpdatedState 経由で実行時に最新を参照
         val itemProvider = remember(placedItems, header != null) {
@@ -139,6 +142,7 @@ fun <T : TileGridItem> TileGrid(
                 hasHeader = header != null,
                 itemContent = { currentItemContent(it) },
                 headerContent = { currentHeader?.invoke() },
+                onItemClick = { currentOnItemClick?.invoke(it) },
             )
         }
 
@@ -207,6 +211,7 @@ private class TileGridItemProvider<T : TileGridItem>(
     private val hasHeader: Boolean,
     private val itemContent: @Composable (item: T) -> Unit,
     private val headerContent: (@Composable () -> Unit)?,
+    private val onItemClick: ((item: T) -> Unit)?,
 ) : LazyLayoutItemProvider {
 
     override val itemCount: Int
@@ -232,7 +237,13 @@ private class TileGridItemProvider<T : TileGridItem>(
         } else {
             val itemIndex = if (hasHeader) index - 1 else index
             placedItems.getOrNull(itemIndex)?.let { placed ->
-                itemContent(placed.item)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(enabled = onItemClick != null) { onItemClick?.invoke(placed.item) },
+                ) {
+                    itemContent(placed.item)
+                }
             }
         }
     }

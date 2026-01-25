@@ -58,6 +58,15 @@ sealed interface Destination : NavKey {
     ) : Destination
 
     @Serializable
+    data class PhotoCropEditor(
+        val mapId: String,
+        val geoAreaId: String,
+        val imageId: String,
+        val imageUrl: String,
+        val existingRegionId: String? = null,
+    ) : Destination
+
+    @Serializable
     sealed interface Setting : Destination {
         @Serializable
         data object Root : Setting
@@ -79,6 +88,7 @@ sealed interface Destination : NavKey {
                     subclass(MapSetting::class, MapSetting.serializer())
                     subclass(MapSelectRegion::class, MapSelectRegion.serializer())
                     subclass(MapAddPhoto::class, MapAddPhoto.serializer())
+                    subclass(PhotoCropEditor::class, PhotoCropEditor.serializer())
                     subclass(Setting.Root::class, Setting.Root.serializer())
                     subclass(Setting.License::class, Setting.License.serializer())
                 }

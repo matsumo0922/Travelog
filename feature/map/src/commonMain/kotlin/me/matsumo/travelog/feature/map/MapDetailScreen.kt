@@ -133,6 +133,7 @@ private fun MapDetailScreen(
                 MapDetailCanvasSection(
                     modifier = Modifier.fillMaxWidth(),
                     geoArea = geoArea,
+                    regions = regions,
                 )
             }
         }

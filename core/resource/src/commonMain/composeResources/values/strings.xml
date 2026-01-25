@@ -106,6 +106,10 @@
     <!-- Map Select Region -->
     <string name="map_select_region_title">地域を選択</string>
 
+    <!-- Photo Crop Editor -->
+    <string name="photo_crop_editor_title">写真を調整</string>
+    <string name="photo_crop_editor_save_error">保存に失敗しました</string>
+
     <!-- Account -->
     <string name="account_title">アカウント</string>
     <string name="account_display_name">ニックネーム</string>

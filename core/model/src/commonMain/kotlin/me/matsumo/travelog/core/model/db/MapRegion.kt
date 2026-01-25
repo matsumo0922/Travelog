@@ -34,4 +34,7 @@ data class MapRegion(
 
     @SerialName("updated_at")
     val updatedAt: Instant? = null,
+
+    @SerialName("crop_data")
+    val cropData: CropData? = null,
 )

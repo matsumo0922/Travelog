@@ -14,6 +14,7 @@ import me.matsumo.travelog.feature.home.create.metadata.mapCreateEntry
 import me.matsumo.travelog.feature.home.create.region.regionSelectEntry
 import me.matsumo.travelog.feature.home.homeEntry
 import me.matsumo.travelog.feature.login.loginEntry
+import me.matsumo.travelog.feature.map.crop.photoCropEditorEntry
 import me.matsumo.travelog.feature.map.mapDetailEntry
 import me.matsumo.travelog.feature.map.photo.mapAddPhotoEntry
 import me.matsumo.travelog.feature.map.select.mapSelectRegionEntry
@@ -44,6 +45,7 @@ internal fun AppNavHost(
                 mapSettingEntry()
                 mapSelectRegionEntry()
                 mapAddPhotoEntry()
+                photoCropEditorEntry()
                 settingEntry()
                 settingLicenseEntry()
             },

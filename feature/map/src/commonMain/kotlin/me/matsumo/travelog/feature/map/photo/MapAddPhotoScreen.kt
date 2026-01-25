@@ -20,6 +20,7 @@ import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.component.PlacedTileItem
 import me.matsumo.travelog.core.ui.component.TileGrid
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.getLocalizedName
 import me.matsumo.travelog.core.ui.utils.plus
@@ -51,6 +52,8 @@ internal fun MapAddPhotoRoute(
     ) {
         MapAddPhotoScreen(
             modifier = Modifier.fillMaxSize(),
+            mapId = mapId,
+            geoAreaId = geoAreaId,
             geoArea = it.geoArea,
             mapRegions = it.mapRegions,
             placedItems = it.placedItems,
@@ -62,6 +65,8 @@ internal fun MapAddPhotoRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MapAddPhotoScreen(
+    mapId: String,
+    geoAreaId: String,
     geoArea: GeoArea,
     mapRegions: ImmutableList<MapRegion>,
     placedItems: ImmutableList<PlacedTileItem<GridPhotoItem>>,
@@ -70,6 +75,9 @@ private fun MapAddPhotoScreen(
 ) {
     val navBackStack = LocalNavBackStack.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    // Find existing region for this geoArea
+    val existingRegion = mapRegions.firstOrNull()
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -98,7 +106,18 @@ private fun MapAddPhotoScreen(
                         .fillMaxWidth(),
                     geoArea = geoArea,
                 )
-            }
+            },
+            onItemClick = { item ->
+                navBackStack.add(
+                    Destination.PhotoCropEditor(
+                        mapId = mapId,
+                        geoAreaId = geoAreaId,
+                        imageId = item.id,
+                        imageUrl = item.imageUrl,
+                        existingRegionId = existingRegion?.id,
+                    )
+                )
+            },
         ) { item ->
             TilePhotoItem(imageUrl = item.imageUrl)
         }
