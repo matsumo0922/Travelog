@@ -13,9 +13,12 @@ class MapRegionApi internal constructor(
     }
 
     suspend fun updateMapRegion(mapRegion: MapRegion) {
+        val id = mapRegion.id
+            ?: throw IllegalArgumentException("Cannot update MapRegion without id")
+
         supabaseClient.from(TABLE_NAME)
             .update(mapRegion) {
-                filter { MapRegion::id eq mapRegion.id }
+                filter { MapRegion::id eq id }
             }
     }
 

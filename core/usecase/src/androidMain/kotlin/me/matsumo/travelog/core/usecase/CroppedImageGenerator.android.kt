@@ -36,8 +36,8 @@ actual suspend fun generateCroppedImage(
     // Calculate bounds
     val bounds = calculateBounds(areas) ?: throw IllegalArgumentException("No coordinates found")
 
-    // Calculate viewport transform
-    val transform = calculateViewportTransform(bounds, outputSize.toFloat(), outputSize.toFloat())
+    // Calculate viewport transform (no padding for pre-cropped images)
+    val transform = calculateViewportTransform(bounds, outputSize.toFloat(), outputSize.toFloat(), padding = 0f)
 
     // Create polygon path
     val clipPath = createPolygonPath(areas, bounds, transform)
