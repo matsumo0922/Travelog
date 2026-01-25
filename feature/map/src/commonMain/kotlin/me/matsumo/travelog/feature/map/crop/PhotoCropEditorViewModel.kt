@@ -120,9 +120,13 @@ class PhotoCropEditorViewModel(
                 val userId = sessionRepository.getCurrentUserInfo()?.id
                     ?: throw IllegalStateException("User not logged in")
 
-                // 3. Upload image and get imageId
-                val uploadResult = uploadMapRegionImageUseCase(file, userId)
-                val imageId = uploadResult.imageId
+                // 3. Upload original and cropped images
+                val uploadResult = uploadMapRegionImageUseCase(
+                    file = file,
+                    geoArea = uiState.geoArea,
+                    cropData = cropData,
+                    userId = userId,
+                )
 
                 // 4. Create or update MapRegion
                 _saveState.value = SaveState.Saving
@@ -130,7 +134,8 @@ class PhotoCropEditorViewModel(
                 if (uiState.existingRegion != null) {
                     mapRegionRepository.updateMapRegion(
                         uiState.existingRegion.copy(
-                            representativeImageId = imageId,
+                            representativeImageId = uploadResult.originalImageId,
+                            representativeCroppedImageId = uploadResult.croppedImageId,
                             cropData = cropData,
                         ),
                     )
@@ -139,7 +144,8 @@ class PhotoCropEditorViewModel(
                         MapRegion(
                             mapId = mapId,
                             geoAreaId = geoAreaId,
-                            representativeImageId = imageId,
+                            representativeImageId = uploadResult.originalImageId,
+                            representativeCroppedImageId = uploadResult.croppedImageId,
                             cropData = cropData,
                         ),
                     )

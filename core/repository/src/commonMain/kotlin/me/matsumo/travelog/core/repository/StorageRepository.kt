@@ -69,6 +69,32 @@ class StorageRepository(
         )
     }
 
+    @OptIn(ExperimentalUuidApi::class)
+    suspend fun uploadMapRegionImageBytes(
+        bytes: ByteArray,
+        userId: String,
+        suffix: String = "",
+    ): UploadResult {
+        val contentType = "image/jpeg"
+        val fileName = "${Uuid.random()}$suffix.jpg"
+        val path = "$userId/$fileName"
+
+        storageApi.uploadImage(
+            bucketName = StorageApi.BUCKET_MAP_REGION_IMAGES,
+            path = path,
+            data = bytes,
+            contentType = contentType,
+        )
+
+        return UploadResult(
+            storageKey = path,
+            publicUrl = null,
+            contentType = contentType,
+            fileSize = bytes.size.toLong(),
+            bucketName = StorageApi.BUCKET_MAP_REGION_IMAGES,
+        )
+    }
+
     suspend fun deleteMapIcon(storageKey: String) {
         storageApi.deleteImage(StorageApi.BUCKET_MAP_ICONS, storageKey)
     }

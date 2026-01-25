@@ -29,6 +29,9 @@ data class MapRegion(
     @SerialName("representative_image_id")
     val representativeImageId: String? = null,
 
+    @SerialName("representative_cropped_image_id")
+    val representativeCroppedImageId: String? = null,
+
     @SerialName("created_at")
     val createdAt: Instant? = null,
 

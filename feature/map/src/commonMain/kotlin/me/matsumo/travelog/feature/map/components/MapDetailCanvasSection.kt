@@ -46,14 +46,27 @@ internal fun MapDetailCanvasSection(
                 geoArea.children.forEach { childArea ->
                     val childAreaId = childArea.id ?: return@forEach
                     val region = regionMap[childAreaId] ?: return@forEach
-                    val imageId = region.representativeImageId ?: return@forEach
-                    val imageUrl = regionImageUrls[imageId] ?: return@forEach
+
+                    // Prefer cropped image if available, fall back to original with cropData
+                    val croppedImageId = region.representativeCroppedImageId
+                    val originalImageId = region.representativeImageId
+
+                    val imageUrl = croppedImageId?.let { regionImageUrls[it] }
+                        ?: originalImageId?.let { regionImageUrls[it] }
+                        ?: return@forEach
+
+                    // Use cropData only if we're using the original image (no cropped image available)
+                    val cropData = if (croppedImageId != null && regionImageUrls[croppedImageId] != null) {
+                        null
+                    } else {
+                        region.cropData
+                    }
 
                     ClippedRegionImage(
                         modifier = Modifier.matchParentSize(),
                         imageUrl = imageUrl,
                         geoArea = childArea,
-                        cropData = region.cropData,
+                        cropData = cropData,
                         parentBounds = mapState.bounds,
                         parentTransform = mapState.transform,
                     )

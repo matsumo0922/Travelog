@@ -47,7 +47,9 @@ class MapDetailViewModel(
                 val geoArea = geoAreaRepository.getAreaByIdWithChildren(map.rootGeoAreaId, true) ?: error("Geo area not found")
                 val regions = mapRegionRepository.getMapRegionsByMapId(mapId)
 
-                val imageIds = regions.mapNotNull { it.representativeImageId }
+                val imageIds = regions.flatMap {
+                    listOfNotNull(it.representativeImageId, it.representativeCroppedImageId)
+                }.distinct()
                 val images = imageRepository.getImagesByIds(imageIds)
                 val imageUrlMap = images.mapNotNull { image ->
                     val imageId = image.id ?: return@mapNotNull null
