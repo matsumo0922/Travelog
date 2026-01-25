@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -66,7 +67,10 @@ class LazyTileGridState(
     // measure 中から呼ばれても recomposition を trigger しない
     internal fun updateMaxScrollOffset(value: Int) {
         _maxScrollOffset = value.coerceAtLeast(0)
-        // scrollOffset の clamp は scroll 時に行う（ここでは更新しない）
+        // maxScrollOffset が縮小した場合に scrollOffset が範囲外にならないようクランプ
+        if (_scrollOffset > _maxScrollOffset) {
+            _scrollOffset = _maxScrollOffset.toFloat()
+        }
     }
 
     override val isScrollInProgress: Boolean
@@ -124,13 +128,17 @@ fun <T : TileGridItem> TileGrid(
 
         var headerHeightPx by remember { mutableIntStateOf(0) }
 
-        // placedItems と hasHeader だけで十分（itemContent がラムダで毎回参照が変わる可能性があるためキーから除外）
+        // rememberUpdatedState で最新の itemContent/header を保持（ラムダ参照が変わっても追従）
+        val currentItemContent by rememberUpdatedState(itemContent)
+        val currentHeader by rememberUpdatedState(header)
+
+        // placedItems と hasHeader だけをキーにし、コンテンツは rememberUpdatedState 経由で実行時に最新を参照
         val itemProvider = remember(placedItems, header != null) {
             TileGridItemProvider(
                 placedItems = placedItems,
                 hasHeader = header != null,
-                itemContent = itemContent,
-                headerContent = header,
+                itemContent = { currentItemContent(it) },
+                headerContent = { currentHeader?.invoke() },
             )
         }
 
