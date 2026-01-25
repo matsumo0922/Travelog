@@ -52,7 +52,8 @@ class LazyTileGridState(
     private var _scrollOffset by mutableFloatStateOf(initialScrollOffset)
     val scrollOffset: Float get() = _scrollOffset
 
-    private var _maxScrollOffset by mutableIntStateOf(0)
+    // 普通の var に変更（Compose State ではない）- measure 中の更新で recomposition を trigger しない
+    private var _maxScrollOffset: Int = 0
     val maxScrollOffset: Int get() = _maxScrollOffset
 
     private val scrollableState = ScrollableState { delta ->
@@ -62,9 +63,10 @@ class LazyTileGridState(
         consumed
     }
 
+    // measure 中から呼ばれても recomposition を trigger しない
     internal fun updateMaxScrollOffset(value: Int) {
         _maxScrollOffset = value.coerceAtLeast(0)
-        _scrollOffset = _scrollOffset.coerceIn(0f, _maxScrollOffset.toFloat())
+        // scrollOffset の clamp は scroll 時に行う（ここでは更新しない）
     }
 
     override val isScrollInProgress: Boolean
@@ -122,7 +124,8 @@ fun <T : TileGridItem> TileGrid(
 
         var headerHeightPx by remember { mutableIntStateOf(0) }
 
-        val itemProvider = remember(placedItems, header, itemContent) {
+        // placedItems と hasHeader だけで十分（itemContent がラムダで毎回参照が変わる可能性があるためキーから除外）
+        val itemProvider = remember(placedItems, header != null) {
             TileGridItemProvider(
                 placedItems = placedItems,
                 hasHeader = header != null,
@@ -131,15 +134,26 @@ fun <T : TileGridItem> TileGrid(
             )
         }
 
-        val visibleItemIndices by remember(placedItems, state, viewportHeight, cellSizePx, spacingPx, headerHeightPx) {
+        // placedItems が変わったときに一度だけ構築する行→アイテムインデックスのマップ
+        val rowToItemIndices = remember(placedItems) {
+            buildRowToItemIndicesMap(placedItems)
+        }
+
+        // 可視行のみを走査 O(visibleRows + visibleItems) に最適化
+        val visibleItemIndices by remember(rowToItemIndices, rowCount, state, viewportHeight, cellSizePx, spacingPx, headerHeightPx) {
             derivedStateOf {
-                calculateVisibleItemIndices(
-                    placedItems = placedItems,
+                val (firstVisibleRow, lastVisibleRow) = calculateVisibleRows(
                     scrollOffset = state.scrollOffset.roundToInt(),
                     viewportHeight = viewportHeight,
                     cellSizePx = cellSizePx,
                     spacingPx = spacingPx,
                     headerHeightPx = headerHeightPx,
+                    rowCount = rowCount,
+                )
+                calculateVisibleItemIndices(
+                    rowToItemIndices = rowToItemIndices,
+                    firstVisibleRow = firstVisibleRow,
+                    lastVisibleRow = lastVisibleRow,
                 )
             }
         }
@@ -168,7 +182,12 @@ fun <T : TileGridItem> TileGrid(
                     cellSizePx = cellSizePx,
                     spacingPx = spacingPx,
                     viewportHeight = viewportHeight,
-                    onHeaderMeasured = { headerHeightPx = it },
+                    // 値が変わった時だけ更新（毎回 state 更新を避ける）
+                    onHeaderMeasured = { newHeight ->
+                        if (headerHeightPx != newHeight) {
+                            headerHeightPx = newHeight
+                        }
+                    },
                 )
             }
         }
@@ -211,37 +230,73 @@ private class TileGridItemProvider<T : TileGridItem>(
     }
 }
 
-private fun <T : TileGridItem> calculateVisibleItemIndices(
+/**
+ * placedItems から行→アイテムインデックスのマップを構築する。
+ * O(n) だが、placedItems が変わったときに一度だけ実行される。
+ */
+private fun <T : TileGridItem> buildRowToItemIndicesMap(
     placedItems: ImmutableList<PlacedTileItem<T>>,
+): Map<Int, List<Int>> {
+    val map = mutableMapOf<Int, MutableList<Int>>()
+    placedItems.forEachIndexed { index, placed ->
+        // アイテムが占有する全ての行に登録
+        for (row in placed.row until placed.row + placed.spanHeight) {
+            map.getOrPut(row) { mutableListOf() }.add(index)
+        }
+    }
+    return map
+}
+
+/**
+ * 可視行の範囲を計算する。
+ * 早期リターンで無効なパラメータを処理。
+ */
+private fun calculateVisibleRows(
     scrollOffset: Int,
     viewportHeight: Int,
     cellSizePx: Int,
     spacingPx: Int,
     headerHeightPx: Int,
-): List<Int> {
-    if (placedItems.isEmpty() || cellSizePx <= 0) return emptyList()
+    rowCount: Int,
+): Pair<Int, Int> {
+    // 早期 return
+    if (viewportHeight <= 0 || cellSizePx <= 0 || rowCount <= 0) {
+        return 0 to -1 // 空の範囲
+    }
 
     val gridScrollOffset = (scrollOffset - headerHeightPx).coerceAtLeast(0)
-    val visibleTopPx = gridScrollOffset
-    val visibleBottomPx = gridScrollOffset + viewportHeight
-
     val rowHeight = cellSizePx + spacingPx
-    val firstVisibleRow = (visibleTopPx / rowHeight).coerceAtLeast(0)
-    val lastVisibleRow = ((visibleBottomPx + rowHeight - 1) / rowHeight)
 
-    return placedItems.indices.filter { index ->
-        val placed = placedItems[index]
-        val itemTopRow = placed.row
-        val itemBottomRow = placed.row + placed.spanHeight - 1
-        itemBottomRow >= firstVisibleRow && itemTopRow <= lastVisibleRow
+    val firstVisibleRow = (gridScrollOffset / rowHeight).coerceAtLeast(0)
+    val lastVisibleRow = ((gridScrollOffset + viewportHeight + rowHeight - 1) / rowHeight)
+        .coerceAtMost(rowCount - 1) // rowCount で clamp
+
+    return firstVisibleRow to lastVisibleRow
+}
+
+/**
+ * 可視行のみを走査して可視アイテムのインデックスを返す。
+ * O(visibleRows + visibleItems) で完了。
+ */
+private fun calculateVisibleItemIndices(
+    rowToItemIndices: Map<Int, List<Int>>,
+    firstVisibleRow: Int,
+    lastVisibleRow: Int,
+): Set<Int> {
+    if (firstVisibleRow > lastVisibleRow) return emptySet()
+
+    val result = mutableSetOf<Int>()
+    for (row in firstVisibleRow..lastVisibleRow) {
+        rowToItemIndices[row]?.let { result.addAll(it) }
     }
+    return result
 }
 
 private fun <T : TileGridItem> LazyLayoutMeasureScope.measureAndPlaceTileGrid(
     constraints: Constraints,
     hasHeader: Boolean,
     placedItems: ImmutableList<PlacedTileItem<T>>,
-    visibleItemIndices: List<Int>,
+    visibleItemIndices: Set<Int>,
     scrollOffset: Int,
     cellSizePx: Int,
     spacingPx: Int,
