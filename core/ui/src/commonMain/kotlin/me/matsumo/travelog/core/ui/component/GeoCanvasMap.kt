@@ -1,8 +1,11 @@
 package me.matsumo.travelog.core.ui.component
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +24,15 @@ import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 
 /**
+ * GeoCanvasMap の overlay 内で利用可能な状態
+ */
+@Immutable
+data class GeoCanvasMapState(
+    val bounds: GeoJsonRenderer.Bounds,
+    val transform: GeoJsonRenderer.ViewportTransform,
+)
+
+/**
  * A Composable that displays enriched region polygons data with zoom and pan capabilities
  *
  * @param areas The area polygons to display
@@ -31,6 +43,7 @@ import net.engawapg.lib.zoomable.zoomable
  * @param enableZoom Whether to enable zoom and pan
  * @param externalBounds External bounds to use (for coordinate system unification)
  * @param externalTransform External transform to use (for coordinate system unification)
+ * @param overlay Composable slot for overlaying content (e.g., images) that will zoom/pan with the map
  */
 @Composable
 fun GeoCanvasMap(
@@ -42,6 +55,7 @@ fun GeoCanvasMap(
     enableZoom: Boolean = true,
     externalBounds: GeoJsonRenderer.Bounds? = null,
     externalTransform: GeoJsonRenderer.ViewportTransform? = null,
+    overlay: @Composable BoxScope.(GeoCanvasMapState) -> Unit = {},
 ) {
     val zoomState = rememberZoomState()
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -78,18 +92,30 @@ fun GeoCanvasMap(
         }
     }
 
-    Canvas(
+    // Box でラップして zoomable を適用
+    Box(
         modifier = modifier
             .fillMaxSize()
             .onSizeChanged { canvasSize = it }
             .then(if (enableZoom) Modifier.zoomable(zoomState) else Modifier),
     ) {
-        drawGeoJson(
-            paths = paths,
-            strokeColor = strokeColor,
-            fillColor = fillColor,
-            strokeWidth = strokeWidth,
-        )
+        // 1. Overlay を先に描画（下層 - 画像）
+        if (bounds != null && viewportTransform != null) {
+            val mapState = remember(bounds, viewportTransform) {
+                GeoCanvasMapState(bounds, viewportTransform)
+            }
+            overlay(mapState)
+        }
+
+        // 2. Canvas を後に描画（上層 - 境界線）
+        Canvas(modifier = Modifier.matchParentSize()) {
+            drawGeoJson(
+                paths = paths,
+                strokeColor = strokeColor,
+                fillColor = fillColor,
+                strokeWidth = strokeWidth,
+            )
+        }
     }
 }
 
