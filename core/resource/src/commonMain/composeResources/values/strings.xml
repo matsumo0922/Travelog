@@ -101,6 +101,7 @@
     <string name="map_photo_list">写真一覧</string>
     <string name="map_photo_add">写真を追加</string>
     <string name="map_region_list">地域一覧</string>
+    <string name="map_region_add_photo">代表写真を追加</string>
 
     <!-- Map Select Region -->
     <string name="map_select_region_title">地域を選択</string>
