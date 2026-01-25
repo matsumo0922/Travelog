@@ -14,7 +14,9 @@ class MapRegionApi internal constructor(
 
     suspend fun updateMapRegion(mapRegion: MapRegion) {
         supabaseClient.from(TABLE_NAME)
-            .update(mapRegion)
+            .update(mapRegion) {
+                filter { MapRegion::id eq mapRegion.id }
+            }
     }
 
     suspend fun getMapRegion(id: String): MapRegion? {
