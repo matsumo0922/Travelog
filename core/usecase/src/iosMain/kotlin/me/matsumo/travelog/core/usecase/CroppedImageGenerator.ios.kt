@@ -60,23 +60,42 @@ actual suspend fun generateCroppedImage(
     // Calculate bounds
     val bounds = calculateBounds(areas) ?: throw IllegalArgumentException("No coordinates found")
 
+    // Calculate output dimensions based on polygon's aspect ratio (using Mercator projection)
+    val minLatMerc = latToMercator(bounds.minLat)
+    val maxLatMerc = latToMercator(bounds.maxLat)
+    val latRangeMerc = maxLatMerc - minLatMerc
+    val lonRange = bounds.maxLon - bounds.minLon
+
+    val aspectRatio = lonRange / latRangeMerc
+    val outputWidth: Int
+    val outputHeight: Int
+    if (aspectRatio > 1.0) {
+        // Wider than tall
+        outputWidth = outputSize
+        outputHeight = (outputSize / aspectRatio).toInt().coerceAtLeast(1)
+    } else {
+        // Taller than wide
+        outputHeight = outputSize
+        outputWidth = (outputSize * aspectRatio).toInt().coerceAtLeast(1)
+    }
+
     // Calculate viewport transform (no padding for pre-cropped images)
-    val transform = calculateViewportTransform(bounds, outputSize.toFloat(), outputSize.toFloat(), padding = 0f)
+    val transform = calculateViewportTransform(bounds, outputWidth.toFloat(), outputHeight.toFloat(), padding = 0f)
 
     // Create bitmap context
     val colorSpace = CGColorSpaceCreateDeviceRGB()
     val context = CGBitmapContextCreate(
         data = null,
-        width = outputSize.toULong(),
-        height = outputSize.toULong(),
+        width = outputWidth.toULong(),
+        height = outputHeight.toULong(),
         bitsPerComponent = 8u,
-        bytesPerRow = (outputSize * 4).toULong(),
+        bytesPerRow = (outputWidth * 4).toULong(),
         space = colorSpace,
         bitmapInfo = CGImageAlphaInfo.kCGImageAlphaPremultipliedLast.value,
     ) ?: throw IllegalStateException("Failed to create bitmap context")
 
     // Create polygon path
-    val clipPath = createPolygonPath(areas, bounds, transform, outputSize)
+    val clipPath = createPolygonPath(areas, bounds, transform, outputWidth, outputHeight)
 
     CGContextSaveGState(context)
 
@@ -89,21 +108,22 @@ actual suspend fun generateCroppedImage(
         width to height
     }
     val imageAspect = imageWidth / imageHeight
+    val canvasAspect = outputWidth.toDouble() / outputHeight
 
     val drawWidth: Double
     val drawHeight: Double
-    if (imageAspect > 1.0) {
-        drawHeight = outputSize.toDouble()
+    if (imageAspect > canvasAspect) {
+        drawHeight = outputHeight.toDouble()
         drawWidth = drawHeight * imageAspect
     } else {
-        drawWidth = outputSize.toDouble()
+        drawWidth = outputWidth.toDouble()
         drawHeight = drawWidth / imageAspect
     }
 
-    val centerX = outputSize / 2.0
-    val centerY = outputSize / 2.0
-    val offsetX = cropData.offsetX * outputSize
-    val offsetY = cropData.offsetY * outputSize
+    val centerX = outputWidth / 2.0
+    val centerY = outputHeight / 2.0
+    val offsetX = cropData.offsetX * outputWidth
+    val offsetY = cropData.offsetY * outputHeight
     val scale = cropData.scale.toDouble()
 
     // Apply transforms (note: CGContext uses bottom-left origin)
@@ -222,7 +242,8 @@ private fun createPolygonPath(
     areas: List<GeoArea>,
     bounds: Bounds,
     transform: ViewportTransform,
-    outputSize: Int,
+    outputWidth: Int,
+    outputHeight: Int,
 ): CGMutablePathRef {
     val path = CGPathCreateMutable()!!
     val maxLatMerc = latToMercator(bounds.maxLat)
@@ -235,13 +256,13 @@ private fun createPolygonPath(
                 val first = ring.first()
                 val startX = transform.offsetX + ((first.lon - bounds.minLon) * transform.scale).toFloat()
                 // Flip Y coordinate for CGContext (bottom-left origin)
-                val startY = outputSize - (transform.offsetY + ((maxLatMerc - latToMercator(first.lat)) * transform.scale).toFloat())
+                val startY = outputHeight - (transform.offsetY + ((maxLatMerc - latToMercator(first.lat)) * transform.scale).toFloat())
 
                 CGPathMoveToPoint(path, null, startX.toDouble(), startY.toDouble())
 
                 ring.drop(1).forEach { coord ->
                     val x = transform.offsetX + ((coord.lon - bounds.minLon) * transform.scale).toFloat()
-                    val y = outputSize - (transform.offsetY + ((maxLatMerc - latToMercator(coord.lat)) * transform.scale).toFloat())
+                    val y = outputHeight - (transform.offsetY + ((maxLatMerc - latToMercator(coord.lat)) * transform.scale).toFloat())
                     CGPathAddLineToPoint(path, null, x.toDouble(), y.toDouble())
                 }
                 CGPathCloseSubpath(path)

@@ -36,10 +36,6 @@ class MapDetailViewModel(
     private val _screenState = MutableStateFlow<ScreenState<MapDetailUiState>>(ScreenState.Loading())
     val screenState = _screenState.asStateFlow()
 
-    init {
-        fetch()
-    }
-
     fun fetch() {
         viewModelScope.launch {
             _screenState.value = suspendRunCatching {
@@ -50,11 +46,11 @@ class MapDetailViewModel(
                 val imageIds = regions.flatMap {
                     listOfNotNull(it.representativeImageId, it.representativeCroppedImageId)
                 }.distinct()
+
                 val images = imageRepository.getImagesByIds(imageIds)
                 val imageUrlMap = images.mapNotNull { image ->
                     val imageId = image.id ?: return@mapNotNull null
-                    val bucketName = image.bucketName
-                    val url = when (bucketName) {
+                    val url = when (val bucketName = image.bucketName) {
                         StorageApi.BUCKET_MAP_REGION_IMAGES -> {
                             storageRepository.getSignedUrl(bucketName, image.storageKey)
                         }

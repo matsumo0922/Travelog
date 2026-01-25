@@ -26,18 +26,37 @@ actual suspend fun generateCroppedImage(
     val sourceBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         ?: throw IllegalArgumentException("Failed to decode image")
 
-    // Create output bitmap
-    val outputBitmap = Bitmap.createBitmap(outputSize, outputSize, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(outputBitmap)
-
     // Get areas (either children or self)
     val areas = geoArea.children.takeIf { it.isNotEmpty() } ?: listOf(geoArea)
 
     // Calculate bounds
     val bounds = calculateBounds(areas) ?: throw IllegalArgumentException("No coordinates found")
 
-    // Calculate viewport transform (no padding for pre-cropped images)
-    val transform = calculateViewportTransform(bounds, outputSize.toFloat(), outputSize.toFloat(), padding = 0f)
+    // Calculate output dimensions based on polygon's aspect ratio (using Mercator projection)
+    val minLatMerc = latToMercator(bounds.minLat)
+    val maxLatMerc = latToMercator(bounds.maxLat)
+    val latRangeMerc = maxLatMerc - minLatMerc
+    val lonRange = bounds.maxLon - bounds.minLon
+
+    val aspectRatio = lonRange / latRangeMerc
+    val outputWidth: Int
+    val outputHeight: Int
+    if (aspectRatio > 1.0) {
+        // Wider than tall
+        outputWidth = outputSize
+        outputHeight = (outputSize / aspectRatio).toInt().coerceAtLeast(1)
+    } else {
+        // Taller than wide
+        outputHeight = outputSize
+        outputWidth = (outputSize * aspectRatio).toInt().coerceAtLeast(1)
+    }
+
+    // Create output bitmap with correct aspect ratio
+    val outputBitmap = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(outputBitmap)
+
+    // Calculate viewport transform (no padding, polygon fills entire image)
+    val transform = calculateViewportTransform(bounds, outputWidth.toFloat(), outputHeight.toFloat(), padding = 0f)
 
     // Create polygon path
     val clipPath = createPolygonPath(areas, bounds, transform)
@@ -48,25 +67,25 @@ actual suspend fun generateCroppedImage(
 
     // Apply crop transform
     val scale = cropData.scale
-    val offsetX = cropData.offsetX * outputSize
-    val offsetY = cropData.offsetY * outputSize
+    val offsetX = cropData.offsetX * outputWidth
+    val offsetY = cropData.offsetY * outputHeight
 
     // Calculate source rect to destination rect mapping
     val imageAspect = sourceBitmap.width.toFloat() / sourceBitmap.height
-    val canvasAspect = 1f // Square output
+    val canvasAspect = outputWidth.toFloat() / outputHeight
 
     val drawWidth: Float
     val drawHeight: Float
     if (imageAspect > canvasAspect) {
-        drawHeight = outputSize.toFloat()
+        drawHeight = outputHeight.toFloat()
         drawWidth = drawHeight * imageAspect
     } else {
-        drawWidth = outputSize.toFloat()
+        drawWidth = outputWidth.toFloat()
         drawHeight = drawWidth / imageAspect
     }
 
-    val centerX = outputSize / 2f
-    val centerY = outputSize / 2f
+    val centerX = outputWidth / 2f
+    val centerY = outputHeight / 2f
 
     canvas.translate(centerX + offsetX, centerY + offsetY)
     canvas.scale(scale, scale)

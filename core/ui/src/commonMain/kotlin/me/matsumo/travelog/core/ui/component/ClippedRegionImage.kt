@@ -128,7 +128,8 @@ fun ClippedRegionImage(
     ) {
         if (isPreCropped && childBoundingBox != null) {
             // Pre-cropped image: position at child's bounding box
-            // The image is 512x512 with polygon centered, we need to fit it into childBoundingBox
+            // The image is 512x512 with polygon filling the bounds (no padding),
+            // so we use FillBounds to stretch it to match childBoundingBox
             with(density) {
                 AsyncImage(
                     modifier = Modifier
@@ -142,7 +143,7 @@ fun ClippedRegionImage(
                         ),
                     model = imageUrl,
                     contentDescription = null,
-                    contentScale = ContentScale.Fit,
+                    contentScale = ContentScale.FillBounds,
                 )
             }
         } else {
