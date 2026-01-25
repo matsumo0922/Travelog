@@ -2,6 +2,7 @@ package me.matsumo.travelog.core.ui.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +39,7 @@ fun <T : TileGridItem> TileGrid(
     modifier: Modifier = Modifier,
     cellSpacing: Dp = 4.dp,
     contentPadding: PaddingValues = PaddingValues(16.dp),
+    header: (@Composable () -> Unit)? = null,
     itemContent: @Composable (item: T) -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -61,31 +63,37 @@ fun <T : TileGridItem> TileGrid(
                 .fillMaxHeight()
                 .verticalScroll(scrollState),
         ) {
-            Layout(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(with(density) { gridHeightPx.toDp() }),
-                content = {
-                    placedItems.forEach { placed ->
-                        key(placed.item.id) {
-                            itemContent(placed.item)
-                        }
-                    }
-                },
-            ) { measurables, layoutConstraints ->
-                val placeables = measurables.mapIndexed { index, measurable ->
-                    val placed = placedItems[index]
-                    val widthPx = cellSizePx * placed.spanWidth + spacingPx * (placed.spanWidth - 1)
-                    val heightPx = cellSizePx * placed.spanHeight + spacingPx * (placed.spanHeight - 1)
-                    measurable.measure(Constraints.fixed(widthPx, heightPx))
-                }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                header?.invoke()
 
-                layout(layoutConstraints.maxWidth, gridHeightPx) {
-                    placeables.forEachIndexed { index, placeable ->
+                Layout(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(with(density) { gridHeightPx.toDp() }),
+                    content = {
+                        placedItems.forEach { placed ->
+                            key(placed.item.id) {
+                                itemContent(placed.item)
+                            }
+                        }
+                    },
+                ) { measurables, layoutConstraints ->
+                    val placeables = measurables.mapIndexed { index, measurable ->
                         val placed = placedItems[index]
-                        val xPx = placed.column * (cellSizePx + spacingPx)
-                        val yPx = placed.row * (cellSizePx + spacingPx)
-                        placeable.place(xPx, yPx)
+                        val widthPx = cellSizePx * placed.spanWidth + spacingPx * (placed.spanWidth - 1)
+                        val heightPx = cellSizePx * placed.spanHeight + spacingPx * (placed.spanHeight - 1)
+                        measurable.measure(Constraints.fixed(widthPx, heightPx))
+                    }
+
+                    layout(layoutConstraints.maxWidth, gridHeightPx) {
+                        placeables.forEachIndexed { index, placeable ->
+                            val placed = placedItems[index]
+                            val xPx = placed.column * (cellSizePx + spacingPx)
+                            val yPx = placed.row * (cellSizePx + spacingPx)
+                            placeable.place(xPx, yPx)
+                        }
                     }
                 }
             }
