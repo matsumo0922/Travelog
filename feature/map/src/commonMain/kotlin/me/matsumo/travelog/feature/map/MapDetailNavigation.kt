@@ -8,7 +8,7 @@ import me.matsumo.travelog.core.ui.screen.Destination
 
 fun EntryProviderScope<NavKey>.mapDetailEntry() {
     entry<Destination.MapDetail> {
-        MapDetailScreen(
+        MapDetailRoute(
             modifier = Modifier.fillMaxSize(),
             mapId = it.mapId,
         )
