@@ -28,8 +28,10 @@ import me.matsumo.travelog.core.model.geo.GeoArea
  *
  * @param imageUrl URL of the image to display
  * @param geoArea The geographic area whose polygon shape will be used for clipping
- * @param cropData Optional crop transform data (scale and offset)
  * @param modifier Modifier for the component
+ * @param cropData Optional crop transform data (scale and offset)
+ * @param parentBounds Parent bounds to use (for coordinate system unification)
+ * @param parentTransform Parent transform to use (for coordinate system unification)
  */
 @Composable
 fun ClippedRegionImage(
@@ -37,6 +39,8 @@ fun ClippedRegionImage(
     geoArea: GeoArea,
     modifier: Modifier = Modifier,
     cropData: CropData? = null,
+    parentBounds: GeoJsonRenderer.Bounds? = null,
+    parentTransform: GeoJsonRenderer.ViewportTransform? = null,
 ) {
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
 
@@ -45,23 +49,28 @@ fun ClippedRegionImage(
             ?: listOf(geoArea).toImmutableList()
     }
 
-    val bounds = remember(areas) {
-        GeoJsonRenderer.calculateBounds(areas)
+    // Use parent bounds if provided, otherwise calculate from own areas
+    val effectiveBounds = remember(areas, parentBounds) {
+        parentBounds ?: GeoJsonRenderer.calculateBounds(areas)
     }
 
-    val clipShape = remember(areas, bounds, containerSize) {
-        if (bounds == null || containerSize.width == 0 || containerSize.height == 0) {
+    val clipShape = remember(areas, effectiveBounds, containerSize, parentTransform) {
+        // If parent transform is provided, container size check is not needed
+        val hasValidSize = parentTransform != null ||
+                (containerSize.width > 0 && containerSize.height > 0)
+
+        if (effectiveBounds == null || !hasValidSize) {
             null
         } else {
-            val transform = GeoJsonRenderer.calculateViewportTransform(
-                bounds = bounds,
+            val transform = parentTransform ?: GeoJsonRenderer.calculateViewportTransform(
+                bounds = effectiveBounds,
                 canvasWidth = containerSize.width.toFloat(),
                 canvasHeight = containerSize.height.toFloat(),
             )
             val paths = GeoJsonRenderer.createPaths(
-                areas = areas,
-                bounds = bounds,
-                transform = transform,
+                areas = areas,  // Clip target is own area
+                bounds = effectiveBounds,  // Parent bounds
+                transform = transform,  // Parent transform
             )
             GeoAreaClipShape(paths)
         }

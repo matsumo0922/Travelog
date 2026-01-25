@@ -28,6 +28,9 @@ import net.engawapg.lib.zoomable.zoomable
  * @param strokeColor Color for polygons borders
  * @param fillColor Color for polygons fill
  * @param strokeWidth Width of polygons borders
+ * @param enableZoom Whether to enable zoom and pan
+ * @param externalBounds External bounds to use (for coordinate system unification)
+ * @param externalTransform External transform to use (for coordinate system unification)
  */
 @Composable
 fun GeoCanvasMap(
@@ -37,18 +40,20 @@ fun GeoCanvasMap(
     fillColor: Color = Color(0xFF9CCC65).copy(alpha = 0.6f),
     strokeWidth: Float = 0.5f,
     enableZoom: Boolean = true,
+    externalBounds: GeoJsonRenderer.Bounds? = null,
+    externalTransform: GeoJsonRenderer.ViewportTransform? = null,
 ) {
     val zoomState = rememberZoomState()
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
-    // Calculate bounding box from area polygons
-    val bounds = remember(areas) {
-        GeoJsonRenderer.calculateBounds(areas)
+    // Use external bounds if provided, otherwise calculate from areas
+    val bounds = remember(areas, externalBounds) {
+        externalBounds ?: GeoJsonRenderer.calculateBounds(areas)
     }
 
-    // Calculate viewport transform to maintain aspect ratio
-    val viewportTransform = remember(bounds, canvasSize) {
-        if (bounds == null || canvasSize.width == 0 || canvasSize.height == 0) {
+    // Use external transform if provided, otherwise calculate from bounds
+    val viewportTransform = remember(bounds, canvasSize, externalTransform) {
+        externalTransform ?: if (bounds == null || canvasSize.width == 0 || canvasSize.height == 0) {
             null
         } else {
             GeoJsonRenderer.calculateViewportTransform(
