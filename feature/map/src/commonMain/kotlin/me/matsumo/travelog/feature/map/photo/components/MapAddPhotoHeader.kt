@@ -13,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,11 +30,15 @@ import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
+import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.map_region_add_photo
+import me.matsumo.travelog.core.ui.component.ClippedRegionImage
 import me.matsumo.travelog.core.ui.component.GeoCanvasMap
 import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
@@ -48,6 +53,8 @@ internal fun MapAddPhotoHeader(
     mapId: String,
     geoAreaId: String,
     geoArea: GeoArea,
+    mapRegions: ImmutableList<MapRegion>,
+    regionImageUrls: ImmutableMap<String, String>,
     existingRegionId: String?,
     tempFileStorage: TempFileStorage,
     modifier: Modifier = Modifier,
@@ -81,6 +88,10 @@ internal fun MapAddPhotoHeader(
             if (isGrant) launchImagePicker()
         },
     )
+
+    val regionMap = remember(mapRegions) {
+        mapRegions.associateBy { it.geoAreaId }
+    }
 
     Column(
         modifier = modifier,
@@ -123,6 +134,28 @@ internal fun MapAddPhotoHeader(
             GeoCanvasMap(
                 modifier = Modifier.fillMaxSize(),
                 areas = geoArea.children.toImmutableList(),
+                overlay = { mapState ->
+                    geoArea.children.forEach { childArea ->
+                        val childAreaId = childArea.id ?: return@forEach
+                        val region = regionMap[childAreaId] ?: return@forEach
+
+                        val croppedImageUrl = region.representativeCroppedImageId?.let { regionImageUrls[it] }
+                        val originalImageUrl = region.representativeImageId?.let { regionImageUrls[it] }
+
+                        val usePreCropped = croppedImageUrl != null
+                        val imageUrl = croppedImageUrl ?: originalImageUrl ?: return@forEach
+
+                        ClippedRegionImage(
+                            modifier = Modifier.matchParentSize(),
+                            imageUrl = imageUrl,
+                            geoArea = childArea,
+                            cropData = if (usePreCropped) null else region.cropData,
+                            isPreCropped = usePreCropped,
+                            parentBounds = mapState.bounds,
+                            parentTransform = mapState.transform,
+                        )
+                    }
+                },
             )
         }
     }

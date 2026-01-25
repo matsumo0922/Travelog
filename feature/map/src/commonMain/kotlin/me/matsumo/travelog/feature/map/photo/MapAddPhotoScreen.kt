@@ -15,6 +15,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.component.PlacedTileItem
@@ -58,6 +59,7 @@ internal fun MapAddPhotoRoute(
             geoAreaId = geoAreaId,
             geoArea = it.geoArea,
             mapRegions = it.mapRegions,
+            regionImageUrls = it.regionImageUrls,
             placedItems = it.placedItems,
             rowCount = it.rowCount,
             tempFileStorage = tempFileStorage,
@@ -72,6 +74,7 @@ private fun MapAddPhotoScreen(
     geoAreaId: String,
     geoArea: GeoArea,
     mapRegions: ImmutableList<MapRegion>,
+    regionImageUrls: ImmutableMap<String, String>,
     placedItems: ImmutableList<PlacedTileItem<GridPhotoItem>>,
     rowCount: Int,
     tempFileStorage: TempFileStorage,
@@ -116,6 +119,8 @@ private fun MapAddPhotoScreen(
                     mapId = mapId,
                     geoAreaId = geoAreaId,
                     geoArea = geoArea,
+                    mapRegions = mapRegions,
+                    regionImageUrls = regionImageUrls,
                     existingRegionId = existingRegion?.id,
                     tempFileStorage = tempFileStorage,
                 )

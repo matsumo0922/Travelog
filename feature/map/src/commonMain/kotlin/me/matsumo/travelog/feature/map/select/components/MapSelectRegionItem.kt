@@ -17,11 +17,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.persistentListOf
 import me.matsumo.travelog.core.model.geo.GeoArea
+import me.matsumo.travelog.core.ui.component.ClippedRegionImage
 import me.matsumo.travelog.core.ui.component.GeoCanvasMap
 
 @Composable
 internal fun MapSelectRegionItem(
     area: GeoArea,
+    imageUrl: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -41,6 +43,18 @@ internal fun MapSelectRegionItem(
             GeoCanvasMap(
                 areas = persistentListOf(area),
                 enableZoom = false,
+                overlay = { mapState ->
+                    if (imageUrl != null) {
+                        ClippedRegionImage(
+                            modifier = Modifier.matchParentSize(),
+                            imageUrl = imageUrl,
+                            geoArea = area,
+                            isPreCropped = true,
+                            parentBounds = mapState.bounds,
+                            parentTransform = mapState.transform,
+                        )
+                    }
+                },
             )
         }
 

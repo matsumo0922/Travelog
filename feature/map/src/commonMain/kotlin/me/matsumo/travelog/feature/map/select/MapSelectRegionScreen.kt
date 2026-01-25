@@ -15,11 +15,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.screen.Destination
@@ -51,6 +54,8 @@ internal fun MapSelectRegionRoute(
             modifier = Modifier.fillMaxSize(),
             mapId = it.mapId,
             sortedChildren = it.sortedChildren,
+            mapRegions = it.mapRegions,
+            regionImageUrls = it.regionImageUrls,
         )
     }
 }
@@ -60,10 +65,16 @@ internal fun MapSelectRegionRoute(
 private fun MapSelectRegionScreen(
     mapId: String,
     sortedChildren: ImmutableList<GeoArea>,
+    mapRegions: ImmutableList<MapRegion>,
+    regionImageUrls: ImmutableMap<String, String>,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    val regionMap = remember(mapRegions) {
+        mapRegions.associateBy { it.geoAreaId }
+    }
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -90,8 +101,12 @@ private fun MapSelectRegionScreen(
                 items = sortedChildren,
                 key = { it.id ?: it.admId },
             ) { area ->
+                val region = area.id?.let { regionMap[it] }
+                val croppedImageUrl = region?.representativeCroppedImageId?.let { regionImageUrls[it] }
+
                 MapSelectRegionItem(
                     area = area,
+                    imageUrl = croppedImageUrl,
                     onClick = {
                         area.id?.let {
                             navBackStack.add(Destination.MapAddPhoto(mapId, it))

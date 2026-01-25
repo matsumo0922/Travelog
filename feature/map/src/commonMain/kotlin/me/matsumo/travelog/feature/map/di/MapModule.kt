@@ -42,6 +42,9 @@ val mapModule = module {
             mapId = extras[0] as String,
             geoAreaId = extras[1] as String,
             geoAreaRepository = get(),
+            mapRegionRepository = get(),
+            imageRepository = get(),
+            storageRepository = get(),
         )
     }
 
@@ -51,6 +54,8 @@ val mapModule = module {
             geoAreaId = extras[1] as String,
             geoAreaRepository = get(),
             mapRegionRepository = get(),
+            imageRepository = get(),
+            storageRepository = get(),
         )
     }
 
