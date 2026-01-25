@@ -56,11 +56,13 @@ val mapModule = module {
         PhotoCropEditorViewModel(
             mapId = extras[0] as String,
             geoAreaId = extras[1] as String,
-            imageId = extras[2] as String,
-            imageUrl = extras[3] as String,
-            existingRegionId = extras[4] as? String,
+            localFilePath = extras[2] as String,
+            existingRegionId = extras[3] as? String,
             geoAreaRepository = get(),
             mapRegionRepository = get(),
+            sessionRepository = get(),
+            uploadMapIconUseCase = get(),
+            tempFileStorage = get(),
         )
     }
 }

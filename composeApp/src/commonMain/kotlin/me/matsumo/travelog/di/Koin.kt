@@ -3,6 +3,7 @@ package me.matsumo.travelog.di
 import me.matsumo.travelog.core.common.di.commonModule
 import me.matsumo.travelog.core.datasource.di.dataSourceModule
 import me.matsumo.travelog.core.repository.di.repositoryModule
+import me.matsumo.travelog.core.usecase.di.tempFileStorageModule
 import me.matsumo.travelog.core.usecase.di.useCaseModule
 import me.matsumo.travelog.feature.home.di.homeModule
 import me.matsumo.travelog.feature.login.di.loginModule
@@ -17,6 +18,7 @@ fun KoinApplication.applyModules() {
     modules(dataSourceModule)
     modules(repositoryModule)
     modules(useCaseModule)
+    modules(tempFileStorageModule)
 
     modules(homeModule)
     modules(settingModule)

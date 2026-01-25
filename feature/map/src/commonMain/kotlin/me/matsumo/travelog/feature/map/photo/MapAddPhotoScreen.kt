@@ -20,15 +20,16 @@ import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.component.PlacedTileItem
 import me.matsumo.travelog.core.ui.component.TileGrid
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
-import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.getLocalizedName
 import me.matsumo.travelog.core.ui.utils.plus
+import me.matsumo.travelog.core.usecase.TempFileStorage
 import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoFab
 import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoHeader
 import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoTopAppBar
 import me.matsumo.travelog.feature.map.photo.components.TilePhotoItem
 import me.matsumo.travelog.feature.map.photo.components.model.GridPhotoItem
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -37,6 +38,7 @@ internal fun MapAddPhotoRoute(
     mapId: String,
     geoAreaId: String,
     modifier: Modifier = Modifier,
+    tempFileStorage: TempFileStorage = koinInject(),
     viewModel: MapAddPhotoViewModel = koinViewModel(
         key = "$mapId-$geoAreaId",
     ) {
@@ -58,6 +60,7 @@ internal fun MapAddPhotoRoute(
             mapRegions = it.mapRegions,
             placedItems = it.placedItems,
             rowCount = it.rowCount,
+            tempFileStorage = tempFileStorage,
         )
     }
 }
@@ -71,6 +74,7 @@ private fun MapAddPhotoScreen(
     mapRegions: ImmutableList<MapRegion>,
     placedItems: ImmutableList<PlacedTileItem<GridPhotoItem>>,
     rowCount: Int,
+    tempFileStorage: TempFileStorage,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
@@ -90,7 +94,12 @@ private fun MapAddPhotoScreen(
             )
         },
         floatingActionButton = {
-            MapAddPhotoFab()
+            MapAddPhotoFab(
+                mapId = mapId,
+                geoAreaId = geoAreaId,
+                existingRegionId = existingRegion?.id,
+                tempFileStorage = tempFileStorage,
+            )
         },
         containerColor = MaterialTheme.colorScheme.surface,
     ) { paddingValues ->
@@ -104,18 +113,11 @@ private fun MapAddPhotoScreen(
                     modifier = Modifier
                         .padding(bottom = 8.dp)
                         .fillMaxWidth(),
+                    mapId = mapId,
+                    geoAreaId = geoAreaId,
                     geoArea = geoArea,
-                )
-            },
-            onItemClick = { item ->
-                navBackStack.add(
-                    Destination.PhotoCropEditor(
-                        mapId = mapId,
-                        geoAreaId = geoAreaId,
-                        imageId = item.id,
-                        imageUrl = item.imageUrl,
-                        existingRegionId = existingRegion?.id,
-                    )
+                    existingRegionId = existingRegion?.id,
+                    tempFileStorage = tempFileStorage,
                 )
             },
         ) { item ->

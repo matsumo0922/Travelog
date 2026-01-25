@@ -32,14 +32,13 @@ import org.koin.core.parameter.parametersOf
 internal fun PhotoCropEditorRoute(
     mapId: String,
     geoAreaId: String,
-    imageId: String,
-    imageUrl: String,
+    localFilePath: String,
     existingRegionId: String?,
     modifier: Modifier = Modifier,
     viewModel: PhotoCropEditorViewModel = koinViewModel(
-        key = "$mapId-$geoAreaId-$imageId",
+        key = "$mapId-$geoAreaId-$localFilePath",
     ) {
-        parametersOf(mapId, geoAreaId, imageId, imageUrl, existingRegionId)
+        parametersOf(mapId, geoAreaId, localFilePath, existingRegionId)
     },
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
@@ -62,9 +61,9 @@ internal fun PhotoCropEditorRoute(
         PhotoCropEditorScreen(
             modifier = Modifier.fillMaxSize(),
             geoArea = uiState.geoArea,
-            imageUrl = uiState.imageUrl,
+            localFilePath = uiState.localFilePath,
             cropTransform = uiState.cropTransform,
-            isSaving = saveState is SaveState.Saving,
+            isSaving = saveState is SaveState.Uploading || saveState is SaveState.Saving,
             snackbarHostState = snackbarHostState,
             onTransformChanged = viewModel::updateTransform,
             onSaveClicked = {
@@ -82,7 +81,7 @@ internal fun PhotoCropEditorRoute(
 @Composable
 private fun PhotoCropEditorScreen(
     geoArea: GeoArea,
-    imageUrl: String,
+    localFilePath: String,
     cropTransform: CropTransformState,
     isSaving: Boolean,
     snackbarHostState: SnackbarHostState,
@@ -111,7 +110,7 @@ private fun PhotoCropEditorScreen(
         ) {
             CropEditorCanvas(
                 modifier = Modifier.fillMaxSize(),
-                imageUrl = imageUrl,
+                localFilePath = localFilePath,
                 geoArea = geoArea,
                 initialTransform = cropTransform,
                 onTransformChanged = onTransformChanged,

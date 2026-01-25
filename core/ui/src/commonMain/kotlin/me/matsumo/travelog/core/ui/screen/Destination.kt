@@ -61,8 +61,7 @@ sealed interface Destination : NavKey {
     data class PhotoCropEditor(
         val mapId: String,
         val geoAreaId: String,
-        val imageId: String,
-        val imageUrl: String,
+        val localFilePath: String,
         val existingRegionId: String? = null,
     ) : Destination
 

@@ -25,20 +25,36 @@ import io.github.vinceglb.filekit.dialogs.openFilePicker
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.map_photo_add
+import me.matsumo.travelog.core.ui.screen.Destination
+import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
+import me.matsumo.travelog.core.usecase.TempFileStorage
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 internal fun MapAddPhotoFab(
+    mapId: String,
+    geoAreaId: String,
+    existingRegionId: String?,
+    tempFileStorage: TempFileStorage,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
+    val navBackStack = LocalNavBackStack.current
 
     fun launchImagePicker() {
         scope.launch {
             runCatching {
                 FileKit.openFilePicker(FileKitType.Image, FileKitMode.Single)?.also { file ->
-
+                    val tempPath = tempFileStorage.saveToTemp(file)
+                    navBackStack.add(
+                        Destination.PhotoCropEditor(
+                            mapId = mapId,
+                            geoAreaId = geoAreaId,
+                            localFilePath = tempPath,
+                            existingRegionId = existingRegionId,
+                        ),
+                    )
                 }
             }.onFailure {
                 Napier.e(it) { "Failed to pick image" }

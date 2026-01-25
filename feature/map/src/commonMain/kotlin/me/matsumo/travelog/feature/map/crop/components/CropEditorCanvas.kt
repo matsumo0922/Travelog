@@ -23,6 +23,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import coil3.toUri
 import kotlinx.collections.immutable.toImmutableList
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.component.GeoJsonRenderer
@@ -37,12 +40,13 @@ import me.matsumo.travelog.feature.map.crop.CropTransformState
  */
 @Composable
 internal fun CropEditorCanvas(
-    imageUrl: String,
+    localFilePath: String,
     geoArea: GeoArea,
     initialTransform: CropTransformState,
     onTransformChanged: (scale: Float, offsetX: Float, offsetY: Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalPlatformContext.current
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
 
     var scale by remember { mutableFloatStateOf(initialTransform.scale) }
@@ -126,7 +130,9 @@ internal fun CropEditorCanvas(
                     translationX = offsetX * size.width
                     translationY = offsetY * size.height
                 },
-            model = imageUrl,
+            model = ImageRequest.Builder(context)
+                .data("file://$localFilePath".toUri())
+                .build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
         )

@@ -12,8 +12,7 @@ fun EntryProviderScope<NavKey>.photoCropEditorEntry() {
             modifier = Modifier.fillMaxSize(),
             mapId = it.mapId,
             geoAreaId = it.geoAreaId,
-            imageId = it.imageId,
-            imageUrl = it.imageUrl,
+            localFilePath = it.localFilePath,
             existingRegionId = it.existingRegionId,
         )
     }
