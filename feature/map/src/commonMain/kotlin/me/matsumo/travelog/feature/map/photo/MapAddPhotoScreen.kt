@@ -14,13 +14,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
+import me.matsumo.travelog.core.ui.component.PlacedTileItem
+import me.matsumo.travelog.core.ui.component.TileGrid
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.getLocalizedName
 import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoFab
 import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoTopAppBar
-import me.matsumo.travelog.feature.map.photo.components.TilePhotoGrid
-import me.matsumo.travelog.feature.map.photo.components.model.PlacedGridItem
+import me.matsumo.travelog.feature.map.photo.components.TilePhotoItem
+import me.matsumo.travelog.feature.map.photo.components.model.GridPhotoItem
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -57,7 +59,7 @@ internal fun MapAddPhotoRoute(
 private fun MapAddPhotoScreen(
     geoArea: GeoArea,
     mapRegions: ImmutableList<MapRegion>,
-    placedItems: ImmutableList<PlacedGridItem>,
+    placedItems: ImmutableList<PlacedTileItem<GridPhotoItem>>,
     rowCount: Int,
     modifier: Modifier = Modifier,
 ) {
@@ -79,11 +81,13 @@ private fun MapAddPhotoScreen(
         },
         containerColor = MaterialTheme.colorScheme.surface,
     ) { paddingValues ->
-        TilePhotoGrid(
+        TileGrid(
             modifier = Modifier.fillMaxSize(),
             placedItems = placedItems,
             rowCount = rowCount,
             contentPadding = paddingValues,
-        )
+        ) { item ->
+            TilePhotoItem(imageUrl = item.imageUrl)
+        }
     }
 }

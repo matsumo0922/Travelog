@@ -19,11 +19,12 @@ import me.matsumo.travelog.core.repository.GeoAreaRepository
 import me.matsumo.travelog.core.repository.MapRegionRepository
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
+import me.matsumo.travelog.core.ui.component.PlacedTileItem
+import me.matsumo.travelog.core.ui.component.TileGridConfig
+import me.matsumo.travelog.core.ui.component.TileGridPlacer
 import me.matsumo.travelog.core.ui.screen.ScreenState
-import me.matsumo.travelog.feature.map.photo.components.GridPlacer
 import me.matsumo.travelog.feature.map.photo.components.MockPhotoGenerator
-import me.matsumo.travelog.feature.map.photo.components.model.GridSpanConfig
-import me.matsumo.travelog.feature.map.photo.components.model.PlacedGridItem
+import me.matsumo.travelog.feature.map.photo.components.model.GridPhotoItem
 
 class MapAddPhotoViewModel(
     private val mapId: String,
@@ -35,7 +36,7 @@ class MapAddPhotoViewModel(
     private val _screenState = MutableStateFlow<ScreenState<MapAddPhotoUiState>>(ScreenState.Loading())
     val screenState: StateFlow<ScreenState<MapAddPhotoUiState>> = _screenState.asStateFlow()
 
-    private val gridConfig = GridSpanConfig()
+    private val gridConfig = TileGridConfig()
 
     init {
         fetch()
@@ -53,7 +54,7 @@ class MapAddPhotoViewModel(
                 )
 
                 val placementResult = withContext(Dispatchers.Default) {
-                    val placer = GridPlacer(gridConfig)
+                    val placer = TileGridPlacer(gridConfig)
                     placer.placeItems(mockPhotos)
                 }
 
@@ -75,6 +76,6 @@ class MapAddPhotoViewModel(
 data class MapAddPhotoUiState(
     val geoArea: GeoArea,
     val mapRegions: ImmutableList<MapRegion>,
-    val placedItems: ImmutableList<PlacedGridItem> = persistentListOf(),
+    val placedItems: ImmutableList<PlacedTileItem<GridPhotoItem>> = persistentListOf(),
     val rowCount: Int = 0,
 )

@@ -1,15 +1,14 @@
 package me.matsumo.travelog.feature.map.photo.components
 
+import me.matsumo.travelog.core.ui.component.TileGridConfig
 import me.matsumo.travelog.feature.map.photo.components.model.GridPhotoItem
-import me.matsumo.travelog.feature.map.photo.components.model.GridSpanConfig
-import me.matsumo.travelog.feature.map.photo.components.model.SpanSize
 import kotlin.random.Random
 
 object MockPhotoGenerator {
 
     fun generateMockPhotos(
         count: Int,
-        config: GridSpanConfig = GridSpanConfig(),
+        config: TileGridConfig = TileGridConfig(),
         seed: Int = 42,
     ): List<GridPhotoItem> {
         val random = Random(seed)
@@ -19,7 +18,7 @@ object MockPhotoGenerator {
             val isSpecialSize = (i + 1) % config.specialSizeInterval == 0 && config.availableSpecialSizes.isNotEmpty()
 
             val (spanWidth, spanHeight) = if (isSpecialSize) {
-                selectWeightedSpanSize(config.availableSpecialSizes, random)
+                selectWeightedSpanSize(config, random)
             } else {
                 1 to 1
             }
@@ -40,7 +39,8 @@ object MockPhotoGenerator {
         return items
     }
 
-    private fun selectWeightedSpanSize(sizes: List<SpanSize>, random: Random): Pair<Int, Int> {
+    private fun selectWeightedSpanSize(config: TileGridConfig, random: Random): Pair<Int, Int> {
+        val sizes = config.availableSpecialSizes
         val totalWeight = sizes.sumOf { it.weight.toDouble() }
         var randomValue = random.nextDouble() * totalWeight
 

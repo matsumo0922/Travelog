@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.map.photo.components
+package me.matsumo.travelog.core.ui.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
@@ -18,17 +19,26 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
-import me.matsumo.travelog.feature.map.photo.components.model.PlacedGridItem
 
 private const val COLUMN_COUNT = 4
 
+@Immutable
+data class PlacedTileItem<T : TileGridItem>(
+    val item: T,
+    val column: Int,
+    val row: Int,
+    val spanWidth: Int,
+    val spanHeight: Int,
+)
+
 @Composable
-internal fun TilePhotoGrid(
-    placedItems: ImmutableList<PlacedGridItem>,
+fun <T : TileGridItem> TileGrid(
+    placedItems: ImmutableList<PlacedTileItem<T>>,
     rowCount: Int,
     modifier: Modifier = Modifier,
     cellSpacing: Dp = 4.dp,
     contentPadding: PaddingValues = PaddingValues(16.dp),
+    itemContent: @Composable (item: T) -> Unit,
 ) {
     val scrollState = rememberScrollState()
 
@@ -58,7 +68,7 @@ internal fun TilePhotoGrid(
                 content = {
                     placedItems.forEach { placed ->
                         key(placed.item.id) {
-                            TilePhotoItem(placed.item.imageUrl)
+                            itemContent(placed.item)
                         }
                     }
                 },

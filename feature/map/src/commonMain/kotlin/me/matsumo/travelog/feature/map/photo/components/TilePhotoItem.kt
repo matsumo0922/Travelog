@@ -1,6 +1,7 @@
 package me.matsumo.travelog.feature.map.photo.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ internal fun TilePhotoItem(
 ) {
     AsyncImageWithPlaceholder(
         modifier = modifier
+            .fillMaxSize()
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerLow),
         model = imageUrl,

@@ -1,22 +1,18 @@
-package me.matsumo.travelog.feature.map.photo.components
+package me.matsumo.travelog.core.ui.component
 
-import me.matsumo.travelog.feature.map.photo.components.model.GridPhotoItem
-import me.matsumo.travelog.feature.map.photo.components.model.GridSpanConfig
-import me.matsumo.travelog.feature.map.photo.components.model.PlacedGridItem
-
-data class GridPlacementResult(
-    val placedItems: List<PlacedGridItem>,
+data class TileGridPlacementResult<T : TileGridItem>(
+    val placedItems: List<PlacedTileItem<T>>,
     val rowCount: Int,
 )
 
-class GridPlacer(private val config: GridSpanConfig) {
+class TileGridPlacer(private val config: TileGridConfig) {
 
     private val columnCount = config.columnCount
     private val occupiedCells = mutableListOf<BooleanArray>()
 
-    fun placeItems(items: List<GridPhotoItem>): GridPlacementResult {
+    fun <T : TileGridItem> placeItems(items: List<T>): TileGridPlacementResult<T> {
         occupiedCells.clear()
-        val placedItems = mutableListOf<PlacedGridItem>()
+        val placedItems = mutableListOf<PlacedTileItem<T>>()
 
         for (item in items) {
             val placed = placeItem(item)
@@ -24,10 +20,10 @@ class GridPlacer(private val config: GridSpanConfig) {
         }
 
         val rowCount = occupiedCells.size
-        return GridPlacementResult(placedItems, rowCount)
+        return TileGridPlacementResult(placedItems, rowCount)
     }
 
-    private fun placeItem(item: GridPhotoItem): PlacedGridItem {
+    private fun <T : TileGridItem> placeItem(item: T): PlacedTileItem<T> {
         var spanW = item.spanWidth.coerceIn(1, columnCount)
         var spanH = item.spanHeight.coerceAtLeast(1)
 
@@ -41,7 +37,7 @@ class GridPlacer(private val config: GridSpanConfig) {
 
         markOccupied(position.first, position.second, spanW, spanH)
 
-        return PlacedGridItem(
+        return PlacedTileItem(
             item = item,
             column = position.first,
             row = position.second,
