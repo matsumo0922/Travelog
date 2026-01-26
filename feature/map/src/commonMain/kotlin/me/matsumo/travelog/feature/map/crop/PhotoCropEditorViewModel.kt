@@ -14,13 +14,12 @@ import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.repository.GeoAreaRepository
 import me.matsumo.travelog.core.repository.MapRegionRepository
-import me.matsumo.travelog.core.repository.SessionRepository
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.resource.error_temp_file_not_found
 import me.matsumo.travelog.core.ui.screen.ScreenState
+import me.matsumo.travelog.core.usecase.SaveMapRegionPhotoUseCase
 import me.matsumo.travelog.core.usecase.TempFileStorage
-import me.matsumo.travelog.core.usecase.UploadMapRegionImageUseCase
 
 class PhotoCropEditorViewModel(
     private val mapId: String,
@@ -29,8 +28,7 @@ class PhotoCropEditorViewModel(
     private val existingRegionId: String?,
     private val geoAreaRepository: GeoAreaRepository,
     private val mapRegionRepository: MapRegionRepository,
-    private val sessionRepository: SessionRepository,
-    private val uploadMapRegionImageUseCase: UploadMapRegionImageUseCase,
+    private val saveMapRegionPhotoUseCase: SaveMapRegionPhotoUseCase,
     private val tempFileStorage: TempFileStorage,
 ) : ViewModel() {
 
@@ -48,11 +46,11 @@ class PhotoCropEditorViewModel(
         viewModelScope.launch {
             _screenState.value = suspendRunCatching {
                 // Verify temp file exists (may be deleted by OS cache cleanup or nav restore)
-                val tempFile = tempFileStorage.loadFromTemp(localFilePath)
+                tempFileStorage.loadFromTemp(localFilePath)
                     ?: throw TempFileNotFoundException("Temp file not found: $localFilePath")
 
                 val geoArea = geoAreaRepository.getAreaByIdWithChildren(geoAreaId)
-                    ?: throw IllegalStateException("GeoArea not found")
+                    ?: error("GeoArea not found")
 
                 val existingRegion = existingRegionId?.let { mapRegionRepository.getMapRegion(it) }
                 val initialCropData = existingRegion?.cropData ?: CropData()
@@ -111,58 +109,32 @@ class PhotoCropEditorViewModel(
                 offsetY = uiState.cropTransform.offsetY,
             )
 
-            suspendRunCatching {
-                // 1. Load file from temp storage
-                val file = tempFileStorage.loadFromTemp(localFilePath)
-                    ?: throw IllegalStateException("Temp file not found: $localFilePath")
+            _saveState.value = SaveState.Saving
 
-                // 2. Get current user ID
-                val userId = sessionRepository.getCurrentUserInfo()?.id
-                    ?: throw IllegalStateException("User not logged in")
+            val result = saveMapRegionPhotoUseCase(
+                mapId = mapId,
+                geoAreaId = geoAreaId,
+                localFilePath = localFilePath,
+                geoArea = uiState.geoArea,
+                cropData = cropData,
+                existingRegion = uiState.existingRegion,
+            )
 
-                // 3. Upload original and cropped images
-                val uploadResult = uploadMapRegionImageUseCase(
-                    file = file,
-                    geoArea = uiState.geoArea,
-                    cropData = cropData,
-                    userId = userId,
-                )
-
-                // 4. Create or update MapRegion
-                _saveState.value = SaveState.Saving
-
-                if (uiState.existingRegion != null) {
-                    mapRegionRepository.updateMapRegion(
-                        uiState.existingRegion.copy(
-                            representativeImageId = uploadResult.originalImageId,
-                            representativeCroppedImageId = uploadResult.croppedImageId,
-                            cropData = cropData,
-                        ),
-                    )
-                } else {
-                    mapRegionRepository.createMapRegion(
-                        MapRegion(
-                            mapId = mapId,
-                            geoAreaId = geoAreaId,
-                            representativeImageId = uploadResult.originalImageId,
-                            representativeCroppedImageId = uploadResult.croppedImageId,
-                            cropData = cropData,
-                        ),
-                    )
-                }
-
-                // 5. Clean up temp file
-                tempFileStorage.deleteTemp(localFilePath)
-            }.fold(
-                onSuccess = {
+            when (result) {
+                is SaveMapRegionPhotoUseCase.Result.Success -> {
                     _saveState.value = SaveState.Success
                     onSuccess()
-                },
-                onFailure = { e ->
-                    Napier.e(e) { "Failed to save photo crop" }
+                }
+
+                is SaveMapRegionPhotoUseCase.Result.TempFileNotFound,
+                is SaveMapRegionPhotoUseCase.Result.UserNotLoggedIn,
+                is SaveMapRegionPhotoUseCase.Result.UploadFailed,
+                is SaveMapRegionPhotoUseCase.Result.SaveFailed,
+                    -> {
+                    Napier.e { "Failed to save photo crop: $result" }
                     _saveState.value = SaveState.Error
-                },
-            )
+                }
+            }
         }
     }
 }

@@ -21,11 +21,10 @@ import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.repository.GeoAreaRepository
 import me.matsumo.travelog.core.repository.MapRegionRepository
 import me.matsumo.travelog.core.repository.MapRepository
-import me.matsumo.travelog.core.repository.SessionRepository
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.screen.ScreenState
-import me.matsumo.travelog.core.usecase.UploadMapIconUseCase
+import me.matsumo.travelog.core.usecase.UpdateMapIconUseCase
 
 class MapSettingViewModel(
     private val mapId: String,
@@ -35,8 +34,7 @@ class MapSettingViewModel(
     private val mapRepository: MapRepository,
     private val mapRegionRepository: MapRegionRepository,
     private val geoAreaRepository: GeoAreaRepository,
-    private val sessionRepository: SessionRepository,
-    private val uploadMapIconUseCase: UploadMapIconUseCase,
+    private val updateMapIconUseCase: UpdateMapIconUseCase,
 ) : ViewModel() {
 
     private val _screenState = MutableStateFlow<ScreenState<MapSettingUiState>>(ScreenState.Loading())
@@ -150,44 +148,36 @@ class MapSettingViewModel(
     }
 
     private fun uploadIcon(file: PlatformFile) {
-        val userId = sessionRepository.getCurrentUserInfo()?.id ?: return
-
         viewModelScope.launch {
             _dialogState.value = MapSettingDialogState.Loading.UploadingImage
 
-            val uploadResult = suspendRunCatching {
-                uploadMapIconUseCase(file, userId)
-            }
-
-            if (uploadResult.isFailure) {
-                _dialogState.value = MapSettingDialogState.Error.UploadFailed
-                return@launch
-            }
-
-            val result = uploadResult.getOrThrow()
+            val latestState = (_screenState.value as? ScreenState.Idle)?.data ?: return@launch
 
             _dialogState.value = MapSettingDialogState.Loading.UpdatingMap
 
-            // 最新の状態を取得（iconFile が更新されている可能性があるため）
-            val latestState = (_screenState.value as? ScreenState.Idle)?.data ?: return@launch
-            val updatedMap = latestState.map.copy(
-                iconImageId = result.imageId,
-                iconImageUrl = result.publicUrl,
+            val result = updateMapIconUseCase(
+                map = latestState.map,
+                iconFile = file,
             )
 
-            val updateResult = suspendRunCatching {
-                mapRepository.updateMap(updatedMap)
-            }
-
-            if (updateResult.isSuccess) {
-                // fetch() を呼ばずに直接状態を更新（iconFile もクリア）
-                _screenState.update {
-                    val current = (it as? ScreenState.Idle)?.data ?: return@update it
-                    ScreenState.Idle(current.copy(map = updatedMap, iconFile = null))
+            when (result) {
+                is UpdateMapIconUseCase.Result.Success -> {
+                    _screenState.update {
+                        val current = (it as? ScreenState.Idle)?.data ?: return@update it
+                        ScreenState.Idle(current.copy(map = result.updatedMap, iconFile = null))
+                    }
+                    _dialogState.value = MapSettingDialogState.None
                 }
-                _dialogState.value = MapSettingDialogState.None
-            } else {
-                _dialogState.value = MapSettingDialogState.Error.UpdateFailed
+
+                is UpdateMapIconUseCase.Result.UserNotLoggedIn,
+                is UpdateMapIconUseCase.Result.UploadFailed,
+                    -> {
+                    _dialogState.value = MapSettingDialogState.Error.UploadFailed
+                }
+
+                is UpdateMapIconUseCase.Result.UpdateFailed -> {
+                    _dialogState.value = MapSettingDialogState.Error.UpdateFailed
+                }
             }
         }
     }

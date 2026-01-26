@@ -49,12 +49,16 @@ sealed interface Destination : NavKey {
     data class MapSelectRegion(
         val mapId: String,
         val geoAreaId: String,
+        val regions: List<MapRegion>? = null,
+        val regionImageUrls: kotlin.collections.Map<String, String>? = null,
     ) : Destination
 
     @Serializable
     data class MapAreaDetail(
         val mapId: String,
         val geoAreaId: String,
+        val regions: List<MapRegion>? = null,
+        val regionImageUrls: kotlin.collections.Map<String, String>? = null,
     ) : Destination
 
     @Serializable

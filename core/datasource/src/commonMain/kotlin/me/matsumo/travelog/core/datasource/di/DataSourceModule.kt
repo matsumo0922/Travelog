@@ -11,6 +11,7 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
 import me.matsumo.travelog.core.common.formatter
 import me.matsumo.travelog.core.datasource.AppSettingDataSource
+import me.matsumo.travelog.core.datasource.SignedUrlCache
 import me.matsumo.travelog.core.datasource.api.GeoAreaApi
 import me.matsumo.travelog.core.datasource.api.ImageApi
 import me.matsumo.travelog.core.datasource.api.ImageCommentApi
@@ -66,6 +67,7 @@ val dataSourceModule = module {
 
     singleOf(::AppSettingDataSource)
     singleOf(::GeoAreaMapper)
+    singleOf(::SignedUrlCache)
 
     includes(dataSourcePlatformModule)
 }

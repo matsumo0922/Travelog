@@ -27,9 +27,7 @@ val homeModule = module {
             selectedRegion = SupportedRegion.all.first { it.code3 == extras[0] },
             selectedAreaAdmId = extras.values.getOrNull(1) as? String,
             geoAreaRepository = get(),
-            sessionRepository = get(),
-            uploadMapIconUseCase = get(),
-            createMapUseCase = get(),
+            createMapWithIconUseCase = get(),
         )
     }
 }

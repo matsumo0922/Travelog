@@ -17,20 +17,16 @@ import me.matsumo.travelog.core.model.SupportedRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.model.geo.GeoAreaLevel
 import me.matsumo.travelog.core.repository.GeoAreaRepository
-import me.matsumo.travelog.core.repository.SessionRepository
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.screen.ScreenState
-import me.matsumo.travelog.core.usecase.CreateMapUseCase
-import me.matsumo.travelog.core.usecase.UploadMapIconUseCase
+import me.matsumo.travelog.core.usecase.CreateMapWithIconUseCase
 
 class MapCreateViewModel(
     private val selectedRegion: SupportedRegion,
     private val selectedAreaAdmId: String?,
     private val geoAreaRepository: GeoAreaRepository,
-    private val sessionRepository: SessionRepository,
-    private val uploadMapIconUseCase: UploadMapIconUseCase,
-    private val createMapUseCase: CreateMapUseCase,
+    private val createMapWithIconUseCase: CreateMapWithIconUseCase,
 ) : ViewModel() {
 
     private val _screenState = MutableStateFlow<ScreenState<MapCreateUiState>>(ScreenState.Loading())
@@ -99,58 +95,47 @@ class MapCreateViewModel(
 
     fun createMap() {
         val currentState = (_screenState.value as? ScreenState.Idle)?.data ?: return
-        val userId = sessionRepository.getCurrentUserInfo()?.id ?: return
 
-        if (currentState.title.isBlank()) {
-            _dialogState.value = MapCreateDialogState.Error.TitleRequired
+        val geoAreaId = currentState.selectedArea.id
+        if (geoAreaId == null) {
+            _dialogState.value = MapCreateDialogState.Error.CreateFailed
             return
         }
 
         viewModelScope.launch {
-            var iconImageId: String? = null
+            _dialogState.value = if (currentState.iconFile != null) {
+                MapCreateDialogState.Loading.UploadingImage
+            } else {
+                MapCreateDialogState.Loading.CreatingMap
+            }
 
-            // Upload icon image if provided
-            if (currentState.iconFile != null) {
-                _dialogState.value = MapCreateDialogState.Loading.UploadingImage
+            val result = createMapWithIconUseCase(
+                rootGeoAreaId = geoAreaId,
+                title = currentState.title,
+                description = currentState.description.ifBlank { null },
+                iconFile = currentState.iconFile,
+            )
 
-                val uploadResult = suspendRunCatching {
-                    uploadMapIconUseCase(currentState.iconFile, userId)
+            when (result) {
+                is CreateMapWithIconUseCase.Result.Success -> {
+                    _dialogState.value = MapCreateDialogState.None
+                    _navigateToHome.emit(Unit)
                 }
 
-                if (uploadResult.isFailure) {
+                is CreateMapWithIconUseCase.Result.TitleRequired -> {
+                    _dialogState.value = MapCreateDialogState.Error.TitleRequired
+                }
+
+                is CreateMapWithIconUseCase.Result.UserNotLoggedIn,
+                is CreateMapWithIconUseCase.Result.UploadFailed,
+                    -> {
                     _dialogState.value = MapCreateDialogState.Error.UploadFailed
-                    return@launch
                 }
 
-                iconImageId = uploadResult.getOrThrow().imageId
+                is CreateMapWithIconUseCase.Result.CreateFailed -> {
+                    _dialogState.value = MapCreateDialogState.Error.CreateFailed
+                }
             }
-
-            // Create map
-            _dialogState.value = MapCreateDialogState.Loading.CreatingMap
-
-            val geoAreaId = currentState.selectedArea.id
-            if (geoAreaId == null) {
-                _dialogState.value = MapCreateDialogState.Error.CreateFailed
-                return@launch
-            }
-
-            val mapResult = suspendRunCatching {
-                createMapUseCase(
-                    userId = userId,
-                    rootGeoAreaId = geoAreaId,
-                    title = currentState.title,
-                    description = currentState.description,
-                    iconImageId = iconImageId,
-                )
-            }
-
-            if (mapResult.isFailure) {
-                _dialogState.value = MapCreateDialogState.Error.CreateFailed
-                return@launch
-            }
-
-            _dialogState.value = MapCreateDialogState.None
-            _navigateToHome.emit(Unit)
         }
     }
 }

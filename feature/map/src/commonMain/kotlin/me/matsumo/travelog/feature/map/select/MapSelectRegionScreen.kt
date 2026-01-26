@@ -36,11 +36,13 @@ import org.koin.core.parameter.parametersOf
 internal fun MapSelectRegionRoute(
     mapId: String,
     geoAreaId: String,
+    initialRegions: List<MapRegion>?,
+    initialRegionImageUrls: Map<String, String>?,
     modifier: Modifier = Modifier,
     viewModel: MapSelectRegionViewModel = koinViewModel(
         key = "$mapId-$geoAreaId",
     ) {
-        parametersOf(mapId, geoAreaId)
+        parametersOf(mapId, geoAreaId, initialRegions, initialRegionImageUrls)
     },
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
@@ -86,7 +88,7 @@ private fun MapSelectRegionScreen(
             )
         },
         containerColor = MaterialTheme.colorScheme.surface,
-        contentWindowInsets = WindowInsets()
+        contentWindowInsets = WindowInsets(),
     ) { paddingValues ->
         LazyVerticalGrid(
             modifier = Modifier
@@ -108,8 +110,15 @@ private fun MapSelectRegionScreen(
                     area = area,
                     imageUrl = croppedImageUrl,
                     onClick = {
-                        area.id?.let {
-                            navBackStack.add(Destination.MapAreaDetail(mapId, it))
+                        area.id?.let { areaId ->
+                            navBackStack.add(
+                                Destination.MapAreaDetail(
+                                    mapId = mapId,
+                                    geoAreaId = areaId,
+                                    regions = mapRegions.toList(),
+                                    regionImageUrls = regionImageUrls,
+                                ),
+                            )
                         }
                     },
                 )

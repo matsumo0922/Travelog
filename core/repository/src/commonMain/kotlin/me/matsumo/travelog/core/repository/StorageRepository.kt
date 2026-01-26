@@ -3,6 +3,7 @@ package me.matsumo.travelog.core.repository
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
+import me.matsumo.travelog.core.datasource.SignedUrlCache
 import me.matsumo.travelog.core.datasource.api.StorageApi
 import kotlin.time.Duration.Companion.hours
 import kotlin.uuid.ExperimentalUuidApi
@@ -10,6 +11,7 @@ import kotlin.uuid.Uuid
 
 class StorageRepository(
     private val storageApi: StorageApi,
+    private val signedUrlCache: SignedUrlCache,
 ) {
     @OptIn(ExperimentalUuidApi::class)
     suspend fun uploadMapIcon(file: PlatformFile, userId: String): UploadResult {
@@ -108,7 +110,13 @@ class StorageRepository(
     }
 
     suspend fun getSignedUrl(bucketName: String, storageKey: String): String {
-        return storageApi.createSignedUrl(bucketName, storageKey, 1.hours)
+        // キャッシュを確認
+        signedUrlCache.get(bucketName, storageKey)?.let { return it }
+
+        // キャッシュにない場合は新規作成してキャッシュに保存
+        val url = storageApi.createSignedUrl(bucketName, storageKey, 1.hours)
+        signedUrlCache.put(bucketName, storageKey, url)
+        return url
     }
 }
 

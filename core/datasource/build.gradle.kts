@@ -27,6 +27,8 @@ kotlin {
             api(libs.bundles.ktor)
             api(libs.bundles.filekit)
             api(libs.androidx.datastore.preferences)
+
+            implementation(libs.kotlinx.datetime)
         }
     }
 }

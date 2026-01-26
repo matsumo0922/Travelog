@@ -109,6 +109,8 @@ private fun MapDetailScreen(
                             Destination.MapSelectRegion(
                                 mapId = currentMapId,
                                 geoAreaId = currentGeoAreaId,
+                                regions = regions.toList(),
+                                regionImageUrls = regionImageUrls.toMap(),
                             ),
                         )
                     }

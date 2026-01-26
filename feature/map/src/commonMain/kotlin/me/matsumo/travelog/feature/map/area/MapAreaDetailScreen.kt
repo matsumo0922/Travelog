@@ -37,12 +37,14 @@ import org.koin.core.parameter.parametersOf
 internal fun MapAreaDetailRoute(
     mapId: String,
     geoAreaId: String,
+    initialRegions: List<MapRegion>?,
+    initialRegionImageUrls: Map<String, String>?,
     modifier: Modifier = Modifier,
     tempFileStorage: TempFileStorage = koinInject(),
     viewModel: MapAreaDetailViewModel = koinViewModel(
         key = "$mapId-$geoAreaId",
     ) {
-        parametersOf(mapId, geoAreaId)
+        parametersOf(mapId, geoAreaId, initialRegions, initialRegionImageUrls)
     },
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()

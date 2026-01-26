@@ -17,8 +17,7 @@ val mapModule = module {
             mapRepository = get(),
             mapRegionRepository = get(),
             geoAreaRepository = get(),
-            imageRepository = get(),
-            storageRepository = get(),
+            getMapRegionImagesUseCase = get(),
         )
     }
 
@@ -32,30 +31,33 @@ val mapModule = module {
             mapRepository = get(),
             mapRegionRepository = get(),
             geoAreaRepository = get(),
-            sessionRepository = get(),
-            uploadMapIconUseCase = get(),
+            updateMapIconUseCase = get(),
         )
     }
 
     viewModel { extras ->
+        @Suppress("UNCHECKED_CAST")
         MapSelectRegionViewModel(
             mapId = extras[0] as String,
             geoAreaId = extras[1] as String,
+            initialRegions = extras[2] as? List<MapRegion>,
+            initialRegionImageUrls = extras[3] as? kotlin.collections.Map<String, String>,
             geoAreaRepository = get(),
             mapRegionRepository = get(),
-            imageRepository = get(),
-            storageRepository = get(),
+            getMapRegionImagesUseCase = get(),
         )
     }
 
     viewModel { extras ->
+        @Suppress("UNCHECKED_CAST")
         MapAreaDetailViewModel(
             mapId = extras[0] as String,
             geoAreaId = extras[1] as String,
+            initialRegions = extras[2] as? List<MapRegion>,
+            initialRegionImageUrls = extras[3] as? kotlin.collections.Map<String, String>,
             geoAreaRepository = get(),
             mapRegionRepository = get(),
-            imageRepository = get(),
-            storageRepository = get(),
+            getMapRegionImagesUseCase = get(),
         )
     }
 
@@ -67,8 +69,7 @@ val mapModule = module {
             existingRegionId = extras[3] as? String,
             geoAreaRepository = get(),
             mapRegionRepository = get(),
-            sessionRepository = get(),
-            uploadMapRegionImageUseCase = get(),
+            saveMapRegionPhotoUseCase = get(),
             tempFileStorage = get(),
         )
     }

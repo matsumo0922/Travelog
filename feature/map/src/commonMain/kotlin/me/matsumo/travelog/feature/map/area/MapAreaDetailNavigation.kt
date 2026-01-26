@@ -12,6 +12,8 @@ fun EntryProviderScope<NavKey>.mapAreaDetailEntry() {
             modifier = Modifier.fillMaxSize(),
             mapId = it.mapId,
             geoAreaId = it.geoAreaId,
+            initialRegions = it.regions,
+            initialRegionImageUrls = it.regionImageUrls,
         )
     }
 }
