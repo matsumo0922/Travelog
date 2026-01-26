@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.map.photo.components.model
+package me.matsumo.travelog.feature.map.area.components.model
 
 import androidx.compose.runtime.Immutable
 import me.matsumo.travelog.core.ui.component.TileGridItem

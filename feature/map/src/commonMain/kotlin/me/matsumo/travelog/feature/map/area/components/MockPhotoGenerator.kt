@@ -1,7 +1,7 @@
-package me.matsumo.travelog.feature.map.photo.components
+package me.matsumo.travelog.feature.map.area.components
 
 import me.matsumo.travelog.core.ui.component.TileGridConfig
-import me.matsumo.travelog.feature.map.photo.components.model.GridPhotoItem
+import me.matsumo.travelog.feature.map.area.components.model.GridPhotoItem
 import kotlin.random.Random
 
 object MockPhotoGenerator {

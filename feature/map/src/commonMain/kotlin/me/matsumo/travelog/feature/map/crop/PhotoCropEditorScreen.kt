@@ -70,7 +70,7 @@ internal fun PhotoCropEditorRoute(
                 viewModel.save {
                     // Navigate back to MapDetail on success
                     navBackStack.removeLastOrNull()
-                    navBackStack.removeLastOrNull() // Also remove MapAddPhoto
+                    navBackStack.removeLastOrNull() // Also remove MapAreaDetail
                 }
             },
             onBackClicked = { navBackStack.removeLastOrNull() },

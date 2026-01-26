@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.map.photo.components
+package me.matsumo.travelog.feature.map.area.components
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -32,7 +32,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-internal fun MapAddPhotoFab(
+internal fun MapAreaDetailFab(
     mapId: String,
     geoAreaId: String,
     existingRegionId: String?,

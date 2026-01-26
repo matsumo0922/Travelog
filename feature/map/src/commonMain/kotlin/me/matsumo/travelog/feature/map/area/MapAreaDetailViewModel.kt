@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.map.photo
+package me.matsumo.travelog.feature.map.area
 
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
@@ -29,10 +29,10 @@ import me.matsumo.travelog.core.ui.component.PlacedTileItem
 import me.matsumo.travelog.core.ui.component.TileGridConfig
 import me.matsumo.travelog.core.ui.component.TileGridPlacer
 import me.matsumo.travelog.core.ui.screen.ScreenState
-import me.matsumo.travelog.feature.map.photo.components.MockPhotoGenerator
-import me.matsumo.travelog.feature.map.photo.components.model.GridPhotoItem
+import me.matsumo.travelog.feature.map.area.components.MockPhotoGenerator
+import me.matsumo.travelog.feature.map.area.components.model.GridPhotoItem
 
-class MapAddPhotoViewModel(
+class MapAreaDetailViewModel(
     private val mapId: String,
     private val geoAreaId: String,
     private val geoAreaRepository: GeoAreaRepository,
@@ -41,8 +41,8 @@ class MapAddPhotoViewModel(
     private val storageRepository: StorageRepository,
 ) : ViewModel() {
 
-    private val _screenState = MutableStateFlow<ScreenState<MapAddPhotoUiState>>(ScreenState.Loading())
-    val screenState: StateFlow<ScreenState<MapAddPhotoUiState>> = _screenState.asStateFlow()
+    private val _screenState = MutableStateFlow<ScreenState<MapAreaDetailUiState>>(ScreenState.Loading())
+    val screenState: StateFlow<ScreenState<MapAreaDetailUiState>> = _screenState.asStateFlow()
 
     private val gridConfig = TileGridConfig()
 
@@ -85,7 +85,7 @@ class MapAddPhotoViewModel(
                     placer.placeItems(mockPhotos)
                 }
 
-                MapAddPhotoUiState(
+                MapAreaDetailUiState(
                     geoArea = geoArea!!,
                     mapRegions = mapRegions.toImmutableList(),
                     regionImageUrls = imageUrlMap.toImmutableMap(),
@@ -101,7 +101,7 @@ class MapAddPhotoViewModel(
 }
 
 @Stable
-data class MapAddPhotoUiState(
+data class MapAreaDetailUiState(
     val geoArea: GeoArea,
     val mapRegions: ImmutableList<MapRegion>,
     val regionImageUrls: ImmutableMap<String, String> = persistentMapOf(),

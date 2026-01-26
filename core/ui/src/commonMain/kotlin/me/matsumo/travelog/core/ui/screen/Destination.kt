@@ -52,7 +52,7 @@ sealed interface Destination : NavKey {
     ) : Destination
 
     @Serializable
-    data class MapAddPhoto(
+    data class MapAreaDetail(
         val mapId: String,
         val geoAreaId: String,
     ) : Destination
@@ -86,7 +86,7 @@ sealed interface Destination : NavKey {
                     subclass(MapDetail::class, MapDetail.serializer())
                     subclass(MapSetting::class, MapSetting.serializer())
                     subclass(MapSelectRegion::class, MapSelectRegion.serializer())
-                    subclass(MapAddPhoto::class, MapAddPhoto.serializer())
+                    subclass(MapAreaDetail::class, MapAreaDetail.serializer())
                     subclass(PhotoCropEditor::class, PhotoCropEditor.serializer())
                     subclass(Setting.Root::class, Setting.Root.serializer())
                     subclass(Setting.License::class, Setting.License.serializer())

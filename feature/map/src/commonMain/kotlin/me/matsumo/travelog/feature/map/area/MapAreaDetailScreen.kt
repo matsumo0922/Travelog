@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.map.photo
+package me.matsumo.travelog.feature.map.area
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,25 +22,24 @@ import me.matsumo.travelog.core.ui.component.PlacedTileItem
 import me.matsumo.travelog.core.ui.component.TileGrid
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
-import me.matsumo.travelog.core.ui.utils.getLocalizedName
 import me.matsumo.travelog.core.ui.utils.plus
 import me.matsumo.travelog.core.usecase.TempFileStorage
-import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoFab
-import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoHeader
-import me.matsumo.travelog.feature.map.photo.components.MapAddPhotoTopAppBar
-import me.matsumo.travelog.feature.map.photo.components.TilePhotoItem
-import me.matsumo.travelog.feature.map.photo.components.model.GridPhotoItem
+import me.matsumo.travelog.feature.map.area.components.MapAreaDetailFab
+import me.matsumo.travelog.feature.map.area.components.MapAreaDetailHeader
+import me.matsumo.travelog.feature.map.area.components.MapAreaDetailTopAppBar
+import me.matsumo.travelog.feature.map.area.components.TilePhotoItem
+import me.matsumo.travelog.feature.map.area.components.model.GridPhotoItem
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
-internal fun MapAddPhotoRoute(
+internal fun MapAreaDetailRoute(
     mapId: String,
     geoAreaId: String,
     modifier: Modifier = Modifier,
     tempFileStorage: TempFileStorage = koinInject(),
-    viewModel: MapAddPhotoViewModel = koinViewModel(
+    viewModel: MapAreaDetailViewModel = koinViewModel(
         key = "$mapId-$geoAreaId",
     ) {
         parametersOf(mapId, geoAreaId)
@@ -53,7 +52,7 @@ internal fun MapAddPhotoRoute(
         screenState = screenState,
         retryAction = viewModel::fetch,
     ) {
-        MapAddPhotoScreen(
+        MapAreaDetailScreen(
             modifier = Modifier.fillMaxSize(),
             mapId = mapId,
             geoAreaId = geoAreaId,
@@ -69,7 +68,7 @@ internal fun MapAddPhotoRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MapAddPhotoScreen(
+private fun MapAreaDetailScreen(
     mapId: String,
     geoAreaId: String,
     geoArea: GeoArea,
@@ -89,15 +88,14 @@ private fun MapAddPhotoScreen(
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            MapAddPhotoTopAppBar(
+            MapAreaDetailTopAppBar(
                 modifier = Modifier.fillMaxWidth(),
-                areaName = geoArea.getLocalizedName(),
                 scrollBehavior = scrollBehavior,
                 onBackClicked = { navBackStack.removeLastOrNull() },
             )
         },
         floatingActionButton = {
-            MapAddPhotoFab(
+            MapAreaDetailFab(
                 mapId = mapId,
                 geoAreaId = geoAreaId,
                 existingRegionId = existingRegion?.id,
@@ -112,7 +110,7 @@ private fun MapAddPhotoScreen(
             rowCount = rowCount,
             contentPadding = paddingValues + PaddingValues(8.dp),
             header = {
-                MapAddPhotoHeader(
+                MapAreaDetailHeader(
                     modifier = Modifier
                         .padding(bottom = 8.dp)
                         .fillMaxWidth(),

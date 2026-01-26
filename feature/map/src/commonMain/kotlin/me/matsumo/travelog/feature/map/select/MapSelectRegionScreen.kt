@@ -109,7 +109,7 @@ private fun MapSelectRegionScreen(
                     imageUrl = croppedImageUrl,
                     onClick = {
                         area.id?.let {
-                            navBackStack.add(Destination.MapAddPhoto(mapId, it))
+                            navBackStack.add(Destination.MapAreaDetail(mapId, it))
                         }
                     },
                 )

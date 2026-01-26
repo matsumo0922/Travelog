@@ -1,4 +1,4 @@
-package me.matsumo.travelog.feature.map.photo.components
+package me.matsumo.travelog.feature.map.area.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
