@@ -93,6 +93,16 @@ internal fun MapAreaDetailHeader(
         mapRegions.associateBy { it.geoAreaId }
     }
 
+    // ADM2レベル（geoArea自身にMapRegionが存在）では geoArea 自身を描画対象に、
+    // ADM1レベル（childrenにMapRegionが存在）では children を描画対象にする
+    val areasToRender = remember(geoArea, mapRegions) {
+        if (geoArea.children.isEmpty() || mapRegions.any { it.geoAreaId == geoArea.id }) {
+            listOf(geoArea).toImmutableList()
+        } else {
+            geoArea.children.toImmutableList()
+        }
+    }
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -133,11 +143,11 @@ internal fun MapAreaDetailHeader(
         ) {
             GeoCanvasMap(
                 modifier = Modifier.fillMaxSize(),
-                areas = geoArea.children.toImmutableList(),
+                areas = areasToRender,
                 overlay = { mapState ->
-                    geoArea.children.forEach { childArea ->
-                        val childAreaId = childArea.id ?: return@forEach
-                        val region = regionMap[childAreaId] ?: return@forEach
+                    areasToRender.forEach { area ->
+                        val areaId = area.id ?: return@forEach
+                        val region = regionMap[areaId] ?: return@forEach
 
                         val croppedImageUrl = region.representativeCroppedImageId?.let { regionImageUrls[it] }
                         val originalImageUrl = region.representativeImageId?.let { regionImageUrls[it] }
@@ -148,7 +158,7 @@ internal fun MapAreaDetailHeader(
                         ClippedRegionImage(
                             modifier = Modifier.matchParentSize(),
                             imageUrl = imageUrl,
-                            geoArea = childArea,
+                            geoArea = area,
                             cropData = if (usePreCropped) null else region.cropData,
                             isPreCropped = usePreCropped,
                             parentBounds = mapState.bounds,
