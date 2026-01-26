@@ -67,7 +67,8 @@ val dataSourceModule = module {
 
     singleOf(::AppSettingDataSource)
     singleOf(::GeoAreaMapper)
-    singleOf(::SignedUrlCache)
+
+    single { SignedUrlCache() }
 
     includes(dataSourcePlatformModule)
 }
