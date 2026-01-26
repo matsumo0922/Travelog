@@ -99,7 +99,15 @@ fun GeoCanvasMap(
             .onSizeChanged { canvasSize = it }
             .then(if (enableZoom) Modifier.zoomable(zoomState) else Modifier),
     ) {
-        // 1. Overlay を先に描画（下層 - 画像）
+        // 1. Fill を最下層に描画（地域の塗りつぶし）
+        Canvas(modifier = Modifier.matchParentSize()) {
+            drawGeoJsonFill(
+                paths = paths,
+                fillColor = fillColor,
+            )
+        }
+
+        // 2. Overlay を中間層に描画（画像など）
         if (bounds != null && viewportTransform != null) {
             val mapState = remember(bounds, viewportTransform) {
                 GeoCanvasMapState(bounds, viewportTransform)
@@ -107,12 +115,11 @@ fun GeoCanvasMap(
             overlay(mapState)
         }
 
-        // 2. Canvas を後に描画（上層 - 境界線）
+        // 3. Stroke を最上層に描画（境界線）
         Canvas(modifier = Modifier.matchParentSize()) {
-            drawGeoJson(
+            drawGeoJsonStroke(
                 paths = paths,
                 strokeColor = strokeColor,
-                fillColor = fillColor,
                 strokeWidth = strokeWidth,
             )
         }
@@ -120,22 +127,29 @@ fun GeoCanvasMap(
 }
 
 /**
- * Draw region paths on the canvas
+ * Draw region fill on the canvas
  */
-private fun DrawScope.drawGeoJson(
+private fun DrawScope.drawGeoJsonFill(
     paths: List<androidx.compose.ui.graphics.Path>,
-    strokeColor: Color,
     fillColor: Color,
-    strokeWidth: Float,
 ) {
     paths.forEach { path ->
-        // Draw filled polygons
         drawPath(
             path = path,
             color = fillColor,
         )
+    }
+}
 
-        // Draw border
+/**
+ * Draw region stroke on the canvas
+ */
+private fun DrawScope.drawGeoJsonStroke(
+    paths: List<androidx.compose.ui.graphics.Path>,
+    strokeColor: Color,
+    strokeWidth: Float,
+) {
+    paths.forEach { path ->
         drawPath(
             path = path,
             color = strokeColor,

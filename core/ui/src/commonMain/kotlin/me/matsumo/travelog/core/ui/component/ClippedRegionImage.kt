@@ -67,8 +67,7 @@ fun ClippedRegionImage(
 
     val clipShape = remember(areas, effectiveBounds, containerSize, parentTransform) {
         // If parent transform is provided, container size check is not needed
-        val hasValidSize = parentTransform != null ||
-                (containerSize.width > 0 && containerSize.height > 0)
+        val hasValidSize = parentTransform != null || (containerSize.width > 0 && containerSize.height > 0)
 
         if (effectiveBounds == null || !hasValidSize) {
             null
