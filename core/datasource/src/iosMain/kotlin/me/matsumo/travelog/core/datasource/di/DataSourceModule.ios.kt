@@ -2,6 +2,8 @@ package me.matsumo.travelog.core.datasource.di
 
 import me.matsumo.travelog.core.datasource.GeoAreaCacheDataSource
 import me.matsumo.travelog.core.datasource.GeoAreaCacheDataSourceImpl
+import me.matsumo.travelog.core.datasource.ImageCacheDataSource
+import me.matsumo.travelog.core.datasource.ImageCacheDataSourceImpl
 import me.matsumo.travelog.core.datasource.helper.PreferenceHelper
 import me.matsumo.travelog.core.datasource.helper.PreferenceHelperImpl
 import org.koin.core.module.Module
@@ -16,6 +18,12 @@ internal actual val dataSourcePlatformModule: Module = module {
 
     single<GeoAreaCacheDataSource> {
         GeoAreaCacheDataSourceImpl(
+            ioDispatcher = get(),
+        )
+    }
+
+    single<ImageCacheDataSource> {
+        ImageCacheDataSourceImpl(
             ioDispatcher = get(),
         )
     }
