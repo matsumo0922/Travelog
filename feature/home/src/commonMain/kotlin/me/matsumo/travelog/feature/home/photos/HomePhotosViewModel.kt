@@ -18,6 +18,7 @@ class HomePhotosViewModel(
 
     init {
         viewModelScope.launch {
+            // For Testing...
             areas.value = suspendRunCatching {
                 // Get ADM1 areas for Japan
                 val adm1Areas = geoAreaRepository.getAreasByLevel("JP", GeoAreaLevel.ADM1)
