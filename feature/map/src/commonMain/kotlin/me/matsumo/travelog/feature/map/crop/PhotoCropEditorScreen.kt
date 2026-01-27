@@ -95,7 +95,14 @@ private fun PhotoCropEditorScreen(
     cropTransform: CropTransformState,
     isSaving: Boolean,
     snackbarHostState: SnackbarHostState,
-    onTransformChanged: (scale: Float, offsetX: Float, offsetY: Float) -> Unit,
+    onTransformChanged: (
+        scale: Float,
+        offsetX: Float,
+        offsetY: Float,
+        viewWidth: Float,
+        viewHeight: Float,
+        viewportPadding: Float,
+    ) -> Unit,
     onSaveClicked: () -> Unit,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier,
@@ -139,14 +146,35 @@ private fun PhotoCropEditorScreen(
                     .navigationBarsPadding(),
                 onZoomIn = {
                     val newScale = (cropTransform.scale * 1.2f).coerceIn(0.5f, 5f)
-                    onTransformChanged(newScale, cropTransform.offsetX, cropTransform.offsetY)
+                    onTransformChanged(
+                        newScale,
+                        cropTransform.offsetX,
+                        cropTransform.offsetY,
+                        cropTransform.viewWidth,
+                        cropTransform.viewHeight,
+                        cropTransform.viewportPadding,
+                    )
                 },
                 onZoomOut = {
                     val newScale = (cropTransform.scale / 1.2f).coerceIn(0.5f, 5f)
-                    onTransformChanged(newScale, cropTransform.offsetX, cropTransform.offsetY)
+                    onTransformChanged(
+                        newScale,
+                        cropTransform.offsetX,
+                        cropTransform.offsetY,
+                        cropTransform.viewWidth,
+                        cropTransform.viewHeight,
+                        cropTransform.viewportPadding,
+                    )
                 },
                 onReset = {
-                    onTransformChanged(1f, 0f, 0f)
+                    onTransformChanged(
+                        1f,
+                        0f,
+                        0f,
+                        cropTransform.viewWidth,
+                        cropTransform.viewHeight,
+                        cropTransform.viewportPadding,
+                    )
                 },
             )
         }

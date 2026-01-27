@@ -20,4 +20,20 @@ data class CropData(
 
     @SerialName("offset_y")
     val offsetY: Float = 0f,
+
+    /**
+     * Editor viewport size used to compute the transform.
+     * Needed to reproduce the UI crop when generating the pre-cropped image.
+     */
+    @SerialName("view_width")
+    val viewWidth: Float = 0f,
+
+    @SerialName("view_height")
+    val viewHeight: Float = 0f,
+
+    /**
+     * Padding used when rendering the geo boundary in the editor.
+     */
+    @SerialName("viewport_padding")
+    val viewportPadding: Float = 0.1f,
 )

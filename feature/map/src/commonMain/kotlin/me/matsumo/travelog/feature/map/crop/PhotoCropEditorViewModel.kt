@@ -63,6 +63,9 @@ class PhotoCropEditorViewModel(
                         scale = initialCropData.scale,
                         offsetX = initialCropData.offsetX,
                         offsetY = initialCropData.offsetY,
+                        viewWidth = initialCropData.viewWidth,
+                        viewHeight = initialCropData.viewHeight,
+                        viewportPadding = initialCropData.viewportPadding,
                     ),
                     existingRegion = existingRegion,
                 )
@@ -80,7 +83,14 @@ class PhotoCropEditorViewModel(
 
     class TempFileNotFoundException(message: String) : Exception(message)
 
-    fun updateTransform(scale: Float, offsetX: Float, offsetY: Float) {
+    fun updateTransform(
+        scale: Float,
+        offsetX: Float,
+        offsetY: Float,
+        viewWidth: Float,
+        viewHeight: Float,
+        viewportPadding: Float,
+    ) {
         val currentState = _screenState.value
         if (currentState is ScreenState.Idle) {
             _screenState.value = ScreenState.Idle(
@@ -89,6 +99,9 @@ class PhotoCropEditorViewModel(
                         scale = scale,
                         offsetX = offsetX,
                         offsetY = offsetY,
+                        viewWidth = viewWidth,
+                        viewHeight = viewHeight,
+                        viewportPadding = viewportPadding,
                     ),
                 ),
             )
@@ -107,6 +120,9 @@ class PhotoCropEditorViewModel(
                 scale = uiState.cropTransform.scale,
                 offsetX = uiState.cropTransform.offsetX,
                 offsetY = uiState.cropTransform.offsetY,
+                viewWidth = uiState.cropTransform.viewWidth,
+                viewHeight = uiState.cropTransform.viewHeight,
+                viewportPadding = uiState.cropTransform.viewportPadding,
             )
 
             _saveState.value = SaveState.Saving
@@ -153,6 +169,9 @@ data class CropTransformState(
     val scale: Float = 1f,
     val offsetX: Float = 0f,
     val offsetY: Float = 0f,
+    val viewWidth: Float = 0f,
+    val viewHeight: Float = 0f,
+    val viewportPadding: Float = 0.1f,
 )
 
 sealed interface SaveState {

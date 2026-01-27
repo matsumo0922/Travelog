@@ -16,6 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -30,18 +32,25 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.toUri
+import io.github.aakira.napier.Napier
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onEach
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.component.GeoJsonRenderer
 import me.matsumo.travelog.feature.map.crop.CropTransformState
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+
+private const val VIEWPORT_PADDING = 0.1f
 
 /**
  * Canvas for editing crop transform with gesture support using Zoomable library.
@@ -62,12 +71,20 @@ internal fun CropEditorCanvas(
     localFilePath: String,
     geoArea: GeoArea,
     cropTransform: CropTransformState,
-    onTransformChanged: (scale: Float, offsetX: Float, offsetY: Float) -> Unit,
+    onTransformChanged: (
+        scale: Float,
+        offsetX: Float,
+        offsetY: Float,
+        viewWidth: Float,
+        viewHeight: Float,
+        viewportPadding: Float,
+    ) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalPlatformContext.current
     val zoomState = rememberZoomState(maxScale = 5f)
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
+    var imageSize by remember { mutableStateOf(IntSize.Zero) }
     var isIdle by remember { mutableStateOf(true) }
 
     val areas = remember(geoArea) {
@@ -87,7 +104,7 @@ internal fun CropEditorCanvas(
                 bounds = bounds,
                 canvasWidth = containerSize.width.toFloat(),
                 canvasHeight = containerSize.height.toFloat(),
-                padding = 0.1f,
+                padding = VIEWPORT_PADDING,
             )
         }
     }
@@ -122,10 +139,87 @@ internal fun CropEditorCanvas(
             .collect { isIdle = true }
     }
 
+    // ViewModel へトランスフォームを通知
+    LaunchedEffect(zoomState, containerSize, imageSize) {
+        snapshotFlow {
+            TransformSnapshot(
+                scale = zoomState.scale,
+                offsetX = zoomState.offsetX,
+                offsetY = zoomState.offsetY,
+                containerSize = containerSize,
+                imageSize = imageSize,
+            )
+        }
+            .filter { it.containerSize.width > 0 && it.containerSize.height > 0 && it.imageSize.width > 0 && it.imageSize.height > 0 }
+            .distinctUntilChanged()
+            .collect { snapshot ->
+                val fitScale = calculateFitScale(snapshot.containerSize, snapshot.imageSize)
+                val cropScale = calculateCropScale(snapshot.containerSize, snapshot.imageSize)
+                val cropRatio = if (fitScale > 0f) cropScale / fitScale else 1f
+                val cropScaleValue = if (cropRatio > 0f) snapshot.scale / cropRatio else snapshot.scale
+                val offsetXNormalized = snapshot.offsetX / snapshot.containerSize.width.toFloat()
+                val offsetYNormalized = snapshot.offsetY / snapshot.containerSize.height.toFloat()
+
+                if (isIdle) {
+                    Napier.d {
+                        "CropEditorCanvas transform: scale=$cropScaleValue offset=($offsetXNormalized,$offsetYNormalized) " +
+                                "view=${snapshot.containerSize.width}x${snapshot.containerSize.height}"
+                    }
+                }
+
+                onTransformChanged(
+                    cropScaleValue,
+                    offsetXNormalized,
+                    offsetYNormalized,
+                    snapshot.containerSize.width.toFloat(),
+                    snapshot.containerSize.height.toFloat(),
+                    VIEWPORT_PADDING,
+                )
+            }
+    }
+
+    // ViewModel の状態から ZoomState を同期（初期値やボタン操作用）
+    LaunchedEffect(cropTransform, containerSize, imageSize) {
+        if (containerSize.width <= 0 || containerSize.height <= 0 || imageSize.width <= 0 || imageSize.height <= 0) {
+            return@LaunchedEffect
+        }
+
+        val fitScale = calculateFitScale(containerSize, imageSize)
+        val cropScale = calculateCropScale(containerSize, imageSize)
+        val cropRatio = if (fitScale > 0f) cropScale / fitScale else 1f
+        val targetScale = (cropTransform.scale * cropRatio).coerceIn(0.9f, 5f)
+        val targetOffsetX = cropTransform.offsetX * containerSize.width
+        val targetOffsetY = cropTransform.offsetY * containerSize.height
+
+        val scaleDiff = abs(zoomState.scale - targetScale)
+        val offsetDiff = max(abs(zoomState.offsetX - targetOffsetX), abs(zoomState.offsetY - targetOffsetY))
+        if (scaleDiff < 0.001f && offsetDiff < 0.5f) {
+            return@LaunchedEffect
+        }
+
+        val centerX = containerSize.width / 2f
+        val centerY = containerSize.height / 2f
+        val pivot = Offset(
+            x = centerX - (targetOffsetX / targetScale),
+            y = centerY - (targetOffsetY / targetScale),
+        )
+        Napier.d { "CropEditorCanvas sync zoomState: scale=$targetScale offset=($targetOffsetX,$targetOffsetY) pivot=$pivot" }
+        zoomState.centerByLayoutCoordinate(
+            offset = pivot,
+            scale = targetScale,
+            animationSpec = tween(0),
+        )
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .onSizeChanged { containerSize = it },
+            .onSizeChanged { size ->
+                if (size != containerSize) {
+                    containerSize = size
+                    Napier.d { "CropEditorCanvas container size: ${size.width}x${size.height}" }
+                }
+            },
     ) {
         // 画像用のコンテナ（ズーム可能）- 最下層
         Box(
@@ -140,6 +234,18 @@ internal fun CropEditorCanvas(
                     .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
+                onSuccess = { state ->
+                    val width = state.result.image.width
+                    val height = state.result.image.height
+                    if (width > 0 && height > 0) {
+                        val newSize = IntSize(width, height)
+                        if (newSize != imageSize) {
+                            imageSize = newSize
+                            zoomState.setContentSize(Size(width.toFloat(), height.toFloat()))
+                            Napier.d { "CropEditorCanvas image size: ${width}x${height}" }
+                        }
+                    }
+                },
             )
         }
 
@@ -173,4 +279,30 @@ internal fun CropEditorCanvas(
             }
         }
     }
+}
+
+private data class TransformSnapshot(
+    val scale: Float,
+    val offsetX: Float,
+    val offsetY: Float,
+    val containerSize: IntSize,
+    val imageSize: IntSize,
+)
+
+private fun calculateFitScale(containerSize: IntSize, imageSize: IntSize): Float {
+    if (containerSize.width <= 0 || containerSize.height <= 0 || imageSize.width <= 0 || imageSize.height <= 0) {
+        return 1f
+    }
+    val scaleX = containerSize.width.toFloat() / imageSize.width.toFloat()
+    val scaleY = containerSize.height.toFloat() / imageSize.height.toFloat()
+    return min(scaleX, scaleY)
+}
+
+private fun calculateCropScale(containerSize: IntSize, imageSize: IntSize): Float {
+    if (containerSize.width <= 0 || containerSize.height <= 0 || imageSize.width <= 0 || imageSize.height <= 0) {
+        return 1f
+    }
+    val scaleX = containerSize.width.toFloat() / imageSize.width.toFloat()
+    val scaleY = containerSize.height.toFloat() / imageSize.height.toFloat()
+    return max(scaleX, scaleY)
 }
