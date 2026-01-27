@@ -4,6 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import me.matsumo.travelog.core.datasource.api.StorageApi
+import me.matsumo.travelog.core.model.db.Image
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.repository.ImageRepository
 import me.matsumo.travelog.core.repository.StorageRepository
@@ -31,21 +32,31 @@ class GetMapRegionImagesUseCase(
 
         // 各画像の署名付きURL取得を並列実行
         return coroutineScope {
-            images.mapNotNull { image ->
-                val imageId = image.id ?: return@mapNotNull null
+            images.map { image ->
                 async {
-                    val url = when (val bucketName = image.bucketName) {
-                        StorageApi.BUCKET_MAP_REGION_IMAGES -> {
-                            storageRepository.getSignedUrl(bucketName, image.storageKey)
-                        }
+                    val imageId = image.id ?: return@async null
+                    val url = getUrl(image) ?: return@async null
 
-                        else -> {
-                            storageRepository.getMapIconPublicUrl(image.storageKey)
-                        }
-                    }
                     imageId to url
                 }
-            }.awaitAll().toMap()
+            }
+                .awaitAll()
+                .filterNotNull()
+                .toMap()
+        }
+    }
+
+    private suspend fun getUrl(image: Image): String? {
+        val bucketName = image.bucketName ?: return null
+
+        return when (bucketName) {
+            StorageApi.BUCKET_MAP_REGION_IMAGES -> {
+                storageRepository.getSignedUrl(bucketName, image.storageKey)
+            }
+
+            else -> {
+                storageRepository.getMapIconPublicUrl(image.storageKey)
+            }
         }
     }
 }

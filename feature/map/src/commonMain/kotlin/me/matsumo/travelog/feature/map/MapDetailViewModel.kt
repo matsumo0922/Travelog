@@ -3,7 +3,6 @@ package me.matsumo.travelog.feature.map
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.aakira.napier.Napier
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableList
@@ -39,29 +38,21 @@ class MapDetailViewModel(
     fun fetch() {
         viewModelScope.launch {
             _screenState.value = suspendRunCatching {
-                Napier.d { "fetch start." }
-
-                // Phase 1: map と regions を並列取得
                 val (map, regions) = coroutineScope {
                     val mapDeferred = async { mapRepository.getMap(mapId) }
                     val regionsDeferred = async { mapRegionRepository.getMapRegionsByMapId(mapId) }
+
                     mapDeferred.await() to regionsDeferred.await()
                 }
-                Napier.d { "1. fetch map and regions. map=${map?.title}, regions=${regions.size}" }
 
                 val validMap = map ?: error("Map not found")
 
-                // Phase 2: geoArea と imageUrlMap を並列取得
                 val (geoArea, imageUrlMap) = coroutineScope {
-                    val geoAreaDeferred = async {
-                        geoAreaRepository.getAreaByIdWithChildren(validMap.rootGeoAreaId, true)
-                    }
-                    val imageUrlMapDeferred = async {
-                        getMapRegionImagesUseCase(regions)
-                    }
+                    val geoAreaDeferred = async { geoAreaRepository.getAreaByIdWithChildren(validMap.rootGeoAreaId) }
+                    val imageUrlMapDeferred = async { getMapRegionImagesUseCase(regions) }
+
                     geoAreaDeferred.await() to imageUrlMapDeferred.await()
                 }
-                Napier.d { "2. fetch geoArea and imageUrls. area=${geoArea?.name}, urls=${imageUrlMap.size}. end." }
 
                 val validGeoArea = geoArea ?: error("Geo area not found")
 
