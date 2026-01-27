@@ -22,14 +22,24 @@ class SessionRepository(
     }
 
     suspend fun signInWithGoogleOAuth() {
-        supabaseClient.auth.signInWith(Google)
+        supabaseClient.auth.signInWith(
+            provider = Google,
+            redirectUrl = REDIRECT_URL,
+        )
     }
 
     suspend fun signInWithAppleOAuth() {
-        supabaseClient.auth.signInWith(Apple)
+        supabaseClient.auth.signInWith(
+            provider = Apple,
+            redirectUrl = REDIRECT_URL,
+        )
     }
 
     suspend fun signOut() {
         supabaseClient.auth.signOut()
+    }
+
+    companion object {
+        const val REDIRECT_URL = "https://travelog.dev/auth/v1/callback"
     }
 }
