@@ -1,14 +1,28 @@
 @file:Suppress("UnusedPrivateMember", "FunctionName")
+@file:OptIn(ExperimentalForeignApi::class)
 
 package me.matsumo.travelog.core.usecase
 
+import kotlinx.cinterop.CValue
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.IntVar
 import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
 import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.value
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.matsumo.travelog.core.model.db.CropData
 import me.matsumo.travelog.core.model.geo.GeoArea
+import platform.CoreFoundation.CFDataRef
+import platform.CoreFoundation.CFDictionaryGetValue
+import platform.CoreFoundation.CFNumberGetValue
+import platform.CoreFoundation.CFNumberRef
+import platform.CoreFoundation.kCFNumberIntType
 import platform.CoreGraphics.CGAffineTransform
+import platform.CoreGraphics.CGAffineTransformMake
 import platform.CoreGraphics.CGContextAddPath
 import platform.CoreGraphics.CGContextClip
 import platform.CoreGraphics.CGContextConcatCTM
@@ -18,16 +32,18 @@ import platform.CoreGraphics.CGContextSetAllowsAntialiasing
 import platform.CoreGraphics.CGContextSetInterpolationQuality
 import platform.CoreGraphics.CGContextSetShouldAntialias
 import platform.CoreGraphics.CGImageCreateWithImageInRect
+import platform.CoreGraphics.CGImageGetHeight
+import platform.CoreGraphics.CGImageGetWidth
+import platform.CoreGraphics.CGPathAddLineToPoint
 import platform.CoreGraphics.CGPathCloseSubpath
 import platform.CoreGraphics.CGPathCreateMutable
-import platform.CoreGraphics.CGPathLineToPoint
 import platform.CoreGraphics.CGPathMoveToPoint
+import platform.CoreGraphics.CGPathRef
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.CGSizeMake
+import platform.Foundation.CFBridgingRetain
 import platform.Foundation.NSData
-import platform.Foundation.NSDictionary
 import platform.Foundation.NSLog
-import platform.Foundation.NSNumber
 import platform.Foundation.dataWithBytes
 import platform.ImageIO.CGImageSourceCopyPropertiesAtIndex
 import platform.ImageIO.CGImageSourceCreateImageAtIndex
@@ -62,8 +78,8 @@ actual suspend fun generateCroppedImage(
         logE("Decoded UIImage has no CGImage. Returning original bytes.")
         return@withContext imageBytes
     }
-    val bitmapWidth = cg.width.toInt()
-    val bitmapHeight = cg.height.toInt()
+    val bitmapWidth = CGImageGetWidth(cg).toInt()
+    val bitmapHeight = CGImageGetHeight(cg).toInt()
 
     val areas = geoArea.children.takeIf { it.isNotEmpty() } ?: listOf(geoArea)
     val bounds = calculateBounds(areas) ?: run {
@@ -120,7 +136,10 @@ actual suspend fun generateCroppedImage(
         outputTransform = outputTransform,
     )
 
-    val clipPath = createGeoPath(areas, bounds, outputTransform)
+    val clipPath = createGeoPath(areas, bounds, outputTransform) ?: run {
+        logE("Failed to create geo path. Returning original bytes.")
+        return@withContext imageBytes
+    }
 
     // --- Render output (outputSize x outputSize), clip -> draw image with transform ---
     val outputImage: UIImage = run {
@@ -148,7 +167,7 @@ actual suspend fun generateCroppedImage(
 
         // ここで (0,0)-(bitmapWidth,bitmapHeight) を「AndroidのBitmap座標」として描く。
         image.drawInRect(
-            platform.CoreGraphics.CGRectMake(
+            CGRectMake(
                 0.0, 0.0,
                 bitmapWidth.toDouble(), bitmapHeight.toDouble()
             )
@@ -201,15 +220,15 @@ actual suspend fun generateCroppedImage(
     }
 
     val croppedImage = if (croppedCg != null) {
-        UIImage(cgImage = croppedCg, scale = 1.0, orientation = UIImageOrientation.UIImageOrientationUp)
+        UIImage.imageWithCGImage(croppedCg, 1.0, UIImageOrientation.UIImageOrientationUp)
     } else {
         logW("Failed to crop output CGImage. Using full output.")
         outputImage
     }
 
     val finalImage =
-        if ((croppedImage.CGImage?.width?.toInt() ?: outputSize) != outputSize ||
-            (croppedImage.CGImage?.height?.toInt() ?: outputSize) != outputSize
+        if ((croppedImage.CGImage?.let { CGImageGetWidth(it).toInt() } ?: outputSize) != outputSize ||
+            (croppedImage.CGImage?.let { CGImageGetHeight(it).toInt() } ?: outputSize) != outputSize
         ) {
             scaleToSquare(croppedImage, outputSize)
         } else {
@@ -235,17 +254,31 @@ private fun logW(msg: String) = NSLog("CroppedImageGenerator W: %s", msg)
 private fun logE(msg: String) = NSLog("CroppedImageGenerator E: %s", msg)
 
 // ---- EXIF decode & normalize (match Android decodeBitmapWithExif) ----
+@Suppress("UNCHECKED_CAST")
 private fun decodeUIImageWithExif(bytes: ByteArray): UIImage? {
     val data = bytes.toNSData()
-    val source = CGImageSourceCreateWithData(data, null) ?: return null
+    val cfData = CFBridgingRetain(data) as? CFDataRef ?: return null
+    val source = CGImageSourceCreateWithData(cfData, null) ?: return null
     val cgImage = CGImageSourceCreateImageAtIndex(source, 0u, null) ?: return null
 
     val propsAny = CGImageSourceCopyPropertiesAtIndex(source, 0u, null)
-    val props = propsAny as? NSDictionary
-    val orientationValue = (props?.objectForKey(kCGImagePropertyOrientation) as? NSNumber)?.intValue ?: 1
+    val orientationValue = if (propsAny != null) {
+        memScoped {
+            val intVar = alloc<IntVar>()
+            val orientationRef = CFDictionaryGetValue(propsAny, kCGImagePropertyOrientation)
+            @Suppress("UNCHECKED_CAST")
+            if (orientationRef != null && CFNumberGetValue(orientationRef as CFNumberRef, kCFNumberIntType, intVar.ptr)) {
+                intVar.value
+            } else {
+                1
+            }
+        }
+    } else {
+        1
+    }
 
     val uiOrientation = exifToUIImageOrientation(orientationValue)
-    val withOrientation = UIImage(cgImage = cgImage, scale = 1.0, orientation = uiOrientation)
+    val withOrientation = UIImage.imageWithCGImage(cgImage, 1.0, uiOrientation)
 
     // UIKit の orientation を「ピクセルに焼き込んで .up」に正規化（Androidのmatrix適用に合わせる）
     return normalizeOrientation(withOrientation)
@@ -273,8 +306,8 @@ private fun normalizeOrientation(image: UIImage): UIImage {
                 image.imageOrientation == UIImageOrientation.UIImageOrientationLeftMirrored ||
                 image.imageOrientation == UIImageOrientation.UIImageOrientationRightMirrored
 
-    val w = cg.width.toInt()
-    val h = cg.height.toInt()
+    val w = CGImageGetWidth(cg).toInt()
+    val h = CGImageGetHeight(cg).toInt()
     val outW = if (isSwapWH) h else w
     val outH = if (isSwapWH) w else h
 
@@ -369,8 +402,8 @@ private fun createGeoPath(
     areas: List<GeoArea>,
     bounds: Bounds,
     transform: ViewportTransform,
-): platform.CoreGraphics.CGMutablePathRef {
-    val path = CGPathCreateMutable()
+): CGPathRef? {
+    val path = CGPathCreateMutable() ?: return null
     val maxLatMerc = latToMercator(bounds.maxLat)
 
     areas.forEach { area ->
@@ -386,7 +419,7 @@ private fun createGeoPath(
                 ring.drop(1).forEach { coordinate ->
                     val x = transform.offsetX + ((coordinate.lon - bounds.minLon) * transform.scale).toFloat()
                     val y = transform.offsetY + ((maxLatMerc - latToMercator(coordinate.lat)) * transform.scale).toFloat()
-                    CGPathLineToPoint(path, null, x.toDouble(), y.toDouble())
+                    CGPathAddLineToPoint(path, null, x.toDouble(), y.toDouble())
                 }
                 CGPathCloseSubpath(path)
             }
@@ -435,38 +468,45 @@ private class AffineM(
         tx = 0f; ty = 0f
     }
 
-    // M = M * T(dx,dy)
+    /**
+     * Android Matrix の postTranslate と同じ: M = M * T(dx,dy)
+     */
     fun postTranslate(dx: Float, dy: Float) {
-        tx += dx
-        ty += dy
+        // tx' = a*dx + c*dy + tx
+        // ty' = b*dx + d*dy + ty
+        tx += a * dx + c * dy
+        ty += b * dx + d * dy
     }
 
-    // M = M * S(sx,sy)
+    /**
+     * Android Matrix の postScale と同じ: M = M * S(sx,sy)
+     * 注意: translation はスケールしない
+     */
     fun postScale(sx: Float, sy: Float) {
         a *= sx
-        b *= sy
-        c *= sx
+        b *= sx
+        c *= sy
         d *= sy
-        tx *= sx
-        ty *= sy
+        // tx, ty はそのまま
     }
 
     fun postScalePivot(sx: Float, sy: Float, px: Float, py: Float) {
+        // M = M * T(px,py) * S(sx,sy) * T(-px,-py)
         postTranslate(px, py)
         postScale(sx, sy)
         postTranslate(-px, -py)
     }
 
-    fun toCGAffineTransform(): CGAffineTransform =
-        CGAffineTransform(
-            a = a.toDouble(),
-            b = b.toDouble(),
-            c = c.toDouble(),
-            d = d.toDouble(),
-            tx = tx.toDouble(),
-            ty = ty.toDouble(),
-        )
+    fun toCGAffineTransform(): CValue<CGAffineTransform> = CGAffineTransformMake(
+        a.toDouble(),
+        b.toDouble(),
+        c.toDouble(),
+        d.toDouble(),
+        tx.toDouble(),
+        ty.toDouble(),
+    )
 }
+
 
 private fun buildImageTransform(
     bitmapWidth: Int,
@@ -480,7 +520,7 @@ private fun buildImageTransform(
     scaleRatio: Float,
     uiTransform: ViewportTransform,
     outputTransform: ViewportTransform,
-): CGAffineTransform {
+): CValue<CGAffineTransform> {
     val m = AffineM()
 
     val fitOffsetX = (viewWidth - bitmapWidth * fitScale) / 2f
