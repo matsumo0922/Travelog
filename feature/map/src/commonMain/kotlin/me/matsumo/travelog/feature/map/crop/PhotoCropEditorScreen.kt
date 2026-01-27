@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
@@ -134,7 +135,8 @@ private fun PhotoCropEditorScreen(
             CropEditorControls(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp),
+                    .padding(bottom = 24.dp)
+                    .navigationBarsPadding(),
                 onZoomIn = {
                     val newScale = (cropTransform.scale * 1.2f).coerceIn(0.5f, 5f)
                     onTransformChanged(newScale, cropTransform.offsetX, cropTransform.offsetY)

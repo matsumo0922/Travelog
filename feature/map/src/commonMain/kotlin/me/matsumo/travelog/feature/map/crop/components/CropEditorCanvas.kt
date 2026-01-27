@@ -157,7 +157,7 @@ internal fun CropEditorCanvas(
             }
     }
 
-    // ジェスチャー状態の検出
+    // ジェスチャー状態の検出（即座に反応）
     LaunchedEffect(zoomState) {
         snapshotFlow {
             Triple(zoomState.scale, zoomState.offsetX, zoomState.offsetY)
@@ -166,7 +166,7 @@ internal fun CropEditorCanvas(
             .distinctUntilChanged()
             .conflate() // 中間値を破棄
             .onEach { isIdle = false }
-            .debounce(300)
+            .debounce(50) // 動作停止後すぐに idle に戻す
             .collect { isIdle = true }
     }
 
