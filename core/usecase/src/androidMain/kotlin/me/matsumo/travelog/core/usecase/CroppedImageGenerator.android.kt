@@ -7,6 +7,7 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.util.Log
+import androidx.core.graphics.scale
 import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -96,8 +97,41 @@ actual suspend fun generateCroppedImage(
     canvas.drawBitmap(bitmap, matrix, paint)
     canvas.restore()
 
+    val maxLatMerc = latToMercator(bounds.maxLat)
+    val minLatMerc = latToMercator(bounds.minLat)
+    val contentWidth = (bounds.lonRange * outputTransform.scale).toFloat()
+    val contentHeight = ((maxLatMerc - minLatMerc) * outputTransform.scale).toFloat()
+    val contentLeft = outputTransform.offsetX
+    val contentTop = outputTransform.offsetY
+
+    val cropLeft = contentLeft.toInt().coerceIn(0, outputSize - 1)
+    val cropTop = contentTop.toInt().coerceIn(0, outputSize - 1)
+    val cropRight = (contentLeft + contentWidth).toInt().coerceIn(cropLeft + 1, outputSize)
+    val cropBottom = (contentTop + contentHeight).toInt().coerceIn(cropTop + 1, outputSize)
+    val cropWidth = cropRight - cropLeft
+    val cropHeight = cropBottom - cropTop
+
+    Log.d(
+        TAG,
+        "Output content rect: left=$cropLeft top=$cropTop width=$cropWidth height=$cropHeight " +
+                "outputSize=$outputSize",
+    )
+
+    val croppedBitmap = try {
+        Bitmap.createBitmap(outputBitmap, cropLeft, cropTop, cropWidth, cropHeight)
+    } catch (e: Exception) {
+        Log.w(TAG, "Failed to crop output bitmap: ${e.message}")
+        outputBitmap
+    }
+
+    val finalBitmap = if (croppedBitmap.width != outputSize || croppedBitmap.height != outputSize) {
+        croppedBitmap.scale(outputSize, outputSize)
+    } else {
+        croppedBitmap
+    }
+
     val outStream = ByteArrayOutputStream()
-    outputBitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, outStream)
+    finalBitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, outStream)
     outStream.toByteArray()
 }
 
