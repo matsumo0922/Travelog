@@ -128,7 +128,7 @@ private fun PhotoCropEditorScreen(
                 modifier = Modifier.fillMaxSize(),
                 localFilePath = localFilePath,
                 geoArea = geoArea,
-                initialTransform = cropTransform,
+                cropTransform = cropTransform,
                 onTransformChanged = onTransformChanged,
             )
 

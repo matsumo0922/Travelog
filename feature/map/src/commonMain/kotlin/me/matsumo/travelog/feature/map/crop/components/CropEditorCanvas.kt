@@ -54,13 +54,18 @@ import net.engawapg.lib.zoomable.zoomable
  * - Pinch to zoom smoothly
  * - Shows polygon outline at all times (fixed position)
  * - Shows semi-transparent mask outside polygon when idle (fixed position)
+ *
+ * Coordinate system:
+ * - Zoomable operates with ContentScale.Fit
+ * - DB stores Crop-based values
+ * - cropRatio = cropBase / fitBase converts between them
  */
 @OptIn(FlowPreview::class)
 @Composable
 internal fun CropEditorCanvas(
     localFilePath: String,
     geoArea: GeoArea,
-    initialTransform: CropTransformState,
+    cropTransform: CropTransformState,
     onTransformChanged: (scale: Float, offsetX: Float, offsetY: Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -69,7 +74,7 @@ internal fun CropEditorCanvas(
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
     var contentSize by remember { mutableStateOf(Size.Zero) }
     var isIdle by remember { mutableStateOf(true) }
-    var isInitialized by remember { mutableStateOf(false) }
+    var applyingExternal by remember { mutableStateOf(false) }
 
     val areas = remember(geoArea) {
         geoArea.children.takeIf { it.isNotEmpty() }?.toImmutableList()
@@ -109,51 +114,64 @@ internal fun CropEditorCanvas(
         }
     }
 
-    // Initialize ZoomState from initialTransform when sizes are ready
-    LaunchedEffect(containerSize, contentSize, initialTransform) {
-        if (containerSize.width == 0 || contentSize.width == 0f || isInitialized) return@LaunchedEffect
+    // Set content size to ZoomState (required for proper zoom behavior)
+    LaunchedEffect(contentSize) {
+        if (contentSize.width > 0f && contentSize.height > 0f) {
+            zoomState.setContentSize(contentSize)
+        }
+    }
+
+    // Sync cropTransform -> zoomState when external changes occur (e.g., onZoomIn/Out/Reset)
+    LaunchedEffect(containerSize, contentSize, cropTransform) {
+        if (containerSize.width == 0 || contentSize.width == 0f) return@LaunchedEffect
 
         val layoutW = containerSize.width.toFloat()
         val layoutH = containerSize.height.toFloat()
-        val contentW = contentSize.width
-        val contentH = contentSize.height
+        val fitBase = minOf(layoutW / contentSize.width, layoutH / contentSize.height)
+        val cropBase = maxOf(layoutW / contentSize.width, layoutH / contentSize.height)
+        val cropRatio = cropBase / fitBase
 
-        // ContentScale.Crop の baseScale
-        val baseScale = maxOf(layoutW / contentW, layoutH / contentH)
+        // Convert Crop-based scale to Fit-based zoomScale
+        val zoomScale = cropTransform.scale * cropRatio
 
-        // CropTransformState → コンテンツ座標に変換
-        // offsetX > 0 → コンテンツが右に動く → コンテンツの左側を中心にすべき
-        val offsetPxX = initialTransform.offsetX * layoutW
-        val offsetPxY = initialTransform.offsetY * layoutH
-        val targetContentX = contentW / 2 - offsetPxX / (initialTransform.scale * baseScale)
-        val targetContentY = contentH / 2 - offsetPxY / (initialTransform.scale * baseScale)
+        // Convert normalized offset to content coordinates (no sign inversion)
+        val translationX = cropTransform.offsetX * layoutW
+        val translationY = cropTransform.offsetY * layoutH
+        val targetContentX = contentSize.width / 2 - translationX / (zoomScale * fitBase)
+        val targetContentY = contentSize.height / 2 - translationY / (zoomScale * fitBase)
 
+        applyingExternal = true
         zoomState.centerByContentCoordinate(
             offset = Offset(targetContentX, targetContentY),
-            scale = initialTransform.scale,
+            scale = zoomScale,
             animationSpec = snap(),
         )
-        isInitialized = true
+        applyingExternal = false
     }
 
-    // ZoomState → CropTransformState 変換（間引き付き）
+    // ZoomState → CropTransformState conversion (throttled)
     LaunchedEffect(zoomState, containerSize, contentSize) {
         if (containerSize.width == 0 || contentSize.width == 0f) return@LaunchedEffect
 
         val layoutW = containerSize.width.toFloat()
         val layoutH = containerSize.height.toFloat()
-        val baseScale = maxOf(layoutW / contentSize.width, layoutH / contentSize.height)
+        val fitBase = minOf(layoutW / contentSize.width, layoutH / contentSize.height)
+        val cropBase = maxOf(layoutW / contentSize.width, layoutH / contentSize.height)
+        val cropRatio = cropBase / fitBase
 
         snapshotFlow {
             Triple(zoomState.scale, zoomState.offsetX, zoomState.offsetY)
         }
             .distinctUntilChanged()
-            .sample(32) // 約30fps で間引き
+            .sample(32) // ~30fps throttling
             .collect { (scale, offsetX, offsetY) ->
-                // ZoomState の offset → 正規化値に変換
-                val normalizedOffsetX = -offsetX * scale * baseScale / layoutW
-                val normalizedOffsetY = -offsetY * scale * baseScale / layoutH
-                onTransformChanged(scale, normalizedOffsetX, normalizedOffsetY)
+                if (applyingExternal) return@collect
+
+                // Convert Fit-based zoomScale to Crop-based scale (no sign inversion)
+                val cropScale = scale / cropRatio
+                val cropOffsetX = offsetX / layoutW
+                val cropOffsetY = offsetY / layoutH
+                onTransformChanged(cropScale, cropOffsetX, cropOffsetY)
             }
     }
 
