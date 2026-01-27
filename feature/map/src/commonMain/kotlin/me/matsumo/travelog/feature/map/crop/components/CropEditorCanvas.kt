@@ -1,7 +1,6 @@
 package me.matsumo.travelog.feature.map.crop.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -17,8 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -40,7 +37,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.sample
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.component.GeoJsonRenderer
 import me.matsumo.travelog.feature.map.crop.CropTransformState
@@ -72,9 +68,7 @@ internal fun CropEditorCanvas(
     val context = LocalPlatformContext.current
     val zoomState = rememberZoomState(maxScale = 5f)
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
-    var contentSize by remember { mutableStateOf(Size.Zero) }
     var isIdle by remember { mutableStateOf(true) }
-    var applyingExternal by remember { mutableStateOf(false) }
 
     val areas = remember(geoArea) {
         geoArea.children.takeIf { it.isNotEmpty() }?.toImmutableList()
@@ -114,66 +108,6 @@ internal fun CropEditorCanvas(
         }
     }
 
-    // Set content size to ZoomState (required for proper zoom behavior)
-    LaunchedEffect(contentSize) {
-        if (contentSize.width > 0f && contentSize.height > 0f) {
-            zoomState.setContentSize(contentSize)
-        }
-    }
-
-    // Sync cropTransform -> zoomState when external changes occur (e.g., onZoomIn/Out/Reset)
-    LaunchedEffect(containerSize, contentSize, cropTransform) {
-        if (containerSize.width == 0 || contentSize.width == 0f) return@LaunchedEffect
-
-        val layoutW = containerSize.width.toFloat()
-        val layoutH = containerSize.height.toFloat()
-        val fitBase = minOf(layoutW / contentSize.width, layoutH / contentSize.height)
-        val cropBase = maxOf(layoutW / contentSize.width, layoutH / contentSize.height)
-        val cropRatio = cropBase / fitBase
-
-        // Convert Crop-based scale to Fit-based zoomScale
-        val zoomScale = cropTransform.scale * cropRatio
-
-        // Convert normalized offset to content coordinates (no sign inversion)
-        val translationX = cropTransform.offsetX * layoutW
-        val translationY = cropTransform.offsetY * layoutH
-        val targetContentX = contentSize.width / 2 - translationX / (zoomScale * fitBase)
-        val targetContentY = contentSize.height / 2 - translationY / (zoomScale * fitBase)
-
-        applyingExternal = true
-        zoomState.centerByContentCoordinate(
-            offset = Offset(targetContentX, targetContentY),
-            scale = zoomScale,
-            animationSpec = snap(),
-        )
-        applyingExternal = false
-    }
-
-    // ZoomState → CropTransformState conversion (throttled)
-    LaunchedEffect(zoomState, containerSize, contentSize) {
-        if (containerSize.width == 0 || contentSize.width == 0f) return@LaunchedEffect
-
-        val layoutW = containerSize.width.toFloat()
-        val layoutH = containerSize.height.toFloat()
-        val fitBase = minOf(layoutW / contentSize.width, layoutH / contentSize.height)
-        val cropBase = maxOf(layoutW / contentSize.width, layoutH / contentSize.height)
-        val cropRatio = cropBase / fitBase
-
-        snapshotFlow {
-            Triple(zoomState.scale, zoomState.offsetX, zoomState.offsetY)
-        }
-            .distinctUntilChanged()
-            .sample(32) // ~30fps throttling
-            .collect { (scale, offsetX, offsetY) ->
-                if (applyingExternal) return@collect
-
-                // Convert Fit-based zoomScale to Crop-based scale (no sign inversion)
-                val cropScale = scale / cropRatio
-                val cropOffsetX = offsetX / layoutW
-                val cropOffsetY = offsetY / layoutH
-                onTransformChanged(cropScale, cropOffsetX, cropOffsetY)
-            }
-    }
 
     // ジェスチャー状態の検出（即座に反応）
     LaunchedEffect(zoomState) {
@@ -206,12 +140,6 @@ internal fun CropEditorCanvas(
                     .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
-                onSuccess = { state ->
-                    contentSize = Size(
-                        state.painter.intrinsicSize.width,
-                        state.painter.intrinsicSize.height,
-                    )
-                },
             )
         }
 
