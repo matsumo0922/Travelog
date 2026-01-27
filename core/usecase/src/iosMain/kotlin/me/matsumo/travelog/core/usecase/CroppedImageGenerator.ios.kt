@@ -11,6 +11,8 @@ import kotlinx.coroutines.withContext
 import me.matsumo.travelog.core.model.db.CropData
 import me.matsumo.travelog.core.model.geo.GeoArea
 import platform.CoreGraphics.CGAffineTransformMake
+import platform.CoreGraphics.CGAffineTransformScale
+import platform.CoreGraphics.CGAffineTransformTranslate
 import platform.CoreGraphics.CGContextAddPath
 import platform.CoreGraphics.CGContextClip
 import platform.CoreGraphics.CGContextConcatCTM
@@ -34,6 +36,7 @@ import platform.UIKit.UIGraphicsGetCurrentContext
 import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
+import platform.UIKit.UIScreen
 import platform.posix.memcpy
 import kotlin.math.PI
 import kotlin.math.max
@@ -71,8 +74,19 @@ actual suspend fun generateCroppedImage(
         return@withContext imageBytes
     }
 
-    val viewWidth = if (cropData.viewWidth > 0f) cropData.viewWidth.toDouble() else outputSize.toDouble()
-    val viewHeight = if (cropData.viewHeight > 0f) cropData.viewHeight.toDouble() else outputSize.toDouble()
+    val rawViewWidth = if (cropData.viewWidth > 0f) cropData.viewWidth.toDouble() else outputSize.toDouble()
+    val rawViewHeight = if (cropData.viewHeight > 0f) cropData.viewHeight.toDouble() else outputSize.toDouble()
+    val screenScale = UIScreen.mainScreen.scale
+    val (screenWidthPoints, screenHeightPoints) = UIScreen.mainScreen.bounds.useContents {
+        size.width to size.height
+    }
+    val screenWidthPixels = screenWidthPoints * screenScale
+    val screenHeightPixels = screenHeightPoints * screenScale
+    val isPointUnitWidth = kotlin.math.abs(rawViewWidth - screenWidthPoints) < kotlin.math.abs(rawViewWidth - screenWidthPixels)
+    val isPointUnitHeight = kotlin.math.abs(rawViewHeight - screenHeightPoints) < kotlin.math.abs(rawViewHeight - screenHeightPixels)
+    val isPointUnit = isPointUnitWidth || isPointUnitHeight
+    val viewWidth = if (isPointUnit) rawViewWidth * screenScale else rawViewWidth
+    val viewHeight = if (isPointUnit) rawViewHeight * screenScale else rawViewHeight
     val uiPadding = if (cropData.viewportPadding > 0f) cropData.viewportPadding.toDouble() else DEFAULT_UI_PADDING
 
     if (cropData.viewWidth <= 0f || cropData.viewHeight <= 0f) {
@@ -101,6 +115,10 @@ actual suspend fun generateCroppedImage(
 
     NSLog(
         "Crop params: image=${imageWidth}x${imageHeight}, view=${viewWidth}x${viewHeight}, " +
+                "rawView=${rawViewWidth}x${rawViewHeight}, screenScale=$screenScale, " +
+                "screen=${screenWidthPoints}x${screenHeightPoints}pt " +
+                "(${screenWidthPixels}x${screenHeightPixels}px), " +
+                "isPointUnit=$isPointUnit, " +
                 "fitScale=$fitScale, cropScale=$cropScale, zoomScaleFit=$zoomScaleFit, " +
                 "offsetFit=($offsetXFit,$offsetYFit), uiTransform=$uiTransform, " +
                 "outputTransform=$outputTransform, scaleRatio=$scaleRatio",
@@ -119,7 +137,7 @@ actual suspend fun generateCroppedImage(
     CGContextAddPath(context, clipPath)
     CGContextClip(context)
 
-    val matrix = buildImageMatrix(
+    val matrix = buildImageTransform(
         bitmapWidth = imageWidth.toDouble(),
         bitmapHeight = imageHeight.toDouble(),
         viewWidth = viewWidth,
@@ -133,7 +151,7 @@ actual suspend fun generateCroppedImage(
         outputTransform = outputTransform,
     )
 
-    CGContextConcatCTM(context, matrix.toCGAffineTransform())
+    CGContextConcatCTM(context, matrix)
     normalizedImage.drawInRect(CGRectMake(0.0, 0.0, imageWidth.toDouble(), imageHeight.toDouble()))
     CGContextRestoreGState(context)
 
@@ -212,11 +230,11 @@ private fun NSData.toByteArray(): ByteArray {
 }
 
 private fun normalizeImage(image: UIImage): UIImage? {
-    val (width, height) = image.size.useContents {
-        width to height
-    }
+    val cgImage = image.CGImage ?: return image
+    val width = CGImageGetWidth(cgImage).toDouble()
+    val height = CGImageGetHeight(cgImage).toDouble()
     if (width <= 0.0 || height <= 0.0) return image
-    UIGraphicsBeginImageContextWithOptions(CGSizeMake(width, height), false, image.scale)
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(width, height), false, 1.0)
     image.drawInRect(CGRectMake(0.0, 0.0, width, height))
     val normalized = UIGraphicsGetImageFromCurrentImageContext()
     UIGraphicsEndImageContext()
@@ -238,44 +256,6 @@ private data class ViewportTransform(
     val offsetX: Double,
     val offsetY: Double,
 )
-
-private data class AffineMatrix(
-    var a: Double,
-    var b: Double,
-    var c: Double,
-    var d: Double,
-    var tx: Double,
-    var ty: Double,
-) {
-    fun setScale(sx: Double, sy: Double) {
-        a = sx
-        d = sy
-        b = 0.0
-        c = 0.0
-        tx = 0.0
-        ty = 0.0
-    }
-
-    fun postTranslate(dx: Double, dy: Double) {
-        tx += a * dx + c * dy
-        ty += b * dx + d * dy
-    }
-
-    fun postScale(sx: Double, sy: Double) {
-        a *= sx
-        b *= sx
-        c *= sy
-        d *= sy
-    }
-
-    fun postScale(sx: Double, sy: Double, px: Double, py: Double) {
-        postTranslate(px, py)
-        postScale(sx, sy)
-        postTranslate(-px, -py)
-    }
-
-    fun toCGAffineTransform() = CGAffineTransformMake(a, b, c, d, tx, ty)
-}
 
 private fun calculateBounds(areas: List<GeoArea>): Bounds? {
     var minLon = Double.MAX_VALUE
@@ -389,7 +369,7 @@ private fun calculateCropScale(
     return max(scaleX, scaleY)
 }
 
-private fun buildImageMatrix(
+private fun buildImageTransform(
     bitmapWidth: Double,
     bitmapHeight: Double,
     viewWidth: Double,
@@ -401,24 +381,26 @@ private fun buildImageMatrix(
     scaleRatio: Double,
     uiTransform: ViewportTransform,
     outputTransform: ViewportTransform,
-): AffineMatrix {
-    val matrix = AffineMatrix(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+): kotlinx.cinterop.CValue<platform.CoreGraphics.CGAffineTransform> {
+    var transform = CGAffineTransformMake(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
 
     val fitOffsetX = (viewWidth - bitmapWidth * fitScale) / 2.0
     val fitOffsetY = (viewHeight - bitmapHeight * fitScale) / 2.0
     val centerX = viewWidth / 2.0
     val centerY = viewHeight / 2.0
 
-    matrix.setScale(fitScale, fitScale)
-    matrix.postTranslate(fitOffsetX, fitOffsetY)
-    matrix.postScale(zoomScaleFit, zoomScaleFit, centerX, centerY)
-    matrix.postTranslate(offsetXFit, offsetYFit)
-
-    matrix.postScale(scaleRatio, scaleRatio)
-    matrix.postTranslate(
+    transform = CGAffineTransformScale(transform, fitScale, fitScale)
+    transform = CGAffineTransformTranslate(transform, fitOffsetX, fitOffsetY)
+    transform = CGAffineTransformTranslate(transform, centerX, centerY)
+    transform = CGAffineTransformScale(transform, zoomScaleFit, zoomScaleFit)
+    transform = CGAffineTransformTranslate(transform, -centerX, -centerY)
+    transform = CGAffineTransformTranslate(transform, offsetXFit, offsetYFit)
+    transform = CGAffineTransformScale(transform, scaleRatio, scaleRatio)
+    transform = CGAffineTransformTranslate(
+        transform,
         outputTransform.offsetX - uiTransform.offsetX * scaleRatio,
         outputTransform.offsetY - uiTransform.offsetY * scaleRatio,
     )
 
-    return matrix
+    return transform
 }
