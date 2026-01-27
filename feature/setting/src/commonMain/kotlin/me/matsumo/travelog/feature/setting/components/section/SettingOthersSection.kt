@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import me.matsumo.travelog.core.common.formatCacheSize
 import me.matsumo.travelog.core.model.AppSetting
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.setting_other
@@ -95,15 +96,5 @@ internal fun SettingOthersSection(
                 isShowDeveloperModeDialog = false
             },
         )
-    }
-}
-
-private fun formatCacheSize(bytes: Long?): String {
-    if (bytes == null) return "..."
-    return when {
-        bytes < 1024 -> "$bytes B"
-        bytes < 1024 * 1024 -> "%.1f KB".format(bytes / 1024.0)
-        bytes < 1024 * 1024 * 1024 -> "%.1f MB".format(bytes / (1024.0 * 1024.0))
-        else -> "%.1f GB".format(bytes / (1024.0 * 1024.0 * 1024.0))
     }
 }

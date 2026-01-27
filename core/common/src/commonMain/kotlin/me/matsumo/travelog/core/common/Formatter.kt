@@ -10,3 +10,5 @@ val formatter = Json {
     encodeDefaults = true
     explicitNulls = false
 }
+
+expect fun formatCacheSize(bytes: Long?): String
