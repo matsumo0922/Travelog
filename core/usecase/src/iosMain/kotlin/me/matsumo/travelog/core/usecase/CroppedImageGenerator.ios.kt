@@ -2,6 +2,7 @@
 
 package me.matsumo.travelog.core.usecase
 
+import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.useContents
@@ -344,7 +345,7 @@ private fun buildImageMatrix(
     scaleRatio: Float,
     uiTransform: ViewportTransform,
     outputTransform: ViewportTransform,
-): CGAffineTransform {
+): CValue<CGAffineTransform> {
     // Android: matrix.post... means Apply After.
     // M' = M * T.
     // iOS CGAffineTransformConcat(t1, t2) -> t1 * t2.
