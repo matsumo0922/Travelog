@@ -52,8 +52,8 @@ import net.engawapg.lib.zoomable.zoomable
  *
  * - Drag to adjust position with inertia
  * - Pinch to zoom smoothly
- * - Shows polygon outline at all times
- * - Shows semi-transparent mask outside polygon when idle
+ * - Shows polygon outline at all times (fixed position)
+ * - Shows semi-transparent mask outside polygon when idle (fixed position)
  */
 @OptIn(FlowPreview::class)
 @Composable
@@ -173,31 +173,37 @@ internal fun CropEditorCanvas(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .onSizeChanged { containerSize = it }
-            .zoomable(zoomState),
+            .onSizeChanged { containerSize = it },
     ) {
-        AsyncImage(
-            modifier = Modifier.fillMaxSize(),
-            model = ImageRequest.Builder(context)
-                .data("file://$localFilePath".toUri())
-                .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            onSuccess = { state ->
-                contentSize = Size(
-                    state.painter.intrinsicSize.width,
-                    state.painter.intrinsicSize.height,
-                )
-            },
-        )
+        // 画像用のコンテナ（ズーム可能）- 最下層
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .zoomable(zoomState),
+        ) {
+            AsyncImage(
+                modifier = Modifier.fillMaxSize(),
+                model = ImageRequest.Builder(context)
+                    .data("file://$localFilePath".toUri())
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                onSuccess = { state ->
+                    contentSize = Size(
+                        state.painter.intrinsicSize.width,
+                        state.painter.intrinsicSize.height,
+                    )
+                },
+            )
+        }
 
-        // マスクレイヤー（アイドル時のみ表示）
+        // マスクレイヤー（固定位置、アイドル時のみ表示）
         AnimatedVisibility(
             visible = isIdle,
             enter = fadeIn(animationSpec = tween(200)),
             exit = fadeOut(animationSpec = tween(100)),
         ) {
-            Canvas(modifier = Modifier.matchParentSize()) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
                 regionClipPath?.let { path ->
                     clipPath(path, clipOp = ClipOp.Difference) {
                         drawRect(Color.Black.copy(alpha = 0.6f))
@@ -206,8 +212,8 @@ internal fun CropEditorCanvas(
             }
         }
 
-        // 輪郭線レイヤー（常に表示）
-        Canvas(modifier = Modifier.matchParentSize()) {
+        // 輪郭線レイヤー（固定位置、常に表示）
+        Canvas(modifier = Modifier.fillMaxSize()) {
             regionClipPath?.let { path ->
                 drawPath(
                     path = path,
