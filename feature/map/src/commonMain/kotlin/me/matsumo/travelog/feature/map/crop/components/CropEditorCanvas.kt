@@ -258,10 +258,16 @@ internal fun CropEditorCanvas(
                                 // Calculate new scale
                                 val newScale = (scale * zoomChange).coerceIn(MIN_SCALE, MAX_SCALE)
 
-                                // Calculate new offset with zoom pivot
+                                // Convert centroid from container coordinates to center-relative coordinates
+                                // (graphicsLayer uses center as origin for translation)
+                                val pivotX = centroid.x - containerSize.width / 2f
+                                val pivotY = centroid.y - containerSize.height / 2f
+
+                                // Calculate new offset with zoom pivot at pinch center
+                                // This formula keeps the point under the pinch center fixed during zoom
                                 val effectiveZoom = newScale / scale
-                                val newOffsetX = (offsetX - centroid.x) * effectiveZoom + centroid.x + panChange.x
-                                val newOffsetY = (offsetY - centroid.y) * effectiveZoom + centroid.y + panChange.y
+                                val newOffsetX = offsetX * effectiveZoom + pivotX * (1 - effectiveZoom) + panChange.x
+                                val newOffsetY = offsetY * effectiveZoom + pivotY * (1 - effectiveZoom) + panChange.y
 
                                 // Calculate extended bounds
                                 val fitScale = calculateFitScale(containerSize, imageSize)
