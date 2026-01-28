@@ -5,19 +5,25 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -25,6 +31,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
@@ -44,8 +53,6 @@ import kotlinx.coroutines.flow.onEach
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.component.GeoJsonRenderer
 import me.matsumo.travelog.feature.map.crop.CropTransformState
-import net.engawapg.lib.zoomable.rememberZoomState
-import net.engawapg.lib.zoomable.zoomable
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -53,15 +60,25 @@ import kotlin.math.min
 private const val VIEWPORT_PADDING = 0.1f
 
 /**
- * Canvas for editing crop transform with gesture support using Zoomable library.
+ * Multiplier for extending the panning range beyond the actual image bounds.
+ * A value of 2.0 means the user can pan the image up to 100% of the image size
+ * in any direction beyond its fitted position.
+ */
+private const val CONTENT_SIZE_MULTIPLIER = 2.0f
+
+private const val MIN_SCALE = 0.9f
+private const val MAX_SCALE = 5f
+
+/**
+ * Canvas for editing crop transform with gesture support.
  *
- * - Drag to adjust position with inertia
+ * - Drag to adjust position
  * - Pinch to zoom smoothly
  * - Shows polygon outline at all times (fixed position)
  * - Shows semi-transparent mask outside polygon when idle (fixed position)
  *
  * Coordinate system:
- * - Zoomable operates with ContentScale.Fit
+ * - Transform operates with ContentScale.Fit basis
  * - DB stores Crop-based values
  * - cropRatio = cropBase / fitBase converts between them
  */
@@ -82,7 +99,12 @@ internal fun CropEditorCanvas(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalPlatformContext.current
-    val zoomState = rememberZoomState(maxScale = 5f)
+
+    // Transform state (managed locally)
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
+
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
     var imageSize by remember { mutableStateOf(IntSize.Zero) }
     var isIdle by remember { mutableStateOf(true) }
@@ -125,27 +147,26 @@ internal fun CropEditorCanvas(
         }
     }
 
-
     // ジェスチャー状態の検出（即座に反応）
-    LaunchedEffect(zoomState) {
+    LaunchedEffect(Unit) {
         snapshotFlow {
-            Triple(zoomState.scale, zoomState.offsetX, zoomState.offsetY)
+            Triple(scale, offsetX, offsetY)
         }
-            .drop(1) // 初回値をスキップ
+            .drop(1)
             .distinctUntilChanged()
-            .conflate() // 中間値を破棄
+            .conflate()
             .onEach { isIdle = false }
-            .debounce(50) // 動作停止後すぐに idle に戻す
+            .debounce(50)
             .collect { isIdle = true }
     }
 
     // ViewModel へトランスフォームを通知
-    LaunchedEffect(zoomState, containerSize, imageSize) {
+    LaunchedEffect(Unit) {
         snapshotFlow {
             TransformSnapshot(
-                scale = zoomState.scale,
-                offsetX = zoomState.offsetX,
-                offsetY = zoomState.offsetY,
+                scale = scale,
+                offsetX = offsetX,
+                offsetY = offsetY,
                 containerSize = containerSize,
                 imageSize = imageSize,
             )
@@ -178,7 +199,7 @@ internal fun CropEditorCanvas(
             }
     }
 
-    // ViewModel の状態から ZoomState を同期（初期値やボタン操作用）
+    // ViewModel の状態から Transform を同期（初期値やボタン操作用）
     LaunchedEffect(cropTransform, containerSize, imageSize) {
         if (containerSize.width <= 0 || containerSize.height <= 0 || imageSize.width <= 0 || imageSize.height <= 0) {
             return@LaunchedEffect
@@ -187,28 +208,20 @@ internal fun CropEditorCanvas(
         val fitScale = calculateFitScale(containerSize, imageSize)
         val cropScale = calculateCropScale(containerSize, imageSize)
         val cropRatio = if (fitScale > 0f) cropScale / fitScale else 1f
-        val targetScale = (cropTransform.scale * cropRatio).coerceIn(0.9f, 5f)
+        val targetScale = (cropTransform.scale * cropRatio).coerceIn(MIN_SCALE, MAX_SCALE)
         val targetOffsetX = cropTransform.offsetX * containerSize.width
         val targetOffsetY = cropTransform.offsetY * containerSize.height
 
-        val scaleDiff = abs(zoomState.scale - targetScale)
-        val offsetDiff = max(abs(zoomState.offsetX - targetOffsetX), abs(zoomState.offsetY - targetOffsetY))
+        val scaleDiff = abs(scale - targetScale)
+        val offsetDiff = max(abs(offsetX - targetOffsetX), abs(offsetY - targetOffsetY))
         if (scaleDiff < 0.001f && offsetDiff < 0.5f) {
             return@LaunchedEffect
         }
 
-        val centerX = containerSize.width / 2f
-        val centerY = containerSize.height / 2f
-        val pivot = Offset(
-            x = centerX - (targetOffsetX / targetScale),
-            y = centerY - (targetOffsetY / targetScale),
-        )
-        Napier.d { "CropEditorCanvas sync zoomState: scale=$targetScale offset=($targetOffsetX,$targetOffsetY) pivot=$pivot" }
-        zoomState.centerByLayoutCoordinate(
-            offset = pivot,
-            scale = targetScale,
-            animationSpec = tween(0),
-        )
+        Napier.d { "CropEditorCanvas sync transform: scale=$targetScale offset=($targetOffsetX,$targetOffsetY)" }
+        scale = targetScale
+        offsetX = targetOffsetX
+        offsetY = targetOffsetY
     }
 
     Box(
@@ -225,10 +238,70 @@ internal fun CropEditorCanvas(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .zoomable(zoomState),
+                .pointerInput(containerSize, imageSize) {
+                    if (containerSize.width <= 0 || containerSize.height <= 0 ||
+                        imageSize.width <= 0 || imageSize.height <= 0
+                    ) {
+                        return@pointerInput
+                    }
+
+                    awaitEachGesture {
+                        awaitFirstDown(requireUnconsumed = false)
+
+                        do {
+                            val event = awaitPointerEvent()
+                            val zoomChange = event.calculateZoom()
+                            val panChange = event.calculatePan()
+                            val centroid = event.calculateCentroid()
+
+                            if (zoomChange != 1f || panChange != Offset.Zero) {
+                                // Calculate new scale
+                                val newScale = (scale * zoomChange).coerceIn(MIN_SCALE, MAX_SCALE)
+
+                                // Calculate new offset with zoom pivot
+                                val effectiveZoom = newScale / scale
+                                val newOffsetX = (offsetX - centroid.x) * effectiveZoom + centroid.x + panChange.x
+                                val newOffsetY = (offsetY - centroid.y) * effectiveZoom + centroid.y + panChange.y
+
+                                // Calculate extended bounds
+                                val fitScale = calculateFitScale(containerSize, imageSize)
+                                val fittedWidth = imageSize.width * fitScale
+                                val fittedHeight = imageSize.height * fitScale
+                                val scaledWidth = fittedWidth * newScale
+                                val scaledHeight = fittedHeight * newScale
+
+                                // Extended bounds: allow panning beyond the fitted image
+                                val extraRangeX = containerSize.width * (CONTENT_SIZE_MULTIPLIER - 1f) * 0.5f
+                                val extraRangeY = containerSize.height * (CONTENT_SIZE_MULTIPLIER - 1f) * 0.5f
+                                val boundX = max((scaledWidth - containerSize.width) * 0.5f, 0f) + extraRangeX
+                                val boundY = max((scaledHeight - containerSize.height) * 0.5f, 0f) + extraRangeY
+
+                                // Apply bounded offset
+                                scale = newScale
+                                offsetX = newOffsetX.coerceIn(-boundX, boundX)
+                                offsetY = newOffsetY.coerceIn(-boundY, boundY)
+
+                                // Consume the gesture
+                                event.changes.forEach { change ->
+                                    if (change.positionChanged()) {
+                                        change.consume()
+                                    }
+                                }
+                            }
+                        } while (event.changes.any { it.pressed })
+                    }
+                },
+            contentAlignment = Alignment.Center,
         ) {
             AsyncImage(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = offsetX
+                        translationY = offsetY
+                    },
                 model = ImageRequest.Builder(context)
                     .data("file://$localFilePath".toUri())
                     .build(),
@@ -241,7 +314,6 @@ internal fun CropEditorCanvas(
                         val newSize = IntSize(width, height)
                         if (newSize != imageSize) {
                             imageSize = newSize
-                            zoomState.setContentSize(Size(width.toFloat(), height.toFloat()))
                             Napier.d { "CropEditorCanvas image size: ${width}x${height}" }
                         }
                     }
