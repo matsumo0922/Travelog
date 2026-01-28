@@ -7,19 +7,22 @@ import me.matsumo.travelog.core.model.db.MapRegion
 class MapRegionApi internal constructor(
     private val supabaseClient: SupabaseClient,
 ) {
-    suspend fun createMapRegion(mapRegion: MapRegion) {
-        supabaseClient.from(TABLE_NAME)
-            .insert(mapRegion)
+    suspend fun createMapRegion(mapRegion: MapRegion): MapRegion {
+        return supabaseClient.from(TABLE_NAME)
+            .insert(mapRegion) { select() }
+            .decodeSingle()
     }
 
-    suspend fun updateMapRegion(mapRegion: MapRegion) {
+    suspend fun updateMapRegion(mapRegion: MapRegion): MapRegion {
         val id = mapRegion.id
             ?: throw IllegalArgumentException("Cannot update MapRegion without id")
 
-        supabaseClient.from(TABLE_NAME)
+        return supabaseClient.from(TABLE_NAME)
             .update(mapRegion) {
                 filter { MapRegion::id eq id }
+                select()
             }
+            .decodeSingle()
     }
 
     suspend fun getMapRegion(id: String): MapRegion? {

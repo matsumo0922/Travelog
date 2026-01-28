@@ -11,6 +11,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
 import me.matsumo.travelog.core.model.db.Map
@@ -34,6 +35,28 @@ class MapDetailViewModel(
 
     private val _screenState = MutableStateFlow<ScreenState<MapDetailUiState>>(ScreenState.Loading())
     val screenState = _screenState.asStateFlow()
+
+    init {
+        observeMapRegions()
+    }
+
+    private fun observeMapRegions() {
+        viewModelScope.launch {
+            mapRegionRepository.observeMapRegionsByMapId(mapId)
+                .collectLatest { regions ->
+                    val currentState = _screenState.value
+                    if (currentState is ScreenState.Idle) {
+                        val imageUrlMap = getMapRegionImagesUseCase(regions)
+                        _screenState.value = ScreenState.Idle(
+                            currentState.data.copy(
+                                regions = regions.toImmutableList(),
+                                regionImageUrls = imageUrlMap.toImmutableMap(),
+                            )
+                        )
+                    }
+                }
+        }
+    }
 
     fun fetch() {
         viewModelScope.launch {

@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.matsumo.travelog.core.common.suspendRunCatching
@@ -47,6 +48,25 @@ class MapAreaDetailViewModel(
 
     init {
         fetch()
+        observeMapRegions()
+    }
+
+    private fun observeMapRegions() {
+        viewModelScope.launch {
+            mapRegionRepository.observeMapRegionsByMapIdAndGeoAreaId(mapId, geoAreaId)
+                .collectLatest { regions ->
+                    val currentState = _screenState.value
+                    if (currentState is ScreenState.Idle) {
+                        val imageUrlMap = getMapRegionImagesUseCase(regions)
+                        _screenState.value = ScreenState.Idle(
+                            currentState.data.copy(
+                                mapRegions = regions.toImmutableList(),
+                                regionImageUrls = imageUrlMap.toImmutableMap(),
+                            )
+                        )
+                    }
+                }
+        }
     }
 
     fun fetch() {
