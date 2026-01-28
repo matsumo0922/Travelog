@@ -110,6 +110,9 @@ private fun MapAreaDetailScreen(
             modifier = Modifier.fillMaxSize(),
             placedItems = placedItems,
             rowCount = rowCount,
+            columnCount = 3,
+            cornerRadius = 16.dp,
+            cellSpacing = 6.dp,
             contentPadding = paddingValues + PaddingValues(8.dp),
             header = {
                 MapAreaDetailHeader(

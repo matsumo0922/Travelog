@@ -17,11 +17,13 @@ data class TileSpanSize(
 
 @Immutable
 data class TileGridConfig(
-    val columnCount: Int = 4,
-    val specialSizeInterval: Int = 10,
+    val columnCount: Int = 3,
+    val specialSizeInterval: Int = 5,
     val availableSpecialSizes: List<TileSpanSize> = listOf(
+        TileSpanSize(1, 2),
+        TileSpanSize(2, 1),
         TileSpanSize(2, 2, weight = 2f),
-        TileSpanSize(2, 3, weight = 1f),
-        TileSpanSize(3, 2, weight = 1f),
+        TileSpanSize(2, 3),
+        TileSpanSize(3, 2),
     ),
 )
