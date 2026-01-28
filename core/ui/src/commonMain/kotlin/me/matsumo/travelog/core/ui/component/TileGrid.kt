@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.layout.LazyLayout
 import androidx.compose.foundation.lazy.layout.LazyLayoutItemProvider
 import androidx.compose.foundation.lazy.layout.LazyLayoutMeasureScope
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
@@ -25,6 +26,7 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.platform.LocalDensity
@@ -34,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlin.math.roundToInt
 
-private const val COLUMN_COUNT = 4
 private const val HEADER_INDEX = -1
 
 @Immutable
@@ -107,6 +108,8 @@ fun <T : TileGridItem> TileGrid(
     placedItems: ImmutableList<PlacedTileItem<T>>,
     rowCount: Int,
     modifier: Modifier = Modifier,
+    columnCount: Int = 4,
+    cornerRadius: Dp = 0.dp,
     cellSpacing: Dp = 4.dp,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     state: LazyTileGridState = rememberLazyTileGridState(),
@@ -121,7 +124,7 @@ fun <T : TileGridItem> TileGrid(
         val maxWidthPx = constraints.maxWidth
         val viewportHeight = constraints.maxHeight
         val spacingPx = with(density) { cellSpacing.roundToPx() }
-        val cellSizePx = (maxWidthPx - spacingPx * (COLUMN_COUNT - 1)) / COLUMN_COUNT
+        val cellSizePx = (maxWidthPx - spacingPx * (columnCount - 1)) / columnCount
         val gridHeightPx = if (rowCount > 0) {
             cellSizePx * rowCount + spacingPx * (rowCount - 1)
         } else {
@@ -135,11 +138,12 @@ fun <T : TileGridItem> TileGrid(
         val currentHeader by rememberUpdatedState(header)
         val currentOnItemClick by rememberUpdatedState(onItemClick)
 
-        // placedItems と hasHeader だけをキーにし、コンテンツは rememberUpdatedState 経由で実行時に最新を参照
-        val itemProvider = remember(placedItems, header != null) {
+        // placedItems と hasHeader と cornerRadius だけをキーにし、コンテンツは rememberUpdatedState 経由で実行時に最新を参照
+        val itemProvider = remember(placedItems, header != null, cornerRadius) {
             TileGridItemProvider(
                 placedItems = placedItems,
                 hasHeader = header != null,
+                cornerRadius = cornerRadius,
                 itemContent = { currentItemContent(it) },
                 headerContent = { currentHeader?.invoke() },
                 onItemClick = { currentOnItemClick?.invoke(it) },
@@ -209,6 +213,7 @@ fun <T : TileGridItem> TileGrid(
 private class TileGridItemProvider<T : TileGridItem>(
     private val placedItems: ImmutableList<PlacedTileItem<T>>,
     private val hasHeader: Boolean,
+    private val cornerRadius: Dp,
     private val itemContent: @Composable (item: T) -> Unit,
     private val headerContent: (@Composable () -> Unit)?,
     private val onItemClick: ((item: T) -> Unit)?,
@@ -240,6 +245,13 @@ private class TileGridItemProvider<T : TileGridItem>(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .then(
+                            if (cornerRadius > 0.dp) {
+                                Modifier.clip(RoundedCornerShape(cornerRadius))
+                            } else {
+                                Modifier
+                            }
+                        )
                         .clickable(enabled = onItemClick != null) { onItemClick?.invoke(placed.item) },
                 ) {
                     itemContent(placed.item)
