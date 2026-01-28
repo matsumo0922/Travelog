@@ -1,6 +1,8 @@
 package me.matsumo.travelog.feature.map.crop.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.RotateLeft
+import androidx.compose.material.icons.automirrored.filled.RotateRight
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material.icons.filled.ZoomOut
@@ -17,6 +19,8 @@ import androidx.compose.ui.Modifier
 internal fun CropEditorControls(
     onZoomIn: () -> Unit,
     onZoomOut: () -> Unit,
+    onRotateLeft: () -> Unit,
+    onRotateRight: () -> Unit,
     onReset: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -25,6 +29,13 @@ internal fun CropEditorControls(
         expanded = true,
         colors = FloatingToolbarDefaults.standardFloatingToolbarColors(),
         content = {
+            IconButton(onClick = onRotateLeft) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.RotateLeft,
+                    contentDescription = "Rotate Left",
+                )
+            }
+
             IconButton(onClick = onZoomOut) {
                 Icon(
                     imageVector = Icons.Default.ZoomOut,
@@ -36,6 +47,13 @@ internal fun CropEditorControls(
                 Icon(
                     imageVector = Icons.Default.ZoomIn,
                     contentDescription = "Zoom In",
+                )
+            }
+
+            IconButton(onClick = onRotateRight) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.RotateRight,
+                    contentDescription = "Rotate Right",
                 )
             }
 

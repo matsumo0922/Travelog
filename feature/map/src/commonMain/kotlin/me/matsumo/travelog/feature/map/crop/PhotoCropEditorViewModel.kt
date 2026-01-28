@@ -66,6 +66,7 @@ class PhotoCropEditorViewModel(
                         viewWidth = initialCropData.viewWidth,
                         viewHeight = initialCropData.viewHeight,
                         viewportPadding = initialCropData.viewportPadding,
+                        rotation = initialCropData.rotation,
                     ),
                     existingRegion = existingRegion,
                 )
@@ -90,6 +91,7 @@ class PhotoCropEditorViewModel(
         viewWidth: Float,
         viewHeight: Float,
         viewportPadding: Float,
+        rotation: Float,
     ) {
         val currentState = _screenState.value
         if (currentState is ScreenState.Idle) {
@@ -102,6 +104,7 @@ class PhotoCropEditorViewModel(
                         viewWidth = viewWidth,
                         viewHeight = viewHeight,
                         viewportPadding = viewportPadding,
+                        rotation = rotation,
                     ),
                 ),
             )
@@ -123,6 +126,7 @@ class PhotoCropEditorViewModel(
                 viewWidth = uiState.cropTransform.viewWidth,
                 viewHeight = uiState.cropTransform.viewHeight,
                 viewportPadding = uiState.cropTransform.viewportPadding,
+                rotation = uiState.cropTransform.rotation,
             )
 
             _saveState.value = SaveState.Saving
@@ -172,6 +176,7 @@ data class CropTransformState(
     val viewWidth: Float = 0f,
     val viewHeight: Float = 0f,
     val viewportPadding: Float = 0.1f,
+    val rotation: Float = 0f,
 )
 
 sealed interface SaveState {

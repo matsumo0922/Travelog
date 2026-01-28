@@ -12,6 +12,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateRotation
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -98,6 +99,7 @@ internal fun CropEditorCanvas(
         viewWidth: Float,
         viewHeight: Float,
         viewportPadding: Float,
+        rotation: Float,
     ) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -107,6 +109,10 @@ internal fun CropEditorCanvas(
     var scale by remember { mutableFloatStateOf(1f) }
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
+    var rotation by remember { mutableFloatStateOf(0f) }
+
+    // Target rotation for animation (from ViewModel)
+    var targetRotation by remember { mutableFloatStateOf(0f) }
 
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
     var imageSize by remember { mutableStateOf(IntSize.Zero) }
@@ -155,7 +161,7 @@ internal fun CropEditorCanvas(
     // ジェスチャー状態の検出（即座に反応）
     LaunchedEffect(Unit) {
         snapshotFlow {
-            Triple(scale, offsetX, offsetY)
+            TransformValues(scale, offsetX, offsetY, rotation)
         }
             .drop(1)
             .distinctUntilChanged()
@@ -172,6 +178,7 @@ internal fun CropEditorCanvas(
                 scale = scale,
                 offsetX = offsetX,
                 offsetY = offsetY,
+                rotation = rotation,
                 containerSize = containerSize,
                 imageSize = imageSize,
             )
@@ -192,7 +199,7 @@ internal fun CropEditorCanvas(
                 if (isIdle) {
                     Napier.d {
                         "CropEditorCanvas transform: scale=$cropScaleValue offset=($offsetXNormalized,$offsetYNormalized) " +
-                                "view=${snapshot.containerSize.width}x${snapshot.containerSize.height}"
+                                "rotation=${snapshot.rotation} view=${snapshot.containerSize.width}x${snapshot.containerSize.height}"
                     }
                 }
 
@@ -203,6 +210,7 @@ internal fun CropEditorCanvas(
                     snapshot.containerSize.width.toFloat(),
                     snapshot.containerSize.height.toFloat(),
                     VIEWPORT_PADDING,
+                    snapshot.rotation,
                 )
             }
     }
@@ -220,22 +228,28 @@ internal fun CropEditorCanvas(
         val fitScale = calculateFitScale(containerSize, imageSize)
         val cropScale = calculateCropScale(containerSize, imageSize)
         val cropRatio = if (fitScale > 0f) cropScale / fitScale else 1f
-        val targetScale = (cropTransform.scale * cropRatio).coerceIn(MIN_SCALE, MAX_SCALE)
+        val targetScaleValue = (cropTransform.scale * cropRatio).coerceIn(MIN_SCALE, MAX_SCALE)
         val targetOffsetX = cropTransform.offsetX * containerSize.width
         val targetOffsetY = cropTransform.offsetY * containerSize.height
+        val targetRotationValue = normalizeRotationTarget(rotation, cropTransform.rotation)
 
-        val scaleDiff = abs(scale - targetScale)
+        val scaleDiff = abs(scale - targetScaleValue)
         val offsetDiff = max(abs(offsetX - targetOffsetX), abs(offsetY - targetOffsetY))
-        if (scaleDiff < 0.001f && offsetDiff < 0.5f) {
+        val rotationDiff = abs(rotation - targetRotationValue)
+        if (scaleDiff < 0.001f && offsetDiff < 0.5f && rotationDiff < 0.1f) {
             return@LaunchedEffect
         }
 
-        Napier.d { "CropEditorCanvas sync transform: scale=$targetScale offset=($targetOffsetX,$targetOffsetY)" }
+        Napier.d { "CropEditorCanvas sync transform: scale=$targetScaleValue offset=($targetOffsetX,$targetOffsetY) rotation=$targetRotationValue" }
+
+        // Update target rotation for animation
+        targetRotation = targetRotationValue
 
         // Capture start values for animation
         val startScale = scale
         val startOffsetX = offsetX
         val startOffsetY = offsetY
+        val startRotation = rotation
 
         // Animate using progress-based interpolation
         isAnimating = true
@@ -248,12 +262,15 @@ internal fun CropEditorCanvas(
                     stiffness = Spring.StiffnessMedium,
                 ),
             ) { progress, _ ->
-                scale = startScale + (targetScale - startScale) * progress
+                scale = startScale + (targetScaleValue - startScale) * progress
                 offsetX = startOffsetX + (targetOffsetX - startOffsetX) * progress
                 offsetY = startOffsetY + (targetOffsetY - startOffsetY) * progress
+                rotation = startRotation + (targetRotationValue - startRotation) * progress
             }
         } finally {
             isAnimating = false
+            // Normalize rotation to 0-360 range after animation
+            rotation = normalizeRotation(rotation)
             // Notify ViewModel with final values after animation completes
             val fitScaleFinal = calculateFitScale(containerSize, imageSize)
             val cropScaleFinal = calculateCropScale(containerSize, imageSize)
@@ -266,6 +283,7 @@ internal fun CropEditorCanvas(
                 containerSize.width.toFloat(),
                 containerSize.height.toFloat(),
                 VIEWPORT_PADDING,
+                normalizeRotation(rotation),
             )
         }
     }
@@ -301,8 +319,10 @@ internal fun CropEditorCanvas(
                             val zoomChange = event.calculateZoom()
                             val panChange = event.calculatePan()
                             val centroid = event.calculateCentroid()
+                                // calculateRotation() returns degrees (not radians)
+                                val rotationChange = event.calculateRotation()
 
-                            if (zoomChange != 1f || panChange != Offset.Zero) {
+                                if (zoomChange != 1f || panChange != Offset.Zero || rotationChange != 0f) {
                                 // Calculate new scale
                                 val newScale = (scale * zoomChange).coerceIn(MIN_SCALE, MAX_SCALE)
 
@@ -317,6 +337,9 @@ internal fun CropEditorCanvas(
                                 val newOffsetX = offsetX * effectiveZoom + pivotX * (1 - effectiveZoom) + panChange.x
                                 val newOffsetY = offsetY * effectiveZoom + pivotY * (1 - effectiveZoom) + panChange.y
 
+                                    // Calculate new rotation (rotationChange is already in degrees)
+                                    val newRotation = normalizeRotation(rotation + rotationChange)
+
                                 // Calculate extended bounds
                                 val fitScale = calculateFitScale(containerSize, imageSize)
                                 val fittedWidth = imageSize.width * fitScale
@@ -330,10 +353,11 @@ internal fun CropEditorCanvas(
                                 val boundX = max((scaledWidth - containerSize.width) * 0.5f, 0f) + extraRangeX
                                 val boundY = max((scaledHeight - containerSize.height) * 0.5f, 0f) + extraRangeY
 
-                                // Apply bounded offset (immediate update for gestures)
+                                    // Apply bounded offset and rotation (immediate update for gestures)
                                 scale = newScale
                                 offsetX = newOffsetX.coerceIn(-boundX, boundX)
                                 offsetY = newOffsetY.coerceIn(-boundY, boundY)
+                                    rotation = newRotation
 
                                 // Consume the gesture
                                 event.changes.forEach { change ->
@@ -358,6 +382,7 @@ internal fun CropEditorCanvas(
                         scaleY = scale
                         translationX = offsetX
                         translationY = offsetY
+                        rotationZ = rotation
                     },
                 model = ImageRequest.Builder(context)
                     .data("file://$localFilePath".toUri())
@@ -410,13 +435,40 @@ internal fun CropEditorCanvas(
     }
 }
 
+private data class TransformValues(
+    val scale: Float,
+    val offsetX: Float,
+    val offsetY: Float,
+    val rotation: Float,
+)
+
 private data class TransformSnapshot(
     val scale: Float,
     val offsetX: Float,
     val offsetY: Float,
+    val rotation: Float,
     val containerSize: IntSize,
     val imageSize: IntSize,
 )
+
+/**
+ * Normalizes rotation to 0-360 range.
+ */
+private fun normalizeRotation(rotation: Float): Float {
+    val normalized = rotation % 360f
+    return if (normalized < 0) normalized + 360f else normalized
+}
+
+/**
+ * Calculates the target rotation using the shortest path.
+ * This ensures 270° → 0° transitions as -90° (shortest path).
+ */
+private fun normalizeRotationTarget(current: Float, target: Float): Float {
+    var diff = (target - current) % 360f
+    if (diff > 180f) diff -= 360f
+    if (diff < -180f) diff += 360f
+    return current + diff
+}
 
 private fun calculateFitScale(containerSize: IntSize, imageSize: IntSize): Float {
     if (containerSize.width <= 0 || containerSize.height <= 0 || imageSize.width <= 0 || imageSize.height <= 0) {

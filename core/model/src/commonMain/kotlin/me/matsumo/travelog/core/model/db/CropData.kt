@@ -36,4 +36,11 @@ data class CropData(
      */
     @SerialName("viewport_padding")
     val viewportPadding: Float = 0.1f,
+
+    /**
+     * Rotation angle in degrees (0-360).
+     * Applied around the center of the image.
+     */
+    @SerialName("rotation")
+    val rotation: Float = 0f,
 )

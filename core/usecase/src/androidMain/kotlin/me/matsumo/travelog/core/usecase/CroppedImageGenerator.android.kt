@@ -68,8 +68,8 @@ actual suspend fun generateCroppedImage(
         TAG,
         "Crop params: image=${bitmap.width}x${bitmap.height}, view=${viewWidth}x${viewHeight}, " +
                 "fitScale=$fitScale, cropScale=$cropScale, zoomScaleFit=$zoomScaleFit, " +
-                "offsetFit=($offsetXFit,$offsetYFit), uiTransform=$uiTransform, " +
-                "outputTransform=$outputTransform, scaleRatio=$scaleRatio",
+                "offsetFit=($offsetXFit,$offsetYFit), rotation=${cropData.rotation}, " +
+                "uiTransform=$uiTransform, outputTransform=$outputTransform, scaleRatio=$scaleRatio",
     )
 
     val outputBitmap = Bitmap.createBitmap(outputSize, outputSize, Bitmap.Config.ARGB_8888)
@@ -84,6 +84,7 @@ actual suspend fun generateCroppedImage(
         zoomScaleFit = zoomScaleFit,
         offsetXFit = offsetXFit,
         offsetYFit = offsetYFit,
+        rotationDegrees = cropData.rotation,
         scaleRatio = scaleRatio,
         uiTransform = uiTransform,
         outputTransform = outputTransform,
@@ -314,6 +315,7 @@ private fun buildImageMatrix(
     zoomScaleFit: Float,
     offsetXFit: Float,
     offsetYFit: Float,
+    rotationDegrees: Float,
     scaleRatio: Float,
     uiTransform: ViewportTransform,
     outputTransform: ViewportTransform,
@@ -325,12 +327,25 @@ private fun buildImageMatrix(
     val centerX = viewWidth / 2f
     val centerY = viewHeight / 2f
 
+    // graphicsLayer applies: Scale → Rotation → Translation
+    // So we need to apply in the same order here
+
+    // Step 1: Scale image to fit viewport
     matrix.setScale(fitScale, fitScale)
+    // Step 2: Translate to center
     matrix.postTranslate(fitOffsetX, fitOffsetY)
+    // Step 3: Apply user zoom around center
     matrix.postScale(zoomScaleFit, zoomScaleFit, centerX, centerY)
+    // Step 4: Apply user rotation around center (BEFORE pan, matching graphicsLayer order)
+    if (rotationDegrees != 0f) {
+        matrix.postRotate(rotationDegrees, centerX, centerY)
+    }
+    // Step 5: Apply user pan (translation comes after scale and rotation)
     matrix.postTranslate(offsetXFit, offsetYFit)
 
+    // Step 6: Scale to output size
     matrix.postScale(scaleRatio, scaleRatio)
+    // Step 7: Translate to output position
     matrix.postTranslate(
         outputTransform.offsetX - uiTransform.offsetX * scaleRatio,
         outputTransform.offsetY - uiTransform.offsetY * scaleRatio,

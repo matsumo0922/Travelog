@@ -124,8 +124,8 @@ actual suspend fun generateCroppedImage(
         println(
             "$TAG: Crop params: image=${imageWidth}x${imageHeight}, view=${viewWidth}x${viewHeight}, " +
                     "fitScale=$fitScale, cropScale=$cropScale, zoomScaleFit=$zoomScaleFit, " +
-                    "offsetFit=($offsetXFit,$offsetYFit), uiTransform=$uiTransform, " +
-                    "outputTransform=$outputTransform, scaleRatio=$scaleRatio"
+                    "offsetFit=($offsetXFit,$offsetYFit), rotation=${cropData.rotation}, " +
+                    "uiTransform=$uiTransform, outputTransform=$outputTransform, scaleRatio=$scaleRatio"
         )
 
         val colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -158,6 +158,7 @@ actual suspend fun generateCroppedImage(
             zoomScaleFit = zoomScaleFit,
             offsetXFit = offsetXFit,
             offsetYFit = offsetYFit,
+            rotationDegrees = cropData.rotation,
             scaleRatio = scaleRatio,
             uiTransform = uiTransform,
             outputTransform = outputTransform,
@@ -527,6 +528,7 @@ private fun buildImageTransform(
     zoomScaleFit: Float,
     offsetXFit: Float,
     offsetYFit: Float,
+    rotationDegrees: Float,
     scaleRatio: Float,
     uiTransform: ViewportTransform,
     outputTransform: ViewportTransform,
@@ -536,37 +538,37 @@ private fun buildImageTransform(
     // Android の座標系は Y が下向き、CoreGraphics は Y が上向き
     // そのため、Y 座標を反転させる処理が必要
 
+    // graphicsLayer applies: Scale → Rotation → Translation
+    // Android Matrix の操作を順番に適用:
+    // 1. setScale(fitScale, fitScale)
+    // 2. postTranslate(fitOffsetX, fitOffsetY)
+    // 3. postScale(zoomScaleFit, zoomScaleFit, centerX, centerY)
+    // 4. postRotate(rotationDegrees, centerX, centerY) - rotation BEFORE pan
+    // 5. postTranslate(offsetXFit, offsetYFit) - pan AFTER rotation (in screen coordinates)
+    // 6. postScale(scaleRatio, scaleRatio)
+    // 7. postTranslate(outputTransform.offsetX - uiTransform.offsetX * scaleRatio,
+    //                  outputTransform.offsetY - uiTransform.offsetY * scaleRatio)
+
     val fitOffsetX = (viewWidth - bitmapWidth * fitScale) / 2f
     val fitOffsetY = (viewHeight - bitmapHeight * fitScale) / 2f
     val centerX = viewWidth / 2f
     val centerY = viewHeight / 2f
 
-    // Android Matrix の操作を順番に適用:
-    // 1. setScale(fitScale, fitScale)
-    // 2. postTranslate(fitOffsetX, fitOffsetY)
-    // 3. postScale(zoomScaleFit, zoomScaleFit, centerX, centerY)
-    // 4. postTranslate(offsetXFit, offsetYFit)
-    // 5. postScale(scaleRatio, scaleRatio)
-    // 6. postTranslate(outputTransform.offsetX - uiTransform.offsetX * scaleRatio,
-    //                  outputTransform.offsetY - uiTransform.offsetY * scaleRatio)
-
-    // 最終的なスケールと移動量を計算
+    // 最終的なスケール
     val totalScale = fitScale * zoomScaleFit * scaleRatio
 
     // 中心を基準としたズームを考慮した移動量
-    val afterFitX = fitOffsetX
-
     // zoomScaleFit を centerX, centerY 中心で適用後の位置
-    val afterZoomX = centerX + (afterFitX - centerX) * zoomScaleFit
+    val afterZoomX = centerX + (fitOffsetX - centerX) * zoomScaleFit
     val afterZoomY = centerY + (fitOffsetY - centerY) * zoomScaleFit
 
-    // offsetFit を追加
-    val afterOffsetX = afterZoomX + offsetXFit
-    val afterOffsetY = afterZoomY + offsetYFit
+    // パンを追加（スクリーン座標系での移動、回転の影響は受けない）
+    val afterPanX = afterZoomX + offsetXFit
+    val afterPanY = afterZoomY + offsetYFit
 
     // scaleRatio を適用（原点基準）
-    val afterScaleRatioX = afterOffsetX * scaleRatio
-    val afterScaleRatioY = afterOffsetY * scaleRatio
+    val afterScaleRatioX = afterPanX * scaleRatio
+    val afterScaleRatioY = afterPanY * scaleRatio
 
     // 最終的な移動量を追加
     val finalOffsetX = afterScaleRatioX + outputTransform.offsetX - uiTransform.offsetX * scaleRatio
@@ -575,9 +577,33 @@ private fun buildImageTransform(
     // CoreGraphics は Y 軸が上向きなので、Y を反転
     // 画像を描画するとき、Y 座標を outputSize から引く必要がある
 
-    // Y軸反転 + 移動
-    val translation = CGAffineTransformMakeTranslation(finalOffsetX.toDouble(), (outputSize - finalOffsetY).toDouble())
-    return CGAffineTransformConcat(CGAffineTransformMakeScale(totalScale.toDouble(), -totalScale.toDouble()), translation)
+    // 基本変換: Y軸反転 + 移動 + スケール
+    var transform = CGAffineTransformMakeTranslation(finalOffsetX.toDouble(), (outputSize - finalOffsetY).toDouble())
+    transform = CGAffineTransformConcat(CGAffineTransformMakeScale(totalScale.toDouble(), -totalScale.toDouble()), transform)
+
+    // 回転を適用（CoreGraphics は Y 軸が上向きなので角度を反転）
+    // 出力画像の中心を基準に回転
+    if (rotationDegrees != 0f) {
+        val cgRotationRadians = -rotationDegrees * PI / 180.0
+        val outputCenterX = outputSize / 2.0
+        val outputCenterY = outputSize / 2.0
+
+        // Translate to origin → Rotate → Translate back
+        transform = CGAffineTransformConcat(
+            transform,
+            CGAffineTransformMakeTranslation(-outputCenterX, -outputCenterY),
+        )
+        transform = CGAffineTransformConcat(
+            transform,
+            CGAffineTransformMakeRotation(cgRotationRadians),
+        )
+        transform = CGAffineTransformConcat(
+            transform,
+            CGAffineTransformMakeTranslation(outputCenterX, outputCenterY),
+        )
+    }
+
+    return transform
 }
 
 @OptIn(ExperimentalForeignApi::class)

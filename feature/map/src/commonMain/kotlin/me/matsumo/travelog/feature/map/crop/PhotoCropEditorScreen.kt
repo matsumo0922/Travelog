@@ -102,6 +102,7 @@ private fun PhotoCropEditorScreen(
         viewWidth: Float,
         viewHeight: Float,
         viewportPadding: Float,
+        rotation: Float,
     ) -> Unit,
     onSaveClicked: () -> Unit,
     onBackClicked: () -> Unit,
@@ -145,7 +146,7 @@ private fun PhotoCropEditorScreen(
                     .padding(bottom = 24.dp)
                     .navigationBarsPadding(),
                 onZoomIn = {
-                    val newScale = (cropTransform.scale * 1.2f).coerceIn(0.5f, 5f)
+                    val newScale = (cropTransform.scale * 1.5f).coerceIn(0.5f, 5f)
                     onTransformChanged(
                         newScale,
                         cropTransform.offsetX,
@@ -153,10 +154,11 @@ private fun PhotoCropEditorScreen(
                         cropTransform.viewWidth,
                         cropTransform.viewHeight,
                         cropTransform.viewportPadding,
+                        cropTransform.rotation,
                     )
                 },
                 onZoomOut = {
-                    val newScale = (cropTransform.scale / 1.2f).coerceIn(0.5f, 5f)
+                    val newScale = (cropTransform.scale / 1.5f).coerceIn(0.5f, 5f)
                     onTransformChanged(
                         newScale,
                         cropTransform.offsetX,
@@ -164,6 +166,31 @@ private fun PhotoCropEditorScreen(
                         cropTransform.viewWidth,
                         cropTransform.viewHeight,
                         cropTransform.viewportPadding,
+                        cropTransform.rotation,
+                    )
+                },
+                onRotateLeft = {
+                    val newRotation = (cropTransform.rotation - 90f + 360f) % 360f
+                    onTransformChanged(
+                        cropTransform.scale,
+                        cropTransform.offsetX,
+                        cropTransform.offsetY,
+                        cropTransform.viewWidth,
+                        cropTransform.viewHeight,
+                        cropTransform.viewportPadding,
+                        newRotation,
+                    )
+                },
+                onRotateRight = {
+                    val newRotation = (cropTransform.rotation + 90f) % 360f
+                    onTransformChanged(
+                        cropTransform.scale,
+                        cropTransform.offsetX,
+                        cropTransform.offsetY,
+                        cropTransform.viewWidth,
+                        cropTransform.viewHeight,
+                        cropTransform.viewportPadding,
+                        newRotation,
                     )
                 },
                 onReset = {
@@ -174,6 +201,7 @@ private fun PhotoCropEditorScreen(
                         cropTransform.viewWidth,
                         cropTransform.viewHeight,
                         cropTransform.viewportPadding,
+                        0f,
                     )
                 },
             )
