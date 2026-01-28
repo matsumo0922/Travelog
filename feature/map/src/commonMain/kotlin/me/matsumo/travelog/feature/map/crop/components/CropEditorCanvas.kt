@@ -1,6 +1,9 @@
 package me.matsumo.travelog.feature.map.crop.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -108,6 +111,8 @@ internal fun CropEditorCanvas(
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
     var imageSize by remember { mutableStateOf(IntSize.Zero) }
     var isIdle by remember { mutableStateOf(true) }
+    var isAnimating by remember { mutableStateOf(false) }
+    var isGesturing by remember { mutableStateOf(false) }
 
     val areas = remember(geoArea) {
         geoArea.children.takeIf { it.isNotEmpty() }?.toImmutableList()
@@ -160,7 +165,7 @@ internal fun CropEditorCanvas(
             .collect { isIdle = true }
     }
 
-    // ViewModel へトランスフォームを通知
+    // ViewModel へトランスフォームを通知（アニメーション中はスキップ）
     LaunchedEffect(Unit) {
         snapshotFlow {
             TransformSnapshot(
@@ -174,6 +179,9 @@ internal fun CropEditorCanvas(
             .filter { it.containerSize.width > 0 && it.containerSize.height > 0 && it.imageSize.width > 0 && it.imageSize.height > 0 }
             .distinctUntilChanged()
             .collect { snapshot ->
+                // Skip notification during animation to prevent feedback loop
+                if (isAnimating) return@collect
+
                 val fitScale = calculateFitScale(snapshot.containerSize, snapshot.imageSize)
                 val cropScale = calculateCropScale(snapshot.containerSize, snapshot.imageSize)
                 val cropRatio = if (fitScale > 0f) cropScale / fitScale else 1f
@@ -200,8 +208,12 @@ internal fun CropEditorCanvas(
     }
 
     // ViewModel の状態から Transform を同期（初期値やボタン操作用）
+    // ジェスチャー中はスキップして干渉を防ぐ
     LaunchedEffect(cropTransform, containerSize, imageSize) {
         if (containerSize.width <= 0 || containerSize.height <= 0 || imageSize.width <= 0 || imageSize.height <= 0) {
+            return@LaunchedEffect
+        }
+        if (isGesturing) {
             return@LaunchedEffect
         }
 
@@ -219,9 +231,43 @@ internal fun CropEditorCanvas(
         }
 
         Napier.d { "CropEditorCanvas sync transform: scale=$targetScale offset=($targetOffsetX,$targetOffsetY)" }
-        scale = targetScale
-        offsetX = targetOffsetX
-        offsetY = targetOffsetY
+
+        // Capture start values for animation
+        val startScale = scale
+        val startOffsetX = offsetX
+        val startOffsetY = offsetY
+
+        // Animate using progress-based interpolation
+        isAnimating = true
+        try {
+            animate(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMedium,
+                ),
+            ) { progress, _ ->
+                scale = startScale + (targetScale - startScale) * progress
+                offsetX = startOffsetX + (targetOffsetX - startOffsetX) * progress
+                offsetY = startOffsetY + (targetOffsetY - startOffsetY) * progress
+            }
+        } finally {
+            isAnimating = false
+            // Notify ViewModel with final values after animation completes
+            val fitScaleFinal = calculateFitScale(containerSize, imageSize)
+            val cropScaleFinal = calculateCropScale(containerSize, imageSize)
+            val cropRatioFinal = if (fitScaleFinal > 0f) cropScaleFinal / fitScaleFinal else 1f
+            val cropScaleValueFinal = if (cropRatioFinal > 0f) scale / cropRatioFinal else scale
+            onTransformChanged(
+                cropScaleValueFinal,
+                offsetX / containerSize.width.toFloat(),
+                offsetY / containerSize.height.toFloat(),
+                containerSize.width.toFloat(),
+                containerSize.height.toFloat(),
+                VIEWPORT_PADDING,
+            )
+        }
     }
 
     Box(
@@ -247,9 +293,11 @@ internal fun CropEditorCanvas(
 
                     awaitEachGesture {
                         awaitFirstDown(requireUnconsumed = false)
+                        isGesturing = true
 
-                        do {
-                            val event = awaitPointerEvent()
+                        try {
+                            do {
+                                val event = awaitPointerEvent()
                             val zoomChange = event.calculateZoom()
                             val panChange = event.calculatePan()
                             val centroid = event.calculateCentroid()
@@ -282,7 +330,7 @@ internal fun CropEditorCanvas(
                                 val boundX = max((scaledWidth - containerSize.width) * 0.5f, 0f) + extraRangeX
                                 val boundY = max((scaledHeight - containerSize.height) * 0.5f, 0f) + extraRangeY
 
-                                // Apply bounded offset
+                                // Apply bounded offset (immediate update for gestures)
                                 scale = newScale
                                 offsetX = newOffsetX.coerceIn(-boundX, boundX)
                                 offsetY = newOffsetY.coerceIn(-boundY, boundY)
@@ -294,7 +342,10 @@ internal fun CropEditorCanvas(
                                     }
                                 }
                             }
-                        } while (event.changes.any { it.pressed })
+                            } while (event.changes.any { it.pressed })
+                        } finally {
+                            isGesturing = false
+                        }
                     }
                 },
             contentAlignment = Alignment.Center,
