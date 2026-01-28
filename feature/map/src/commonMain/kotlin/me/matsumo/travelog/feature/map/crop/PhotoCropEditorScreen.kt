@@ -78,12 +78,12 @@ internal fun PhotoCropEditorRoute(
             onTransformChanged = viewModel::updateTransform,
             onSaveClicked = {
                 viewModel.save {
-                    // Navigate back to MapDetail on success
                     navBackStack.removeLastOrNull()
-                    navBackStack.removeLastOrNull() // Also remove MapAreaDetail
                 }
             },
-            onBackClicked = { navBackStack.removeLastOrNull() },
+            onBackClicked = {
+                navBackStack.removeLastOrNull()
+            },
         )
     }
 }
