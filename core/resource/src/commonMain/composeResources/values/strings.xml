@@ -115,6 +115,7 @@
     <!-- Photo Detail -->
     <string name="photo_detail_comments">コメント</string>
     <string name="photo_detail_comments_empty">コメントはまだありません</string>
+    <string name="photo_detail_comments_tap_to_add">タップして追加</string>
     <string name="photo_detail_comment_edit_title">コメントを編集</string>
     <string name="photo_detail_comment_edit_placeholder">コメントを入力</string>
     <string name="photo_detail_metadata">メタデータ</string>

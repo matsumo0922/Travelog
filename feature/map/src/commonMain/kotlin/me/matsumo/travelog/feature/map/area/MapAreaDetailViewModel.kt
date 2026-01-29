@@ -59,6 +59,9 @@ class MapAreaDetailViewModel(
     private val _navigateToPhotoDetail = MutableSharedFlow<PhotoDetailNavigation>()
     val navigateToPhotoDetail: SharedFlow<PhotoDetailNavigation> = _navigateToPhotoDetail.asSharedFlow()
 
+    private val _isUploading = MutableStateFlow(false)
+    val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
+
     private val gridConfig = TileGridConfig()
 
     init {
@@ -120,41 +123,46 @@ class MapAreaDetailViewModel(
 
     fun uploadImage(file: PlatformFile) {
         viewModelScope.launch {
-            val userId = sessionRepository.getCurrentUserInfo()?.id ?: return@launch
-            val metadata = extractImageMetadata(file)
+            _isUploading.value = true
+            try {
+                val userId = sessionRepository.getCurrentUserInfo()?.id ?: return@launch
+                val metadata = extractImageMetadata(file)
 
-            val result = suspendRunCatching {
-                val upload = storageRepository.uploadMapRegionImage(file, userId)
-                val image = Image(
-                    uploaderUserId = userId,
-                    mapRegionId = null,
-                    storageKey = upload.storageKey,
-                    contentType = upload.contentType,
-                    fileSize = upload.fileSize,
-                    width = metadata?.width,
-                    height = metadata?.height,
-                    takenAt = metadata?.takenAt,
-                    takenLat = metadata?.takenLat,
-                    takenLng = metadata?.takenLng,
-                    exif = metadata?.exif,
-                    bucketName = upload.bucketName,
-                )
-                val createdImage = imageRepository.createImage(image)
-                val imageUrl = storageRepository.getSignedUrl(
-                    bucketName = upload.bucketName,
-                    storageKey = upload.storageKey,
-                )
+                val result = suspendRunCatching {
+                    val upload = storageRepository.uploadMapRegionImage(file, userId)
+                    val image = Image(
+                        uploaderUserId = userId,
+                        mapRegionId = null,
+                        storageKey = upload.storageKey,
+                        contentType = upload.contentType,
+                        fileSize = upload.fileSize,
+                        width = metadata?.width,
+                        height = metadata?.height,
+                        takenAt = metadata?.takenAt,
+                        takenLat = metadata?.takenLat,
+                        takenLng = metadata?.takenLng,
+                        exif = metadata?.exif,
+                        bucketName = upload.bucketName,
+                    )
+                    val createdImage = imageRepository.createImage(image)
+                    val imageUrl = storageRepository.getSignedUrl(
+                        bucketName = upload.bucketName,
+                        storageKey = upload.storageKey,
+                    )
 
-                PhotoDetailNavigation(
-                    imageId = createdImage.id.orEmpty(),
-                    imageUrl = imageUrl,
-                )
-            }
-
-            result.onSuccess { event ->
-                if (event.imageId.isNotBlank()) {
-                    _navigateToPhotoDetail.emit(event)
+                    PhotoDetailNavigation(
+                        imageId = createdImage.id.orEmpty(),
+                        imageUrl = imageUrl,
+                    )
                 }
+
+                result.onSuccess { event ->
+                    if (event.imageId.isNotBlank()) {
+                        _navigateToPhotoDetail.emit(event)
+                    }
+                }
+            } finally {
+                _isUploading.value = false
             }
         }
     }

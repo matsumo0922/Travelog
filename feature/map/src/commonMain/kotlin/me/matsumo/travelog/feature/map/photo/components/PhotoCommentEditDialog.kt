@@ -1,8 +1,7 @@
 package me.matsumo.travelog.feature.map.photo.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -37,20 +36,17 @@ internal fun PhotoCommentEditDialog(
             Text(text = stringResource(Res.string.photo_detail_comment_edit_title))
         },
         text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    value = text,
-                    onValueChange = { text = it },
-                    placeholder = {
-                        Text(stringResource(Res.string.photo_detail_comment_edit_placeholder))
-                    },
-                    minLines = 3,
-                )
-            }
+            OutlinedTextField(
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .fillMaxWidth(),
+                value = text,
+                onValueChange = { text = it },
+                placeholder = {
+                    Text(stringResource(Res.string.photo_detail_comment_edit_placeholder))
+                },
+                minLines = 3,
+            )
         },
         confirmButton = {
             TextButton(

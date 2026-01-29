@@ -8,6 +8,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -36,6 +37,7 @@ internal fun PhotoDetailTopAppBar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     contentDescription = "Back",
                 )
             }
@@ -47,6 +49,7 @@ internal fun PhotoDetailTopAppBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     contentDescription = "Delete",
                 )
             }
@@ -57,6 +60,7 @@ internal fun PhotoDetailTopAppBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     contentDescription = "Save",
                 )
             }

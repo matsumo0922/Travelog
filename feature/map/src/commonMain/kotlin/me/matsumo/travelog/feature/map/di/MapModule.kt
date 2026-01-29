@@ -71,6 +71,7 @@ val mapModule = module {
             initialImageUrl = extras[1] as? String,
             imageRepository = get(),
             imageCommentRepository = get(),
+            sessionRepository = get(),
             storageRepository = get(),
         )
     }

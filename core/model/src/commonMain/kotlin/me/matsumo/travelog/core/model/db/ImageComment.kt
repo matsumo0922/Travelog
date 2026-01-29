@@ -1,9 +1,11 @@
 package me.matsumo.travelog.core.model.db
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
+@Immutable
 @Serializable
 data class ImageComment(
     @SerialName("id")

@@ -2,12 +2,9 @@ package me.matsumo.travelog.feature.map.photo
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -16,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -76,7 +72,7 @@ internal fun PhotoDetailRoute(
             onDeleteClicked = viewModel::deleteImage,
             onSaveClicked = viewModel::savePendingEdits,
             onCommentClicked = viewModel::showCommentEditDialog,
-            onCommentEdited = viewModel::updateComment,
+            onCommentEdited = viewModel::upsertComment,
             onDialogDismiss = viewModel::dismissDialog,
         )
     }
@@ -93,8 +89,8 @@ private fun PhotoDetailScreen(
     onBackClicked: () -> Unit,
     onDeleteClicked: () -> Unit,
     onSaveClicked: () -> Unit,
-    onCommentClicked: (ImageComment) -> Unit,
-    onCommentEdited: (ImageComment, String) -> Unit,
+    onCommentClicked: (ImageComment?) -> Unit,
+    onCommentEdited: (ImageComment?, String) -> Unit,
     onDialogDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -125,20 +121,18 @@ private fun PhotoDetailScreen(
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = paddingValues + PaddingValues(bottom = 24.dp),
+            contentPadding = paddingValues + PaddingValues(
+                top = 8.dp,
+                bottom = 24.dp,
+            ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
                 AsyncImageWithPlaceholder(
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                        .aspectRatio(1.2f)
-                        .clip(RoundedCornerShape(20.dp)),
+                    modifier = Modifier.fillMaxWidth(),
                     model = uiState.imageUrl,
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Fit,
                 )
             }
 
@@ -164,14 +158,14 @@ private fun PhotoDetailScreen(
 private fun HandleDialogs(
     dialogState: PhotoDetailDialogState,
     onDialogDismiss: () -> Unit,
-    onCommentEdited: (ImageComment, String) -> Unit,
+    onCommentEdited: (ImageComment?, String) -> Unit,
 ) {
     when (dialogState) {
         PhotoDetailDialogState.None -> Unit
 
         is PhotoDetailDialogState.CommentEdit -> {
             PhotoCommentEditDialog(
-                currentValue = dialogState.comment.body,
+                currentValue = dialogState.comment?.body.orEmpty(),
                 onConfirm = { onCommentEdited(dialogState.comment, it) },
                 onDismiss = onDialogDismiss,
             )

@@ -1,9 +1,12 @@
 package me.matsumo.travelog.feature.map.area
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -12,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -52,6 +56,7 @@ internal fun MapAreaDetailRoute(
     },
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val isUploading by viewModel.isUploading.collectAsStateWithLifecycle()
     val navBackStack = LocalNavBackStack.current
 
     AsyncLoadContents(
@@ -83,6 +88,7 @@ internal fun MapAreaDetailRoute(
             rowCount = it.rowCount,
             tempFileStorage = tempFileStorage,
             onImagePicked = viewModel::uploadImage,
+            isUploading = isUploading,
         )
     }
 }
@@ -99,6 +105,7 @@ private fun MapAreaDetailScreen(
     rowCount: Int,
     tempFileStorage: TempFileStorage,
     onImagePicked: (PlatformFile) -> Unit,
+    isUploading: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
@@ -123,39 +130,52 @@ private fun MapAreaDetailScreen(
         },
         containerColor = MaterialTheme.colorScheme.surface,
     ) { paddingValues ->
-        TileGrid(
-            modifier = Modifier.fillMaxSize(),
-            placedItems = placedItems,
-            rowCount = rowCount,
-            columnCount = 3,
-            cornerRadius = 16.dp,
-            cellSpacing = 6.dp,
-            contentPadding = paddingValues + PaddingValues(8.dp),
-            header = {
-                MapAreaDetailHeader(
+        Box(modifier = Modifier.fillMaxSize()) {
+            TileGrid(
+                modifier = Modifier.fillMaxSize(),
+                placedItems = placedItems,
+                rowCount = rowCount,
+                columnCount = 3,
+                cornerRadius = 16.dp,
+                cellSpacing = 6.dp,
+                contentPadding = paddingValues + PaddingValues(8.dp),
+                header = {
+                    MapAreaDetailHeader(
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .fillMaxWidth(),
+                        mapId = mapId,
+                        geoAreaId = geoAreaId,
+                        geoArea = geoArea,
+                        mapRegions = mapRegions,
+                        regionImageUrls = regionImageUrls,
+                        existingRegionId = existingRegion?.id,
+                        tempFileStorage = tempFileStorage,
+                    )
+                },
+                onItemClick = { item ->
+                    navBackStack.add(
+                        Destination.PhotoDetail(
+                            imageId = item.id,
+                            imageUrl = item.imageUrl,
+                            regionName = geoArea.nameJa ?: geoArea.name,
+                        ),
+                    )
+                },
+            ) { item ->
+                TilePhotoItem(imageUrl = item.imageUrl)
+            }
+
+            if (isUploading) {
+                Box(
                     modifier = Modifier
-                        .padding(bottom = 8.dp)
-                        .fillMaxWidth(),
-                    mapId = mapId,
-                    geoAreaId = geoAreaId,
-                    geoArea = geoArea,
-                    mapRegions = mapRegions,
-                    regionImageUrls = regionImageUrls,
-                    existingRegionId = existingRegion?.id,
-                    tempFileStorage = tempFileStorage,
-                )
-            },
-            onItemClick = { item ->
-                navBackStack.add(
-                    Destination.PhotoDetail(
-                        imageId = item.id,
-                        imageUrl = item.imageUrl,
-                        regionName = geoArea.nameJa ?: geoArea.name,
-                    ),
-                )
-            },
-        ) { item ->
-            TilePhotoItem(imageUrl = item.imageUrl)
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
         }
     }
 }

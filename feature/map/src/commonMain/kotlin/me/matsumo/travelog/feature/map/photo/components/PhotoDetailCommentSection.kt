@@ -22,6 +22,7 @@ import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.common_unknown
 import me.matsumo.travelog.core.resource.photo_detail_comments
 import me.matsumo.travelog.core.resource.photo_detail_comments_empty
+import me.matsumo.travelog.core.resource.photo_detail_comments_tap_to_add
 import me.matsumo.travelog.core.ui.component.CommonSectionItem
 import org.jetbrains.compose.resources.stringResource
 
@@ -29,7 +30,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun PhotoDetailCommentSection(
     comments: ImmutableList<ImageComment>,
-    onCommentClicked: (ImageComment) -> Unit,
+    onCommentClicked: (ImageComment?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -57,8 +58,9 @@ internal fun PhotoDetailCommentSection(
                 CommonSectionItem(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(Res.string.photo_detail_comments_empty),
-                    description = null,
+                    description = stringResource(Res.string.photo_detail_comments_tap_to_add),
                     icon = Icons.Default.ChatBubble,
+                    onClick = { onCommentClicked(null) }
                 )
             } else {
                 comments.forEach { comment ->

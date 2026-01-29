@@ -19,6 +19,7 @@ import me.matsumo.travelog.core.model.db.Image
 import me.matsumo.travelog.core.model.db.ImageComment
 import me.matsumo.travelog.core.repository.ImageCommentRepository
 import me.matsumo.travelog.core.repository.ImageRepository
+import me.matsumo.travelog.core.repository.SessionRepository
 import me.matsumo.travelog.core.repository.StorageRepository
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
@@ -29,6 +30,7 @@ class PhotoDetailViewModel(
     private val initialImageUrl: String?,
     private val imageRepository: ImageRepository,
     private val imageCommentRepository: ImageCommentRepository,
+    private val sessionRepository: SessionRepository,
     private val storageRepository: StorageRepository,
 ) : ViewModel() {
 
@@ -77,7 +79,7 @@ class PhotoDetailViewModel(
         }
     }
 
-    fun showCommentEditDialog(comment: ImageComment) {
+    fun showCommentEditDialog(comment: ImageComment?) {
         _dialogState.value = PhotoDetailDialogState.CommentEdit(comment)
     }
 
@@ -85,12 +87,50 @@ class PhotoDetailViewModel(
         _dialogState.value = PhotoDetailDialogState.None
     }
 
-    fun updateComment(comment: ImageComment, newBody: String) {
+    fun upsertComment(comment: ImageComment?, newBody: String) {
+        if (newBody.isBlank()) {
+            _dialogState.value = PhotoDetailDialogState.None
+            return
+        }
+
+        if (comment == null) {
+            val currentState = (_screenState.value as? ScreenState.Idle)?.data ?: return
+            val userId = sessionRepository.getCurrentUserInfo()?.id
+            if (userId == null) {
+                _dialogState.value = PhotoDetailDialogState.None
+                return
+            }
+            viewModelScope.launch {
+                _isSaving.value = true
+                val result = suspendRunCatching {
+                    val newComment = ImageComment(
+                        imageId = currentState.imageId,
+                        authorUserId = userId,
+                        body = newBody,
+                    )
+                    imageCommentRepository.createImageComment(newComment)
+                    imageCommentRepository.getImageCommentsByImageId(currentState.imageId)
+                }
+
+                result.onSuccess { latestComments ->
+                    _screenState.update {
+                        val state = (it as? ScreenState.Idle)?.data ?: return@update it
+                        ScreenState.Idle(state.copy(comments = latestComments.toImmutableList()))
+                    }
+                }
+
+                _isSaving.value = false
+                _dialogState.value = PhotoDetailDialogState.None
+            }
+            return
+        }
+
         val commentId = comment.id ?: return
         if (newBody == comment.body) {
             _dialogState.value = PhotoDetailDialogState.None
             return
         }
+
         val currentState = (_screenState.value as? ScreenState.Idle)?.data ?: return
         val updatedComments = currentState.comments.map { item ->
             if (item.id == commentId) item.copy(body = newBody) else item
@@ -167,5 +207,5 @@ data class PhotoDetailUiState(
 sealed interface PhotoDetailDialogState {
     data object None : PhotoDetailDialogState
 
-    data class CommentEdit(val comment: ImageComment) : PhotoDetailDialogState
+    data class CommentEdit(val comment: ImageComment?) : PhotoDetailDialogState
 }
