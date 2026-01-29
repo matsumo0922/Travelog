@@ -3,6 +3,7 @@ package me.matsumo.travelog.feature.map.photo
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.aakira.napier.Napier
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -132,22 +133,31 @@ class PhotoDetailViewModel(
     }
 
     fun savePendingEdits() {
-        if (pendingEdits.isEmpty()) return
         val currentState = (_screenState.value as? ScreenState.Idle)?.data ?: return
         val commentsById = currentState.comments.associateBy { it.id }
 
         viewModelScope.launch {
-            _isSaving.value = true
-            val updates = pendingEdits.mapNotNull { (id, body) ->
-                commentsById[id]?.copy(body = body)
+            if (pendingEdits.isEmpty()) {
+                _navigateBack.emit(Unit)
+                return@launch
             }
-            val result = updateImageCommentsUseCase(updates)
 
-            if (result is UpdateImageCommentsUseCase.Result.Success) {
-                pendingEdits.clear()
-                _hasPendingEdits.value = false
-            } else if (result is UpdateImageCommentsUseCase.Result.Failed) {
-                _uiEvent.emit(PhotoDetailUiEvent.CommentUpdateFailed)
+            _isSaving.value = true
+
+            val updates = pendingEdits.mapNotNull { (id, body) -> commentsById[id]?.copy(body = body) }
+
+            when (val result = updateImageCommentsUseCase(updates)) {
+                is UpdateImageCommentsUseCase.Result.Success -> {
+                    pendingEdits.clear()
+                    _hasPendingEdits.value = false
+                }
+
+                is UpdateImageCommentsUseCase.Result.Failed -> {
+                    Napier.d { "Failed to update comments: $result" }
+                    _uiEvent.emit(PhotoDetailUiEvent.CommentUpdateFailed)
+                }
+
+                else -> Unit
             }
 
             _isSaving.value = false

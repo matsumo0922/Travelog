@@ -175,7 +175,6 @@ private fun PhotoDetailScreen(
                 onDeleteClicked = { setDeleteDialogVisible(true) },
                 onSaveClicked = onSaveClicked,
                 isSaving = isSaving,
-                isSaveEnabled = hasPendingEdits,
                 scrollBehavior = scrollBehavior,
             )
         },
