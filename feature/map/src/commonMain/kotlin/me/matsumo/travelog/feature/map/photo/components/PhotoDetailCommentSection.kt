@@ -60,7 +60,7 @@ internal fun PhotoDetailCommentSection(
                     title = stringResource(Res.string.photo_detail_comments_empty),
                     description = stringResource(Res.string.photo_detail_comments_tap_to_add),
                     icon = Icons.Default.ChatBubble,
-                    onClick = { onCommentClicked(null) }
+                    onClick = { onCommentClicked(null) },
                 )
             } else {
                 comments.forEach { comment ->

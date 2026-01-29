@@ -3,7 +3,6 @@ package me.matsumo.travelog.feature.map.photo
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.aakira.napier.Napier
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -42,9 +41,6 @@ class PhotoDetailViewModel(
 
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
-
-    private val _hasPendingEdits = MutableStateFlow(false)
-    val hasPendingEdits: StateFlow<Boolean> = _hasPendingEdits.asStateFlow()
 
     private val _navigateBack = MutableSharedFlow<Unit>()
     val navigateBack: SharedFlow<Unit> = _navigateBack.asSharedFlow()
@@ -104,7 +100,8 @@ class PhotoDetailViewModel(
 
                     is CreateImageCommentUseCase.Result.InvalidBody,
                     is CreateImageCommentUseCase.Result.UserNotLoggedIn,
-                    is CreateImageCommentUseCase.Result.Failed -> {
+                    is CreateImageCommentUseCase.Result.Failed,
+                        -> {
                         _uiEvent.emit(PhotoDetailUiEvent.CommentSaveFailed)
                     }
                 }
@@ -127,7 +124,6 @@ class PhotoDetailViewModel(
         }
 
         pendingEdits[commentId] = newBody
-        _hasPendingEdits.value = pendingEdits.isNotEmpty()
         _screenState.update { ScreenState.Idle(currentState.copy(comments = updatedComments.toImmutableList())) }
         _dialogState.value = PhotoDetailDialogState.None
     }
@@ -149,11 +145,9 @@ class PhotoDetailViewModel(
             when (val result = updateImageCommentsUseCase(updates)) {
                 is UpdateImageCommentsUseCase.Result.Success -> {
                     pendingEdits.clear()
-                    _hasPendingEdits.value = false
                 }
 
                 is UpdateImageCommentsUseCase.Result.Failed -> {
-                    Napier.d { "Failed to update comments: $result" }
                     _uiEvent.emit(PhotoDetailUiEvent.CommentUpdateFailed)
                 }
 
@@ -179,7 +173,6 @@ class PhotoDetailViewModel(
             }
         }
     }
-
 }
 
 @Stable
@@ -190,9 +183,9 @@ data class PhotoDetailUiState(
     val comments: ImmutableList<ImageComment>,
 )
 
+@Stable
 sealed interface PhotoDetailDialogState {
     data object None : PhotoDetailDialogState
-
     data class CommentEdit(val comment: ImageComment?) : PhotoDetailDialogState
 }
 

@@ -122,10 +122,10 @@ actual suspend fun generateCroppedImage(
         val offsetYFit = cropData.offsetY * viewHeight
 
         println(
-            "$TAG: Crop params: image=${imageWidth}x${imageHeight}, view=${viewWidth}x${viewHeight}, " +
+            "$TAG: Crop params: image=${imageWidth}x$imageHeight, view=${viewWidth}x$viewHeight, " +
                     "fitScale=$fitScale, cropScale=$cropScale, zoomScaleFit=$zoomScaleFit, " +
                     "offsetFit=($offsetXFit,$offsetYFit), rotation=${cropData.rotation}, " +
-                    "uiTransform=$uiTransform, outputTransform=$outputTransform, scaleRatio=$scaleRatio"
+                    "uiTransform=$uiTransform, outputTransform=$outputTransform, scaleRatio=$scaleRatio",
         )
 
         val colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -204,7 +204,7 @@ actual suspend fun generateCroppedImage(
 
         println(
             "$TAG: Output content rect: left=$cropLeft top=$cropTop width=$cropWidth height=$cropHeight " +
-                    "outputSize=$outputSize"
+                    "outputSize=$outputSize",
         )
 
         val croppedImage = cropCGImage(outputImage, cropLeft, cropTop, cropWidth, cropHeight, outputSize)
@@ -326,35 +326,35 @@ private fun applyExifOrientation(
         2 -> { // Flip horizontal
             CGAffineTransformConcat(
                 CGAffineTransformMakeTranslation(newWidth.toDouble(), 0.0),
-                CGAffineTransformMakeScale(-1.0, 1.0)
+                CGAffineTransformMakeScale(-1.0, 1.0),
             )
         }
 
         3 -> { // Rotate 180
             CGAffineTransformConcat(
                 CGAffineTransformMakeTranslation(newWidth.toDouble(), newHeight.toDouble()),
-                CGAffineTransformMakeRotation(PI)
+                CGAffineTransformMakeRotation(PI),
             )
         }
 
         4 -> { // Flip vertical
             CGAffineTransformConcat(
                 CGAffineTransformMakeTranslation(0.0, newHeight.toDouble()),
-                CGAffineTransformMakeScale(1.0, -1.0)
+                CGAffineTransformMakeScale(1.0, -1.0),
             )
         }
 
         5 -> { // Transpose
             CGAffineTransformConcat(
                 CGAffineTransformMakeRotation(PI / 2),
-                CGAffineTransformMakeScale(1.0, -1.0)
+                CGAffineTransformMakeScale(1.0, -1.0),
             )
         }
 
         6 -> { // Rotate 90 CW
             CGAffineTransformConcat(
                 CGAffineTransformMakeTranslation(newWidth.toDouble(), 0.0),
-                CGAffineTransformMakeRotation(PI / 2)
+                CGAffineTransformMakeRotation(PI / 2),
             )
         }
 
@@ -363,15 +363,15 @@ private fun applyExifOrientation(
                 CGAffineTransformMakeTranslation(newWidth.toDouble(), newHeight.toDouble()),
                 CGAffineTransformConcat(
                     CGAffineTransformMakeRotation(PI / 2),
-                    CGAffineTransformMakeScale(-1.0, 1.0)
-                )
+                    CGAffineTransformMakeScale(-1.0, 1.0),
+                ),
             )
         }
 
         8 -> { // Rotate 270 CW (90 CCW)
             CGAffineTransformConcat(
                 CGAffineTransformMakeTranslation(0.0, newHeight.toDouble()),
-                CGAffineTransformMakeRotation(-PI / 2)
+                CGAffineTransformMakeRotation(-PI / 2),
             )
         }
 
@@ -670,7 +670,7 @@ private fun encodeToJpeg(image: CGImageRef, quality: Double): ByteArray? {
     }
 
     val options = mapOf(
-        kCGImageDestinationLossyCompressionQuality to NSNumber(quality)
+        kCGImageDestinationLossyCompressionQuality to NSNumber(quality),
     )
 
     @Suppress("UNCHECKED_CAST")

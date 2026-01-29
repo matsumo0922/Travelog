@@ -1,6 +1,6 @@
 package me.matsumo.travelog.core.common
 
-import java.util.Locale
+import java.util.*
 
 actual fun formatCacheSize(bytes: Long?): String {
     if (bytes == null) return "..."

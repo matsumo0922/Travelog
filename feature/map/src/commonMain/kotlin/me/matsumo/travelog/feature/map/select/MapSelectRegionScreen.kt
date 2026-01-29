@@ -36,8 +36,8 @@ import org.koin.core.parameter.parametersOf
 internal fun MapSelectRegionRoute(
     mapId: String,
     geoAreaId: String,
-    initialRegions: List<MapRegion>?,
-    initialRegionImageUrls: Map<String, String>?,
+    initialRegions: ImmutableList<MapRegion>?,
+    initialRegionImageUrls: ImmutableMap<String, String>?,
     modifier: Modifier = Modifier,
     viewModel: MapSelectRegionViewModel = koinViewModel(
         key = "$mapId-$geoAreaId",

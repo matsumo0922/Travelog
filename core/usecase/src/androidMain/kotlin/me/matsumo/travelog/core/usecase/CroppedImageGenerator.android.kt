@@ -66,7 +66,7 @@ actual suspend fun generateCroppedImage(
 
     Log.d(
         TAG,
-        "Crop params: image=${bitmap.width}x${bitmap.height}, view=${viewWidth}x${viewHeight}, " +
+        "Crop params: image=${bitmap.width}x${bitmap.height}, view=${viewWidth}x$viewHeight, " +
                 "fitScale=$fitScale, cropScale=$cropScale, zoomScaleFit=$zoomScaleFit, " +
                 "offsetFit=($offsetXFit,$offsetYFit), rotation=${cropData.rotation}, " +
                 "uiTransform=$uiTransform, outputTransform=$outputTransform, scaleRatio=$scaleRatio",

@@ -51,7 +51,7 @@ class MapDetailViewModel(
                             currentState.data.copy(
                                 regions = regions.toImmutableList(),
                                 regionImageUrls = imageUrlMap.toImmutableMap(),
-                            )
+                            ),
                         )
                     }
                 }

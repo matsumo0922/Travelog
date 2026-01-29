@@ -59,6 +59,9 @@ class LazyTileGridState(
     private var _maxScrollOffset: Int = 0
     val maxScrollOffset: Int get() = _maxScrollOffset
 
+    override val isScrollInProgress: Boolean
+        get() = scrollableState.isScrollInProgress
+
     private val scrollableState = ScrollableState { delta ->
         val newOffset = (_scrollOffset - delta).coerceIn(0f, _maxScrollOffset.toFloat())
         val consumed = _scrollOffset - newOffset
@@ -74,9 +77,6 @@ class LazyTileGridState(
             _scrollOffset = _maxScrollOffset.toFloat()
         }
     }
-
-    override val isScrollInProgress: Boolean
-        get() = scrollableState.isScrollInProgress
 
     override fun dispatchRawDelta(delta: Float): Float =
         scrollableState.dispatchRawDelta(delta)
@@ -250,7 +250,7 @@ private class TileGridItemProvider<T : TileGridItem>(
                                 Modifier.clip(RoundedCornerShape(cornerRadius))
                             } else {
                                 Modifier
-                            }
+                            },
                         )
                         .clickable(enabled = onItemClick != null) { onItemClick?.invoke(placed.item) },
                 ) {

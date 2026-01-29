@@ -57,7 +57,7 @@ class MapSelectRegionViewModel(
                             currentState.data.copy(
                                 mapRegions = regions.toImmutableList(),
                                 regionImageUrls = imageUrlMap.toImmutableMap(),
-                            )
+                            ),
                         )
                     }
                 }

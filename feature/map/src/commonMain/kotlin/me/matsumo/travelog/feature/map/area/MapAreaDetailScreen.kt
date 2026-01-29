@@ -47,8 +47,8 @@ import org.koin.core.parameter.parametersOf
 internal fun MapAreaDetailRoute(
     mapId: String,
     geoAreaId: String,
-    initialRegions: List<MapRegion>?,
-    initialRegionImageUrls: Map<String, String>?,
+    initialRegions: ImmutableList<MapRegion>?,
+    initialRegionImageUrls: ImmutableMap<String, String>?,
     modifier: Modifier = Modifier,
     tempFileStorage: TempFileStorage = koinInject(),
     viewModel: MapAreaDetailViewModel = koinViewModel(

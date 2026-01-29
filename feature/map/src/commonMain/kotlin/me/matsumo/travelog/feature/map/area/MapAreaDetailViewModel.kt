@@ -88,7 +88,7 @@ class MapAreaDetailViewModel(
                                 regionImageUrls = imageUrlMap.toImmutableMap(),
                                 placedItems = placementResult.placedItems.toImmutableList(),
                                 rowCount = placementResult.rowCount,
-                            )
+                            ),
                         )
                     }
                 }

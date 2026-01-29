@@ -69,7 +69,6 @@ internal fun PhotoDetailRoute(
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val dialogState by viewModel.dialogState.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
-    val hasPendingEdits by viewModel.hasPendingEdits.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -99,7 +98,6 @@ internal fun PhotoDetailRoute(
             regionName = regionName,
             dialogState = dialogState,
             isSaving = isSaving,
-            hasPendingEdits = hasPendingEdits,
             snackbarHostState = snackbarHostState,
             onBackClicked = { navBackStack.removeLastOrNull() },
             onDeleteClicked = viewModel::deleteImage,
@@ -118,7 +116,6 @@ private fun PhotoDetailScreen(
     regionName: String?,
     dialogState: PhotoDetailDialogState,
     isSaving: Boolean,
-    hasPendingEdits: Boolean,
     snackbarHostState: SnackbarHostState,
     onBackClicked: () -> Unit,
     onDeleteClicked: () -> Unit,

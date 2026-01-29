@@ -183,7 +183,9 @@ internal fun CropEditorCanvas(
                 imageSize = imageSize,
             )
         }
-            .filter { it.containerSize.width > 0 && it.containerSize.height > 0 && it.imageSize.width > 0 && it.imageSize.height > 0 }
+            .filter {
+                it.containerSize.width > 0 && it.containerSize.height > 0 && it.imageSize.width > 0 && it.imageSize.height > 0
+            }
             .distinctUntilChanged()
             .collect { snapshot ->
                 // Skip notification during animation to prevent feedback loop
@@ -240,7 +242,9 @@ internal fun CropEditorCanvas(
             return@LaunchedEffect
         }
 
-        Napier.d { "CropEditorCanvas sync transform: scale=$targetScaleValue offset=($targetOffsetX,$targetOffsetY) rotation=$targetRotationValue" }
+        Napier.d {
+            "CropEditorCanvas sync transform: scale=$targetScaleValue offset=($targetOffsetX,$targetOffsetY) rotation=$targetRotationValue"
+        }
 
         // Update target rotation for animation
         targetRotation = targetRotationValue
@@ -316,56 +320,56 @@ internal fun CropEditorCanvas(
                         try {
                             do {
                                 val event = awaitPointerEvent()
-                            val zoomChange = event.calculateZoom()
-                            val panChange = event.calculatePan()
-                            val centroid = event.calculateCentroid()
+                                val zoomChange = event.calculateZoom()
+                                val panChange = event.calculatePan()
+                                val centroid = event.calculateCentroid()
                                 // calculateRotation() returns degrees (not radians)
                                 val rotationChange = event.calculateRotation()
 
                                 if (zoomChange != 1f || panChange != Offset.Zero || rotationChange != 0f) {
-                                // Calculate new scale
-                                val newScale = (scale * zoomChange).coerceIn(MIN_SCALE, MAX_SCALE)
+                                    // Calculate new scale
+                                    val newScale = (scale * zoomChange).coerceIn(MIN_SCALE, MAX_SCALE)
 
-                                // Convert centroid from container coordinates to center-relative coordinates
-                                // (graphicsLayer uses center as origin for translation)
-                                val pivotX = centroid.x - containerSize.width / 2f
-                                val pivotY = centroid.y - containerSize.height / 2f
+                                    // Convert centroid from container coordinates to center-relative coordinates
+                                    // (graphicsLayer uses center as origin for translation)
+                                    val pivotX = centroid.x - containerSize.width / 2f
+                                    val pivotY = centroid.y - containerSize.height / 2f
 
-                                // Calculate new offset with zoom pivot at pinch center
-                                // This formula keeps the point under the pinch center fixed during zoom
-                                val effectiveZoom = newScale / scale
-                                val newOffsetX = offsetX * effectiveZoom + pivotX * (1 - effectiveZoom) + panChange.x
-                                val newOffsetY = offsetY * effectiveZoom + pivotY * (1 - effectiveZoom) + panChange.y
+                                    // Calculate new offset with zoom pivot at pinch center
+                                    // This formula keeps the point under the pinch center fixed during zoom
+                                    val effectiveZoom = newScale / scale
+                                    val newOffsetX = offsetX * effectiveZoom + pivotX * (1 - effectiveZoom) + panChange.x
+                                    val newOffsetY = offsetY * effectiveZoom + pivotY * (1 - effectiveZoom) + panChange.y
 
                                     // Calculate new rotation (rotationChange is already in degrees)
                                     val newRotation = normalizeRotation(rotation + rotationChange)
 
-                                // Calculate extended bounds
-                                val fitScale = calculateFitScale(containerSize, imageSize)
-                                val fittedWidth = imageSize.width * fitScale
-                                val fittedHeight = imageSize.height * fitScale
-                                val scaledWidth = fittedWidth * newScale
-                                val scaledHeight = fittedHeight * newScale
+                                    // Calculate extended bounds
+                                    val fitScale = calculateFitScale(containerSize, imageSize)
+                                    val fittedWidth = imageSize.width * fitScale
+                                    val fittedHeight = imageSize.height * fitScale
+                                    val scaledWidth = fittedWidth * newScale
+                                    val scaledHeight = fittedHeight * newScale
 
-                                // Extended bounds: allow panning beyond the fitted image
-                                val extraRangeX = containerSize.width * (CONTENT_SIZE_MULTIPLIER - 1f) * 0.5f
-                                val extraRangeY = containerSize.height * (CONTENT_SIZE_MULTIPLIER - 1f) * 0.5f
-                                val boundX = max((scaledWidth - containerSize.width) * 0.5f, 0f) + extraRangeX
-                                val boundY = max((scaledHeight - containerSize.height) * 0.5f, 0f) + extraRangeY
+                                    // Extended bounds: allow panning beyond the fitted image
+                                    val extraRangeX = containerSize.width * (CONTENT_SIZE_MULTIPLIER - 1f) * 0.5f
+                                    val extraRangeY = containerSize.height * (CONTENT_SIZE_MULTIPLIER - 1f) * 0.5f
+                                    val boundX = max((scaledWidth - containerSize.width) * 0.5f, 0f) + extraRangeX
+                                    val boundY = max((scaledHeight - containerSize.height) * 0.5f, 0f) + extraRangeY
 
                                     // Apply bounded offset and rotation (immediate update for gestures)
-                                scale = newScale
-                                offsetX = newOffsetX.coerceIn(-boundX, boundX)
-                                offsetY = newOffsetY.coerceIn(-boundY, boundY)
+                                    scale = newScale
+                                    offsetX = newOffsetX.coerceIn(-boundX, boundX)
+                                    offsetY = newOffsetY.coerceIn(-boundY, boundY)
                                     rotation = newRotation
 
-                                // Consume the gesture
-                                event.changes.forEach { change ->
-                                    if (change.positionChanged()) {
-                                        change.consume()
+                                    // Consume the gesture
+                                    event.changes.forEach { change ->
+                                        if (change.positionChanged()) {
+                                            change.consume()
+                                        }
                                     }
                                 }
-                            }
                             } while (event.changes.any { it.pressed })
                         } finally {
                             isGesturing = false
@@ -396,7 +400,7 @@ internal fun CropEditorCanvas(
                         val newSize = IntSize(width, height)
                         if (newSize != imageSize) {
                             imageSize = newSize
-                            Napier.d { "CropEditorCanvas image size: ${width}x${height}" }
+                            Napier.d { "CropEditorCanvas image size: ${width}x$height" }
                         }
                     }
                 },
