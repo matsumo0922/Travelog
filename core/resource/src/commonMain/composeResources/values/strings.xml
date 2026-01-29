@@ -118,6 +118,10 @@
     <string name="photo_detail_comments_tap_to_add">タップして追加</string>
     <string name="photo_detail_comment_edit_title">コメントを編集</string>
     <string name="photo_detail_comment_edit_placeholder">コメントを入力</string>
+    <string name="photo_detail_comment_save_error">コメントの作成に失敗しました</string>
+    <string name="photo_detail_comment_update_error">コメントの更新に失敗しました</string>
+    <string name="photo_detail_delete_title">写真を削除</string>
+    <string name="photo_detail_delete_message">この写真を削除しますか？この操作は取り消しできません。</string>
     <string name="photo_detail_metadata">メタデータ</string>
     <string name="photo_detail_metadata_size">画像サイズ</string>
     <string name="photo_detail_metadata_storage">ファイルサイズ</string>

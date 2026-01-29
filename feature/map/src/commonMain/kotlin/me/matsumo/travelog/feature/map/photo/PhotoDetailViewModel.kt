@@ -14,24 +14,23 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
-import me.matsumo.travelog.core.datasource.api.StorageApi
 import me.matsumo.travelog.core.model.db.Image
 import me.matsumo.travelog.core.model.db.ImageComment
-import me.matsumo.travelog.core.repository.ImageCommentRepository
 import me.matsumo.travelog.core.repository.ImageRepository
-import me.matsumo.travelog.core.repository.SessionRepository
-import me.matsumo.travelog.core.repository.StorageRepository
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.screen.ScreenState
+import me.matsumo.travelog.core.usecase.CreateImageCommentUseCase
+import me.matsumo.travelog.core.usecase.GetPhotoDetailUseCase
+import me.matsumo.travelog.core.usecase.UpdateImageCommentsUseCase
 
 class PhotoDetailViewModel(
     private val imageId: String,
     private val initialImageUrl: String?,
     private val imageRepository: ImageRepository,
-    private val imageCommentRepository: ImageCommentRepository,
-    private val sessionRepository: SessionRepository,
-    private val storageRepository: StorageRepository,
+    private val getPhotoDetailUseCase: GetPhotoDetailUseCase,
+    private val createImageCommentUseCase: CreateImageCommentUseCase,
+    private val updateImageCommentsUseCase: UpdateImageCommentsUseCase,
 ) : ViewModel() {
 
     private val _screenState = MutableStateFlow<ScreenState<PhotoDetailUiState>>(ScreenState.Loading())
@@ -49,6 +48,9 @@ class PhotoDetailViewModel(
     private val _navigateBack = MutableSharedFlow<Unit>()
     val navigateBack: SharedFlow<Unit> = _navigateBack.asSharedFlow()
 
+    private val _uiEvent = MutableSharedFlow<PhotoDetailUiEvent>()
+    val uiEvent: SharedFlow<PhotoDetailUiEvent> = _uiEvent.asSharedFlow()
+
     private val pendingEdits = mutableMapOf<String, String>()
 
     init {
@@ -58,19 +60,13 @@ class PhotoDetailViewModel(
     fun fetch() {
         viewModelScope.launch {
             _screenState.value = suspendRunCatching {
-                val image = imageRepository.getImage(imageId)
-                val imageUrl = image?.let { resolveImageUrl(it) } ?: initialImageUrl
-                val comments = if (imageId.isNotBlank()) {
-                    imageCommentRepository.getImageCommentsByImageId(imageId)
-                } else {
-                    emptyList()
-                }
+                val detail = getPhotoDetailUseCase(imageId, initialImageUrl)
 
                 PhotoDetailUiState(
-                    imageId = imageId,
-                    imageUrl = imageUrl,
-                    image = image,
-                    comments = comments.toImmutableList(),
+                    imageId = detail.imageId,
+                    imageUrl = detail.imageUrl,
+                    image = detail.image,
+                    comments = detail.comments.toImmutableList(),
                 )
             }.fold(
                 onSuccess = { ScreenState.Idle(it) },
@@ -95,27 +91,20 @@ class PhotoDetailViewModel(
 
         if (comment == null) {
             val currentState = (_screenState.value as? ScreenState.Idle)?.data ?: return
-            val userId = sessionRepository.getCurrentUserInfo()?.id
-            if (userId == null) {
-                _dialogState.value = PhotoDetailDialogState.None
-                return
-            }
             viewModelScope.launch {
                 _isSaving.value = true
-                val result = suspendRunCatching {
-                    val newComment = ImageComment(
-                        imageId = currentState.imageId,
-                        authorUserId = userId,
-                        body = newBody,
-                    )
-                    imageCommentRepository.createImageComment(newComment)
-                    imageCommentRepository.getImageCommentsByImageId(currentState.imageId)
-                }
+                when (val result = createImageCommentUseCase(currentState.imageId, newBody)) {
+                    is CreateImageCommentUseCase.Result.Success -> {
+                        _screenState.update {
+                            val state = (it as? ScreenState.Idle)?.data ?: return@update it
+                            ScreenState.Idle(state.copy(comments = result.comments.toImmutableList()))
+                        }
+                    }
 
-                result.onSuccess { latestComments ->
-                    _screenState.update {
-                        val state = (it as? ScreenState.Idle)?.data ?: return@update it
-                        ScreenState.Idle(state.copy(comments = latestComments.toImmutableList()))
+                    is CreateImageCommentUseCase.Result.InvalidBody,
+                    is CreateImageCommentUseCase.Result.UserNotLoggedIn,
+                    is CreateImageCommentUseCase.Result.Failed -> {
+                        _uiEvent.emit(PhotoDetailUiEvent.CommentSaveFailed)
                     }
                 }
 
@@ -149,16 +138,16 @@ class PhotoDetailViewModel(
 
         viewModelScope.launch {
             _isSaving.value = true
-            val result = suspendRunCatching {
-                pendingEdits.forEach { (id, body) ->
-                    val target = commentsById[id] ?: return@forEach
-                    imageCommentRepository.updateImageComment(target.copy(body = body))
-                }
+            val updates = pendingEdits.mapNotNull { (id, body) ->
+                commentsById[id]?.copy(body = body)
             }
+            val result = updateImageCommentsUseCase(updates)
 
-            if (result.isSuccess) {
+            if (result is UpdateImageCommentsUseCase.Result.Success) {
                 pendingEdits.clear()
                 _hasPendingEdits.value = false
+            } else if (result is UpdateImageCommentsUseCase.Result.Failed) {
+                _uiEvent.emit(PhotoDetailUiEvent.CommentUpdateFailed)
             }
 
             _isSaving.value = false
@@ -181,19 +170,6 @@ class PhotoDetailViewModel(
         }
     }
 
-    private suspend fun resolveImageUrl(image: Image): String? {
-        val bucketName = image.bucketName ?: return null
-
-        return when (bucketName) {
-            StorageApi.BUCKET_MAP_REGION_IMAGES -> {
-                storageRepository.getSignedUrl(bucketName, image.storageKey)
-            }
-
-            else -> {
-                storageRepository.getMapIconPublicUrl(image.storageKey)
-            }
-        }
-    }
 }
 
 @Stable
@@ -208,4 +184,9 @@ sealed interface PhotoDetailDialogState {
     data object None : PhotoDetailDialogState
 
     data class CommentEdit(val comment: ImageComment?) : PhotoDetailDialogState
+}
+
+sealed interface PhotoDetailUiEvent {
+    data object CommentSaveFailed : PhotoDetailUiEvent
+    data object CommentUpdateFailed : PhotoDetailUiEvent
 }
