@@ -11,6 +11,9 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.matsumo.travelog.core.common.suspendRunCatching
+import me.matsumo.travelog.core.datasource.api.StorageApi
 import me.matsumo.travelog.core.model.db.Image
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
@@ -33,11 +37,12 @@ import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.component.PlacedTileItem
 import me.matsumo.travelog.core.ui.component.TileGridConfig
+import me.matsumo.travelog.core.ui.component.TileGridPlacementResult
 import me.matsumo.travelog.core.ui.component.TileGridPlacer
+import me.matsumo.travelog.core.ui.component.TileSpanSize
 import me.matsumo.travelog.core.ui.screen.ScreenState
 import me.matsumo.travelog.core.usecase.GetMapRegionImagesUseCase
 import me.matsumo.travelog.core.usecase.extractImageMetadata
-import me.matsumo.travelog.feature.map.area.components.MockPhotoGenerator
 import me.matsumo.travelog.feature.map.area.components.model.GridPhotoItem
 
 class MapAreaDetailViewModel(
@@ -76,10 +81,13 @@ class MapAreaDetailViewModel(
                     val currentState = _screenState.value
                     if (currentState is ScreenState.Idle) {
                         val imageUrlMap = getMapRegionImagesUseCase(regions)
+                        val placementResult = buildPlacedItems(regions)
                         _screenState.value = ScreenState.Idle(
                             currentState.data.copy(
                                 mapRegions = regions.toImmutableList(),
                                 regionImageUrls = imageUrlMap.toImmutableMap(),
+                                placedItems = placementResult.placedItems.toImmutableList(),
+                                rowCount = placementResult.rowCount,
                             )
                         )
                     }
@@ -97,15 +105,7 @@ class MapAreaDetailViewModel(
                 // 初期データがあればそれを優先使用、なければUseCaseから取得
                 val imageUrlMap = initialRegionImageUrls ?: getMapRegionImagesUseCase(mapRegions)
 
-                val mockPhotos = MockPhotoGenerator.generateMockPhotos(
-                    count = 500,
-                    config = gridConfig,
-                )
-
-                val placementResult = withContext(Dispatchers.Default) {
-                    val placer = TileGridPlacer(gridConfig)
-                    placer.placeItems(mockPhotos)
-                }
+                val placementResult = buildPlacedItems(mapRegions)
 
                 MapAreaDetailUiState(
                     geoArea = geoArea!!,
@@ -121,6 +121,74 @@ class MapAreaDetailViewModel(
         }
     }
 
+    private suspend fun buildPlacedItems(mapRegions: List<MapRegion>): TileGridPlacementResult<GridPhotoItem> {
+        val mapRegionIds = mapRegions.mapNotNull { it.id }
+        val images = coroutineScope {
+            mapRegionIds.map { regionId ->
+                async { imageRepository.getImagesByMapRegionId(regionId) }
+            }.awaitAll().flatten()
+        }
+
+        val items = coroutineScope {
+            images.mapIndexed { index, image ->
+                async {
+                    val imageId = image.id ?: return@async null
+                    val imageUrl = resolveImageUrl(image) ?: return@async null
+                    val useSpecialSize = gridConfig.specialSizeInterval > 0 &&
+                            (index + 1) % gridConfig.specialSizeInterval == 0
+                    val span = if (useSpecialSize) resolveSpanSize(image) else TileSpanSize(1, 1)
+                    GridPhotoItem(
+                        id = imageId,
+                        imageUrl = imageUrl,
+                        spanWidth = span.spanWidth,
+                        spanHeight = span.spanHeight,
+                    )
+                }
+            }.awaitAll().filterNotNull()
+        }
+
+        return withContext(Dispatchers.Default) {
+            val placer = TileGridPlacer(gridConfig)
+            placer.placeItems(items)
+        }
+    }
+
+    private suspend fun resolveImageUrl(image: Image): String? {
+        val bucketName = image.bucketName ?: return null
+
+        return when (bucketName) {
+            StorageApi.BUCKET_MAP_REGION_IMAGES -> {
+                storageRepository.getSignedUrl(bucketName, image.storageKey)
+            }
+
+            else -> {
+                storageRepository.getMapIconPublicUrl(image.storageKey)
+            }
+        }
+    }
+
+    private fun resolveSpanSize(image: Image): TileSpanSize {
+        val width = image.width
+        val height = image.height
+        if (width == null || height == null || width <= 0 || height <= 0) {
+            return TileSpanSize(1, 1)
+        }
+
+        val ratio = width.toFloat() / height.toFloat()
+        val candidates = when {
+            ratio >= 1.6f -> listOf(TileSpanSize(3, 2), TileSpanSize(2, 1))
+            ratio >= 1.2f -> listOf(TileSpanSize(2, 1))
+            ratio <= 0.65f -> listOf(TileSpanSize(2, 3), TileSpanSize(1, 2))
+            ratio <= 0.85f -> listOf(TileSpanSize(1, 2))
+            else -> listOf(TileSpanSize(2, 2))
+        }
+
+        val available = gridConfig.availableSpecialSizes
+        return candidates.firstOrNull { candidate ->
+            available.any { it.spanWidth == candidate.spanWidth && it.spanHeight == candidate.spanHeight }
+        } ?: TileSpanSize(1, 1)
+    }
+
     fun uploadImage(file: PlatformFile) {
         viewModelScope.launch {
             _isUploading.value = true
@@ -129,10 +197,19 @@ class MapAreaDetailViewModel(
                 val metadata = extractImageMetadata(file)
 
                 val result = suspendRunCatching {
+                    val existingRegion = mapRegionRepository.getMapRegionsByMapIdAndGeoAreaId(mapId, geoAreaId)
+                        .firstOrNull()
+                    val targetRegion = existingRegion ?: mapRegionRepository.createMapRegion(
+                        MapRegion(
+                            mapId = mapId,
+                            geoAreaId = geoAreaId,
+                        ),
+                    )
+
                     val upload = storageRepository.uploadMapRegionImage(file, userId)
                     val image = Image(
                         uploaderUserId = userId,
-                        mapRegionId = null,
+                        mapRegionId = targetRegion.id,
                         storageKey = upload.storageKey,
                         contentType = upload.contentType,
                         fileSize = upload.fileSize,
@@ -149,6 +226,19 @@ class MapAreaDetailViewModel(
                         bucketName = upload.bucketName,
                         storageKey = upload.storageKey,
                     )
+
+                    val latestRegions = mapRegionRepository.getMapRegionsByMapIdAndGeoAreaId(mapId, geoAreaId)
+                    val placementResult = buildPlacedItems(latestRegions)
+                    val currentState = _screenState.value
+                    if (currentState is ScreenState.Idle) {
+                        _screenState.value = ScreenState.Idle(
+                            currentState.data.copy(
+                                mapRegions = latestRegions.toImmutableList(),
+                                placedItems = placementResult.placedItems.toImmutableList(),
+                                rowCount = placementResult.rowCount,
+                            ),
+                        )
+                    }
 
                     PhotoDetailNavigation(
                         imageId = createdImage.id.orEmpty(),
