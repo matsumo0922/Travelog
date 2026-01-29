@@ -1,0 +1,180 @@
+package me.matsumo.travelog.feature.map.photo
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import me.matsumo.travelog.core.model.db.ImageComment
+import me.matsumo.travelog.core.resource.Res
+import me.matsumo.travelog.core.resource.common_unknown
+import me.matsumo.travelog.core.ui.component.AsyncImageWithPlaceholder
+import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
+import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
+import me.matsumo.travelog.core.ui.utils.plus
+import me.matsumo.travelog.feature.map.photo.components.PhotoCommentEditDialog
+import me.matsumo.travelog.feature.map.photo.components.PhotoDetailCommentSection
+import me.matsumo.travelog.feature.map.photo.components.PhotoDetailMetadataSection
+import me.matsumo.travelog.feature.map.photo.components.PhotoDetailTopAppBar
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
+
+@Composable
+internal fun PhotoDetailRoute(
+    imageId: String,
+    imageUrl: String?,
+    regionName: String?,
+    modifier: Modifier = Modifier,
+    viewModel: PhotoDetailViewModel = koinViewModel(
+        key = imageId,
+    ) {
+        parametersOf(imageId, imageUrl)
+    },
+) {
+    val navBackStack = LocalNavBackStack.current
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val dialogState by viewModel.dialogState.collectAsStateWithLifecycle()
+    val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
+    val hasPendingEdits by viewModel.hasPendingEdits.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.navigateBack.collect {
+            navBackStack.removeLastOrNull()
+        }
+    }
+
+    AsyncLoadContents(
+        modifier = modifier,
+        screenState = screenState,
+        retryAction = viewModel::fetch,
+    ) { uiState ->
+        PhotoDetailScreen(
+            modifier = Modifier.fillMaxSize(),
+            uiState = uiState,
+            regionName = regionName,
+            dialogState = dialogState,
+            isSaving = isSaving,
+            hasPendingEdits = hasPendingEdits,
+            onBackClicked = { navBackStack.removeLastOrNull() },
+            onDeleteClicked = viewModel::deleteImage,
+            onSaveClicked = viewModel::savePendingEdits,
+            onCommentClicked = viewModel::showCommentEditDialog,
+            onCommentEdited = viewModel::updateComment,
+            onDialogDismiss = viewModel::dismissDialog,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PhotoDetailScreen(
+    uiState: PhotoDetailUiState,
+    regionName: String?,
+    dialogState: PhotoDetailDialogState,
+    isSaving: Boolean,
+    hasPendingEdits: Boolean,
+    onBackClicked: () -> Unit,
+    onDeleteClicked: () -> Unit,
+    onSaveClicked: () -> Unit,
+    onCommentClicked: (ImageComment) -> Unit,
+    onCommentEdited: (ImageComment, String) -> Unit,
+    onDialogDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val titleText = regionName ?: stringResource(Res.string.common_unknown)
+
+    HandleDialogs(
+        dialogState = dialogState,
+        onDialogDismiss = onDialogDismiss,
+        onCommentEdited = onCommentEdited,
+    )
+
+    Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            PhotoDetailTopAppBar(
+                modifier = Modifier.fillMaxWidth(),
+                title = titleText,
+                onBackClicked = onBackClicked,
+                onDeleteClicked = onDeleteClicked,
+                onSaveClicked = onSaveClicked,
+                isSaving = isSaving,
+                isSaveEnabled = hasPendingEdits,
+                scrollBehavior = scrollBehavior,
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = paddingValues + PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item {
+                AsyncImageWithPlaceholder(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                        .aspectRatio(1.2f)
+                        .clip(RoundedCornerShape(20.dp)),
+                    model = uiState.imageUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                )
+            }
+
+            item {
+                PhotoDetailCommentSection(
+                    modifier = Modifier.fillMaxWidth(),
+                    comments = uiState.comments,
+                    onCommentClicked = onCommentClicked,
+                )
+            }
+
+            item {
+                PhotoDetailMetadataSection(
+                    modifier = Modifier.fillMaxWidth(),
+                    image = uiState.image,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HandleDialogs(
+    dialogState: PhotoDetailDialogState,
+    onDialogDismiss: () -> Unit,
+    onCommentEdited: (ImageComment, String) -> Unit,
+) {
+    when (dialogState) {
+        PhotoDetailDialogState.None -> Unit
+
+        is PhotoDetailDialogState.CommentEdit -> {
+            PhotoCommentEditDialog(
+                currentValue = dialogState.comment.body,
+                onConfirm = { onCommentEdited(dialogState.comment, it) },
+                onDismiss = onDialogDismiss,
+            )
+        }
+    }
+}

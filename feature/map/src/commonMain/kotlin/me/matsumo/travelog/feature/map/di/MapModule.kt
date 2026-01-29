@@ -5,6 +5,7 @@ import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.feature.map.MapDetailViewModel
 import me.matsumo.travelog.feature.map.area.MapAreaDetailViewModel
 import me.matsumo.travelog.feature.map.crop.PhotoCropEditorViewModel
+import me.matsumo.travelog.feature.map.photo.PhotoDetailViewModel
 import me.matsumo.travelog.feature.map.select.MapSelectRegionViewModel
 import me.matsumo.travelog.feature.map.setting.MapSettingViewModel
 import org.koin.core.module.dsl.viewModel
@@ -58,6 +59,19 @@ val mapModule = module {
             geoAreaRepository = get(),
             mapRegionRepository = get(),
             getMapRegionImagesUseCase = get(),
+            sessionRepository = get(),
+            storageRepository = get(),
+            imageRepository = get(),
+        )
+    }
+
+    viewModel { extras ->
+        PhotoDetailViewModel(
+            imageId = extras[0] as String,
+            initialImageUrl = extras[1] as? String,
+            imageRepository = get(),
+            imageCommentRepository = get(),
+            storageRepository = get(),
         )
     }
 

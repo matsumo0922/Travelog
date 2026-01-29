@@ -112,6 +112,17 @@
     <string name="photo_crop_editor_save_error">保存に失敗しました</string>
     <string name="photo_crop_editor_saving">保存中…</string>
 
+    <!-- Photo Detail -->
+    <string name="photo_detail_comments">コメント</string>
+    <string name="photo_detail_comments_empty">コメントはまだありません</string>
+    <string name="photo_detail_comment_edit_title">コメントを編集</string>
+    <string name="photo_detail_comment_edit_placeholder">コメントを入力</string>
+    <string name="photo_detail_metadata">メタデータ</string>
+    <string name="photo_detail_metadata_size">画像サイズ</string>
+    <string name="photo_detail_metadata_storage">ファイルサイズ</string>
+    <string name="photo_detail_metadata_saved_at">保存日時</string>
+    <string name="photo_detail_metadata_exif">EXIF</string>
+
     <!-- Account -->
     <string name="account_title">アカウント</string>
     <string name="account_display_name">ニックネーム</string>

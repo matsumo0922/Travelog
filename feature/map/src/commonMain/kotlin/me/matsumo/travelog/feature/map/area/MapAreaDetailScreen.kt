@@ -9,11 +9,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import me.matsumo.travelog.core.model.db.MapRegion
@@ -21,6 +24,7 @@ import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.ui.component.PlacedTileItem
 import me.matsumo.travelog.core.ui.component.TileGrid
 import me.matsumo.travelog.core.ui.screen.AsyncLoadContents
+import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
 import me.matsumo.travelog.core.usecase.TempFileStorage
@@ -48,12 +52,26 @@ internal fun MapAreaDetailRoute(
     },
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val navBackStack = LocalNavBackStack.current
 
     AsyncLoadContents(
         modifier = modifier,
         screenState = screenState,
         retryAction = viewModel::fetch,
     ) {
+        val regionNameState = rememberUpdatedState(it.geoArea.nameJa ?: it.geoArea.name)
+        LaunchedEffect(viewModel) {
+            viewModel.navigateToPhotoDetail.collect { event ->
+                navBackStack.add(
+                    Destination.PhotoDetail(
+                        imageId = event.imageId,
+                        imageUrl = event.imageUrl,
+                        regionName = regionNameState.value,
+                    ),
+                )
+            }
+        }
+
         MapAreaDetailScreen(
             modifier = Modifier.fillMaxSize(),
             mapId = mapId,
@@ -64,6 +82,7 @@ internal fun MapAreaDetailRoute(
             placedItems = it.placedItems,
             rowCount = it.rowCount,
             tempFileStorage = tempFileStorage,
+            onImagePicked = viewModel::uploadImage,
         )
     }
 }
@@ -79,6 +98,7 @@ private fun MapAreaDetailScreen(
     placedItems: ImmutableList<PlacedTileItem<GridPhotoItem>>,
     rowCount: Int,
     tempFileStorage: TempFileStorage,
+    onImagePicked: (PlatformFile) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
@@ -98,10 +118,7 @@ private fun MapAreaDetailScreen(
         },
         floatingActionButton = {
             MapAreaDetailFab(
-                mapId = mapId,
-                geoAreaId = geoAreaId,
-                existingRegionId = existingRegion?.id,
-                tempFileStorage = tempFileStorage,
+                onImagePicked = onImagePicked,
             )
         },
         containerColor = MaterialTheme.colorScheme.surface,
@@ -126,6 +143,15 @@ private fun MapAreaDetailScreen(
                     regionImageUrls = regionImageUrls,
                     existingRegionId = existingRegion?.id,
                     tempFileStorage = tempFileStorage,
+                )
+            },
+            onItemClick = { item ->
+                navBackStack.add(
+                    Destination.PhotoDetail(
+                        imageId = item.id,
+                        imageUrl = item.imageUrl,
+                        regionName = geoArea.nameJa ?: geoArea.name,
+                    ),
                 )
             },
         ) { item ->

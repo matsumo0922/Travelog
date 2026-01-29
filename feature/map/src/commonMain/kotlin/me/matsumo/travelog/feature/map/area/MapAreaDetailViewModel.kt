@@ -3,6 +3,7 @@ package me.matsumo.travelog.feature.map.area
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
@@ -10,17 +11,24 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.matsumo.travelog.core.common.suspendRunCatching
+import me.matsumo.travelog.core.model.db.Image
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.repository.GeoAreaRepository
+import me.matsumo.travelog.core.repository.ImageRepository
 import me.matsumo.travelog.core.repository.MapRegionRepository
+import me.matsumo.travelog.core.repository.SessionRepository
+import me.matsumo.travelog.core.repository.StorageRepository
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.component.PlacedTileItem
@@ -28,6 +36,7 @@ import me.matsumo.travelog.core.ui.component.TileGridConfig
 import me.matsumo.travelog.core.ui.component.TileGridPlacer
 import me.matsumo.travelog.core.ui.screen.ScreenState
 import me.matsumo.travelog.core.usecase.GetMapRegionImagesUseCase
+import me.matsumo.travelog.core.usecase.extractImageMetadata
 import me.matsumo.travelog.feature.map.area.components.MockPhotoGenerator
 import me.matsumo.travelog.feature.map.area.components.model.GridPhotoItem
 
@@ -39,10 +48,16 @@ class MapAreaDetailViewModel(
     private val geoAreaRepository: GeoAreaRepository,
     private val mapRegionRepository: MapRegionRepository,
     private val getMapRegionImagesUseCase: GetMapRegionImagesUseCase,
+    private val sessionRepository: SessionRepository,
+    private val storageRepository: StorageRepository,
+    private val imageRepository: ImageRepository,
 ) : ViewModel() {
 
     private val _screenState = MutableStateFlow<ScreenState<MapAreaDetailUiState>>(ScreenState.Loading())
     val screenState: StateFlow<ScreenState<MapAreaDetailUiState>> = _screenState.asStateFlow()
+
+    private val _navigateToPhotoDetail = MutableSharedFlow<PhotoDetailNavigation>()
+    val navigateToPhotoDetail: SharedFlow<PhotoDetailNavigation> = _navigateToPhotoDetail.asSharedFlow()
 
     private val gridConfig = TileGridConfig()
 
@@ -102,6 +117,47 @@ class MapAreaDetailViewModel(
             )
         }
     }
+
+    fun uploadImage(file: PlatformFile) {
+        viewModelScope.launch {
+            val userId = sessionRepository.getCurrentUserInfo()?.id ?: return@launch
+            val metadata = extractImageMetadata(file)
+
+            val result = suspendRunCatching {
+                val upload = storageRepository.uploadMapRegionImage(file, userId)
+                val image = Image(
+                    uploaderUserId = userId,
+                    mapRegionId = null,
+                    storageKey = upload.storageKey,
+                    contentType = upload.contentType,
+                    fileSize = upload.fileSize,
+                    width = metadata?.width,
+                    height = metadata?.height,
+                    takenAt = metadata?.takenAt,
+                    takenLat = metadata?.takenLat,
+                    takenLng = metadata?.takenLng,
+                    exif = metadata?.exif,
+                    bucketName = upload.bucketName,
+                )
+                val createdImage = imageRepository.createImage(image)
+                val imageUrl = storageRepository.getSignedUrl(
+                    bucketName = upload.bucketName,
+                    storageKey = upload.storageKey,
+                )
+
+                PhotoDetailNavigation(
+                    imageId = createdImage.id.orEmpty(),
+                    imageUrl = imageUrl,
+                )
+            }
+
+            result.onSuccess { event ->
+                if (event.imageId.isNotBlank()) {
+                    _navigateToPhotoDetail.emit(event)
+                }
+            }
+        }
+    }
 }
 
 @Stable
@@ -111,4 +167,10 @@ data class MapAreaDetailUiState(
     val regionImageUrls: ImmutableMap<String, String> = persistentMapOf(),
     val placedItems: ImmutableList<PlacedTileItem<GridPhotoItem>> = persistentListOf(),
     val rowCount: Int = 0,
+)
+
+@Stable
+data class PhotoDetailNavigation(
+    val imageId: String,
+    val imageUrl: String?,
 )

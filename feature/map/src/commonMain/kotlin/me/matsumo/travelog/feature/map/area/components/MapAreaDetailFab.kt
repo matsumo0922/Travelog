@@ -19,42 +19,28 @@ import com.mohamedrejeb.calf.permissions.isNotGranted
 import com.mohamedrejeb.calf.permissions.rememberPermissionState
 import io.github.aakira.napier.Napier
 import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.map_photo_add
-import me.matsumo.travelog.core.ui.screen.Destination
-import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
-import me.matsumo.travelog.core.usecase.TempFileStorage
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 internal fun MapAreaDetailFab(
-    mapId: String,
-    geoAreaId: String,
-    existingRegionId: String?,
-    tempFileStorage: TempFileStorage,
+    onImagePicked: (PlatformFile) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
-    val navBackStack = LocalNavBackStack.current
 
     fun launchImagePicker() {
         scope.launch {
             runCatching {
                 FileKit.openFilePicker(FileKitType.Image, FileKitMode.Single)?.also { file ->
-                    val tempPath = tempFileStorage.saveToTemp(file)
-                    navBackStack.add(
-                        Destination.PhotoCropEditor(
-                            mapId = mapId,
-                            geoAreaId = geoAreaId,
-                            localFilePath = tempPath,
-                            existingRegionId = existingRegionId,
-                        ),
-                    )
+                    onImagePicked(file)
                 }
             }.onFailure {
                 Napier.e(it) { "Failed to pick image" }
