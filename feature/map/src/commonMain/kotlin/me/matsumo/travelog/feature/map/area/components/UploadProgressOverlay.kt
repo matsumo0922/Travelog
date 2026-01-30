@@ -1,74 +1,75 @@
 package me.matsumo.travelog.feature.map.area.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.map_upload_progress_multiple
-import me.matsumo.travelog.core.resource.map_upload_progress_single
+import me.matsumo.travelog.core.ui.theme.center
 import me.matsumo.travelog.feature.map.area.UploadState
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun UploadProgressDialog(
     uploadState: UploadState,
-    modifier: Modifier = Modifier,
 ) {
     val uploading = uploadState as? UploadState.Uploading ?: return
+    val progress = if (uploading.totalCount > 0) {
+        uploading.completedCount.toFloat() / uploading.totalCount.toFloat()
+    } else {
+        0f
+    }
 
-    AlertDialog(
-        modifier = modifier,
+    val progressAnimation by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(300),
+        label = "UploadProgressDialog",
+    )
+
+    Dialog(
         onDismissRequest = { },
-        confirmButton = { },
-        text = {
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
+        ),
+        content = {
             Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.spacedBy(
+                    space = 16.dp,
+                    alignment = Alignment.CenterVertically,
+                ),
             ) {
-                if (uploading.totalCount == 1) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(48.dp),
-                    )
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                    progress = { progressAnimation },
+                )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = stringResource(Res.string.map_upload_progress_single),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                } else {
-                    val progress = if (uploading.totalCount > 0) {
-                        uploading.completedCount.toFloat() / uploading.totalCount.toFloat()
-                    } else {
-                        0f
-                    }
-
-                    CircularProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier.size(48.dp),
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = stringResource(
-                            Res.string.map_upload_progress_multiple,
-                            uploading.completedCount,
-                            uploading.totalCount,
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                Text(
+                    text = stringResource(Res.string.map_upload_progress_multiple, uploading.completedCount, uploading.totalCount),
+                    style = MaterialTheme.typography.bodyMedium.center(),
+                )
             }
         },
     )
