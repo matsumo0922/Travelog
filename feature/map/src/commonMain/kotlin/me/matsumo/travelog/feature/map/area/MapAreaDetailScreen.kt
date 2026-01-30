@@ -1,12 +1,9 @@
 package me.matsumo.travelog.feature.map.area
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -15,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -38,6 +34,7 @@ import me.matsumo.travelog.feature.map.area.components.MapAreaDetailFab
 import me.matsumo.travelog.feature.map.area.components.MapAreaDetailHeader
 import me.matsumo.travelog.feature.map.area.components.MapAreaDetailTopAppBar
 import me.matsumo.travelog.feature.map.area.components.TilePhotoItem
+import me.matsumo.travelog.feature.map.area.components.UploadProgressDialog
 import me.matsumo.travelog.feature.map.area.components.model.GridPhotoItem
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -58,7 +55,7 @@ internal fun MapAreaDetailRoute(
     },
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val isUploading by viewModel.isUploading.collectAsStateWithLifecycle()
+    val uploadState by viewModel.uploadState.collectAsStateWithLifecycle()
     val navBackStack = LocalNavBackStack.current
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
@@ -93,8 +90,8 @@ internal fun MapAreaDetailRoute(
             placedItems = it.placedItems,
             rowCount = it.rowCount,
             tempFileStorage = tempFileStorage,
-            onImagePicked = viewModel::uploadImage,
-            isUploading = isUploading,
+            onImagesPicked = viewModel::uploadImages,
+            uploadState = uploadState,
         )
     }
 }
@@ -110,10 +107,11 @@ private fun MapAreaDetailScreen(
     placedItems: ImmutableList<PlacedTileItem<GridPhotoItem>>,
     rowCount: Int,
     tempFileStorage: TempFileStorage,
-    onImagePicked: (PlatformFile) -> Unit,
-    isUploading: Boolean,
+    onImagesPicked: (List<PlatformFile>) -> Unit,
+    uploadState: UploadState,
     modifier: Modifier = Modifier,
 ) {
+    val isUploading = uploadState is UploadState.Uploading
     val navBackStack = LocalNavBackStack.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -130,58 +128,49 @@ private fun MapAreaDetailScreen(
             )
         },
         floatingActionButton = {
-            MapAreaDetailFab(
-                onImagePicked = onImagePicked,
-            )
+            if (!isUploading) {
+                MapAreaDetailFab(
+                    onImagesPicked = onImagesPicked,
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.surface,
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            TileGrid(
-                modifier = Modifier.fillMaxSize(),
-                placedItems = placedItems,
-                rowCount = rowCount,
-                columnCount = 3,
-                cornerRadius = 16.dp,
-                cellSpacing = 6.dp,
-                contentPadding = paddingValues + PaddingValues(8.dp),
-                header = {
-                    MapAreaDetailHeader(
-                        modifier = Modifier
-                            .padding(bottom = 8.dp)
-                            .fillMaxWidth(),
-                        mapId = mapId,
-                        geoAreaId = geoAreaId,
-                        geoArea = geoArea,
-                        mapRegions = mapRegions,
-                        regionImageUrls = regionImageUrls,
-                        existingRegionId = existingRegion?.id,
-                        tempFileStorage = tempFileStorage,
-                    )
-                },
-                onItemClick = { item ->
-                    navBackStack.add(
-                        Destination.PhotoDetail(
-                            imageId = item.id,
-                            imageUrl = item.imageUrl,
-                            regionName = geoArea.nameJa ?: geoArea.name,
-                        ),
-                    )
-                },
-            ) { item ->
-                TilePhotoItem(imageUrl = item.imageUrl)
-            }
-
-            if (isUploading) {
-                Box(
+        TileGrid(
+            modifier = Modifier.fillMaxSize(),
+            placedItems = placedItems,
+            rowCount = rowCount,
+            columnCount = 3,
+            cornerRadius = 16.dp,
+            cellSpacing = 6.dp,
+            contentPadding = paddingValues + PaddingValues(8.dp),
+            header = {
+                MapAreaDetailHeader(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
+                        .padding(bottom = 8.dp)
+                        .fillMaxWidth(),
+                    mapId = mapId,
+                    geoAreaId = geoAreaId,
+                    geoArea = geoArea,
+                    mapRegions = mapRegions,
+                    regionImageUrls = regionImageUrls,
+                    existingRegionId = existingRegion?.id,
+                    tempFileStorage = tempFileStorage,
+                )
+            },
+            onItemClick = { item ->
+                navBackStack.add(
+                    Destination.PhotoDetail(
+                        imageId = item.id,
+                        imageUrl = item.imageUrl,
+                        regionName = geoArea.nameJa ?: geoArea.name,
+                    ),
+                )
+            },
+        ) { item ->
+            TilePhotoItem(imageUrl = item.imageUrl)
         }
     }
+
+    UploadProgressDialog(uploadState = uploadState)
 }

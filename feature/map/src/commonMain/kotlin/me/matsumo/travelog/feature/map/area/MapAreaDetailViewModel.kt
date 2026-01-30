@@ -31,7 +31,6 @@ import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.repository.GeoAreaRepository
 import me.matsumo.travelog.core.repository.ImageRepository
 import me.matsumo.travelog.core.repository.MapRegionRepository
-import me.matsumo.travelog.core.repository.SessionRepository
 import me.matsumo.travelog.core.repository.StorageRepository
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
@@ -42,7 +41,8 @@ import me.matsumo.travelog.core.ui.component.TileGridPlacer
 import me.matsumo.travelog.core.ui.component.TileSpanSize
 import me.matsumo.travelog.core.ui.screen.ScreenState
 import me.matsumo.travelog.core.usecase.GetMapRegionImagesUseCase
-import me.matsumo.travelog.core.usecase.extractImageMetadata
+import me.matsumo.travelog.core.usecase.UploadMapAreaImagesUseCase
+import me.matsumo.travelog.core.usecase.UploadProgress
 import me.matsumo.travelog.feature.map.area.components.model.GridPhotoItem
 
 class MapAreaDetailViewModel(
@@ -53,7 +53,7 @@ class MapAreaDetailViewModel(
     private val geoAreaRepository: GeoAreaRepository,
     private val mapRegionRepository: MapRegionRepository,
     private val getMapRegionImagesUseCase: GetMapRegionImagesUseCase,
-    private val sessionRepository: SessionRepository,
+    private val uploadMapAreaImagesUseCase: UploadMapAreaImagesUseCase,
     private val storageRepository: StorageRepository,
     private val imageRepository: ImageRepository,
 ) : ViewModel() {
@@ -64,8 +64,8 @@ class MapAreaDetailViewModel(
     private val _navigateToPhotoDetail = MutableSharedFlow<PhotoDetailNavigation>()
     val navigateToPhotoDetail: SharedFlow<PhotoDetailNavigation> = _navigateToPhotoDetail.asSharedFlow()
 
-    private val _isUploading = MutableStateFlow(false)
-    val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
+    private val _uploadState = MutableStateFlow<UploadState>(UploadState.Idle)
+    val uploadState: StateFlow<UploadState> = _uploadState.asStateFlow()
 
     private val gridConfig = TileGridConfig()
 
@@ -189,73 +189,59 @@ class MapAreaDetailViewModel(
         } ?: TileSpanSize(1, 1)
     }
 
-    fun uploadImage(file: PlatformFile) {
+    fun uploadImages(files: List<PlatformFile>) {
+        if (files.isEmpty()) return
+
         viewModelScope.launch {
-            _isUploading.value = true
-            try {
-                val userId = sessionRepository.getCurrentUserInfo()?.id ?: return@launch
-                val metadata = extractImageMetadata(file)
-
-                val result = suspendRunCatching {
-                    val existingRegion = mapRegionRepository.getMapRegionsByMapIdAndGeoAreaId(mapId, geoAreaId)
-                        .firstOrNull()
-                    val targetRegion = existingRegion ?: mapRegionRepository.createMapRegion(
-                        MapRegion(
-                            mapId = mapId,
-                            geoAreaId = geoAreaId,
-                        ),
-                    )
-
-                    val upload = storageRepository.uploadMapRegionImage(file, userId)
-                    val image = Image(
-                        uploaderUserId = userId,
-                        mapRegionId = targetRegion.id,
-                        storageKey = upload.storageKey,
-                        contentType = upload.contentType,
-                        fileSize = upload.fileSize,
-                        width = metadata?.width,
-                        height = metadata?.height,
-                        takenAt = metadata?.takenAt,
-                        takenLat = metadata?.takenLat,
-                        takenLng = metadata?.takenLng,
-                        exif = metadata?.exif,
-                        bucketName = upload.bucketName,
-                    )
-                    val createdImage = imageRepository.createImage(image)
-                    val imageUrl = storageRepository.getSignedUrl(
-                        bucketName = upload.bucketName,
-                        storageKey = upload.storageKey,
-                    )
-
-                    val latestRegions = mapRegionRepository.getMapRegionsByMapIdAndGeoAreaId(mapId, geoAreaId)
-                    val placementResult = buildPlacedItems(latestRegions)
-                    val currentState = _screenState.value
-                    if (currentState is ScreenState.Idle) {
-                        _screenState.value = ScreenState.Idle(
-                            currentState.data.copy(
-                                mapRegions = latestRegions.toImmutableList(),
-                                placedItems = placementResult.placedItems.toImmutableList(),
-                                rowCount = placementResult.rowCount,
-                            ),
+            uploadMapAreaImagesUseCase(files, mapId, geoAreaId).collect { progress ->
+                when (progress) {
+                    is UploadProgress.Uploading -> {
+                        _uploadState.value = UploadState.Uploading(
+                            totalCount = progress.totalCount,
+                            completedCount = progress.completedCount,
                         )
                     }
 
-                    PhotoDetailNavigation(
-                        imageId = createdImage.id.orEmpty(),
-                        imageUrl = imageUrl,
-                    )
-                }
+                    is UploadProgress.Completed -> {
+                        refreshGrid()
 
-                result.onSuccess { event ->
-                    if (event.imageId.isNotBlank()) {
-                        _navigateToPhotoDetail.emit(event)
+                        progress.singleImageResult?.let { result ->
+                            _navigateToPhotoDetail.emit(
+                                PhotoDetailNavigation(result.imageId, result.imageUrl),
+                            )
+                        }
+
+                        _uploadState.value = UploadState.Idle
                     }
                 }
-            } finally {
-                _isUploading.value = false
             }
         }
     }
+
+    private suspend fun refreshGrid() {
+        val latestRegions = mapRegionRepository.getMapRegionsByMapIdAndGeoAreaId(mapId, geoAreaId)
+        val placementResult = buildPlacedItems(latestRegions)
+        val currentState = _screenState.value
+        if (currentState is ScreenState.Idle) {
+            _screenState.value = ScreenState.Idle(
+                currentState.data.copy(
+                    mapRegions = latestRegions.toImmutableList(),
+                    placedItems = placementResult.placedItems.toImmutableList(),
+                    rowCount = placementResult.rowCount,
+                ),
+            )
+        }
+    }
+}
+
+@Stable
+sealed interface UploadState {
+    data object Idle : UploadState
+
+    data class Uploading(
+        val totalCount: Int,
+        val completedCount: Int,
+    ) : UploadState
 }
 
 @Stable

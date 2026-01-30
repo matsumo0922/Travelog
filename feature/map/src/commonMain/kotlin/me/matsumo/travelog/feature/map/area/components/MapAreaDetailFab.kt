@@ -31,7 +31,7 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 internal fun MapAreaDetailFab(
-    onImagePicked: (PlatformFile) -> Unit,
+    onImagesPicked: (List<PlatformFile>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -39,11 +39,13 @@ internal fun MapAreaDetailFab(
     fun launchImagePicker() {
         scope.launch {
             runCatching {
-                FileKit.openFilePicker(FileKitType.Image, FileKitMode.Single)?.also { file ->
-                    onImagePicked(file)
+                FileKit.openFilePicker(FileKitType.Image, FileKitMode.Multiple(maxItems = 10))?.also { files ->
+                    if (files.isNotEmpty()) {
+                        onImagesPicked(files)
+                    }
                 }
             }.onFailure {
-                Napier.e(it) { "Failed to pick image" }
+                Napier.e(it) { "Failed to pick images" }
             }
         }
     }

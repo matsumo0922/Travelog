@@ -59,7 +59,7 @@ val mapModule = module {
             geoAreaRepository = get(),
             mapRegionRepository = get(),
             getMapRegionImagesUseCase = get(),
-            sessionRepository = get(),
+            uploadMapAreaImagesUseCase = get(),
             storageRepository = get(),
             imageRepository = get(),
         )

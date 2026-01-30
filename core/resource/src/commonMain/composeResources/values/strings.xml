@@ -103,6 +103,8 @@
     <string name="map_photo_add">写真を追加</string>
     <string name="map_region_list">地域一覧</string>
     <string name="map_region_add_photo">代表写真を追加</string>
+    <string name="map_upload_progress_single">アップロード中…</string>
+    <string name="map_upload_progress_multiple">%1$d/%2$d枚 アップロード中…</string>
 
     <!-- Map Select Region -->
     <string name="map_select_region_title">地域を選択</string>
