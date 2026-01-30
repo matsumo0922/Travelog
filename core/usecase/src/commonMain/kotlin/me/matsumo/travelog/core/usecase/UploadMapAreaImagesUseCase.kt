@@ -4,9 +4,11 @@ import androidx.compose.runtime.Stable
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import me.matsumo.travelog.core.model.db.Image
@@ -26,14 +28,14 @@ class UploadMapAreaImagesUseCase(
         files: List<PlatformFile>,
         mapId: String,
         geoAreaId: String,
-    ): Flow<UploadProgress> = flow {
+    ): Flow<UploadProgress> = channelFlow {
         if (files.isEmpty()) {
-            emit(UploadProgress.Completed(0, null))
-            return@flow
+            send(UploadProgress.Completed(0, null))
+            return@channelFlow
         }
 
         val totalCount = files.size
-        emit(UploadProgress.Uploading(totalCount, 0))
+        send(UploadProgress.Uploading(totalCount, 0))
 
         val userId = checkNotNull(sessionRepository.getCurrentUserInfo()?.id) {
             "User not logged in"
@@ -49,20 +51,27 @@ class UploadMapAreaImagesUseCase(
         )
 
         val semaphore = Semaphore(MAX_CONCURRENT_UPLOADS)
+        val progressChannel = Channel<Unit>(Channel.UNLIMITED)
         var completedCount = 0
 
-        val results = coroutineScope {
-            files.map { file ->
-                async {
-                    semaphore.withPermit {
-                        val result = uploadSingleImage(file, userId, targetRegion.id)
-                        completedCount++
-                        emit(UploadProgress.Uploading(totalCount, completedCount))
-                        result
-                    }
-                }
-            }.awaitAll()
+        launch {
+            progressChannel.consumeEach {
+                completedCount++
+                send(UploadProgress.Uploading(totalCount, completedCount))
+            }
         }
+
+        val results = files.map { file ->
+            async {
+                semaphore.withPermit {
+                    val result = uploadSingleImage(file, userId, targetRegion.id)
+                    progressChannel.send(Unit)
+                    result
+                }
+            }
+        }.awaitAll()
+
+        progressChannel.close()
 
         val successResults = results.filterNotNull()
         val singleNavigation = if (totalCount == 1 && successResults.isNotEmpty()) {
@@ -71,7 +80,7 @@ class UploadMapAreaImagesUseCase(
             null
         }
 
-        emit(UploadProgress.Completed(successResults.size, singleNavigation))
+        send(UploadProgress.Completed(successResults.size, singleNavigation))
     }
 
     private suspend fun uploadSingleImage(
