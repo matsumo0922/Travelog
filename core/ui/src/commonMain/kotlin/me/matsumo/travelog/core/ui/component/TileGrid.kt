@@ -1,6 +1,7 @@
 package me.matsumo.travelog.core.ui.component
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.scrollable
@@ -103,6 +104,7 @@ fun rememberLazyTileGridState(): LazyTileGridState {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun <T : TileGridItem> TileGrid(
     placedItems: ImmutableList<PlacedTileItem<T>>,
@@ -115,7 +117,10 @@ fun <T : TileGridItem> TileGrid(
     state: LazyTileGridState = rememberLazyTileGridState(),
     header: (@Composable () -> Unit)? = null,
     onItemClick: ((item: T) -> Unit)? = null,
-    itemContent: @Composable (item: T) -> Unit,
+    onItemLongClick: ((item: T) -> Unit)? = null,
+    isSelectionMode: Boolean = false,
+    selectedIds: Set<String> = emptySet(),
+    itemContent: @Composable (item: T, isSelected: Boolean) -> Unit,
 ) {
     BoxWithConstraints(
         modifier = modifier.padding(contentPadding),
@@ -133,10 +138,13 @@ fun <T : TileGridItem> TileGrid(
 
         var headerHeightPx by remember { mutableIntStateOf(0) }
 
-        // rememberUpdatedState で最新の itemContent/header/onItemClick を保持（ラムダ参照が変わっても追従）
+        // rememberUpdatedState で最新の itemContent/header/onItemClick/onItemLongClick を保持（ラムダ参照が変わっても追従）
         val currentItemContent by rememberUpdatedState(itemContent)
         val currentHeader by rememberUpdatedState(header)
         val currentOnItemClick by rememberUpdatedState(onItemClick)
+        val currentOnItemLongClick by rememberUpdatedState(onItemLongClick)
+        val currentIsSelectionMode by rememberUpdatedState(isSelectionMode)
+        val currentSelectedIds by rememberUpdatedState(selectedIds)
 
         // placedItems と hasHeader と cornerRadius だけをキーにし、コンテンツは rememberUpdatedState 経由で実行時に最新を参照
         val itemProvider = remember(placedItems, header != null, cornerRadius) {
@@ -144,9 +152,11 @@ fun <T : TileGridItem> TileGrid(
                 placedItems = placedItems,
                 hasHeader = header != null,
                 cornerRadius = cornerRadius,
-                itemContent = { currentItemContent(it) },
+                itemContent = { item -> currentItemContent(item, currentSelectedIds.contains(item.id)) },
                 headerContent = { currentHeader?.invoke() },
                 onItemClick = { currentOnItemClick?.invoke(it) },
+                onItemLongClick = { currentOnItemLongClick?.invoke(it) },
+                isSelectionMode = { currentIsSelectionMode },
             )
         }
 
@@ -210,6 +220,7 @@ fun <T : TileGridItem> TileGrid(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 private class TileGridItemProvider<T : TileGridItem>(
     private val placedItems: ImmutableList<PlacedTileItem<T>>,
     private val hasHeader: Boolean,
@@ -217,6 +228,8 @@ private class TileGridItemProvider<T : TileGridItem>(
     private val itemContent: @Composable (item: T) -> Unit,
     private val headerContent: (@Composable () -> Unit)?,
     private val onItemClick: ((item: T) -> Unit)?,
+    private val onItemLongClick: ((item: T) -> Unit)?,
+    private val isSelectionMode: () -> Boolean,
 ) : LazyLayoutItemProvider {
 
     override val itemCount: Int
@@ -252,7 +265,11 @@ private class TileGridItemProvider<T : TileGridItem>(
                                 Modifier
                             },
                         )
-                        .clickable(enabled = onItemClick != null) { onItemClick?.invoke(placed.item) },
+                        .combinedClickable(
+                            enabled = onItemClick != null || onItemLongClick != null,
+                            onClick = { onItemClick?.invoke(placed.item) },
+                            onLongClick = { onItemLongClick?.invoke(placed.item) },
+                        ),
                 ) {
                     itemContent(placed.item)
                 }

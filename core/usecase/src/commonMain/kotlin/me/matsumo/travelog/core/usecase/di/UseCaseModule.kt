@@ -3,6 +3,7 @@ package me.matsumo.travelog.core.usecase.di
 import me.matsumo.travelog.core.usecase.CreateImageCommentUseCase
 import me.matsumo.travelog.core.usecase.CreateMapUseCase
 import me.matsumo.travelog.core.usecase.CreateMapWithIconUseCase
+import me.matsumo.travelog.core.usecase.DeleteMapAreaImagesUseCase
 import me.matsumo.travelog.core.usecase.GetMapRegionImagesUseCase
 import me.matsumo.travelog.core.usecase.GetPhotoDetailUseCase
 import me.matsumo.travelog.core.usecase.SaveMapRegionPhotoUseCase
@@ -20,6 +21,7 @@ val useCaseModule = module {
     singleOf(::UploadMapIconUseCase)
     singleOf(::UploadMapRegionImageUseCase)
     singleOf(::UploadMapAreaImagesUseCase)
+    singleOf(::DeleteMapAreaImagesUseCase)
     singleOf(::CreateMapUseCase)
     singleOf(::GetMapRegionImagesUseCase)
     singleOf(::GetPhotoDetailUseCase)

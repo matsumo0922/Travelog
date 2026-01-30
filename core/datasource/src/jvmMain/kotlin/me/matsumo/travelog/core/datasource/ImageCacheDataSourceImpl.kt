@@ -25,6 +25,10 @@ class ImageCacheDataSourceImpl : ImageCacheDataSource {
         return emptyList()
     }
 
+    override suspend fun delete(imageId: String) {
+        // No-op
+    }
+
     override suspend fun clearAll() {
         // No-op
     }

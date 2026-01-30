@@ -84,6 +84,13 @@ class ImageCacheDataSourceImpl(
         result
     }
 
+    override suspend fun delete(imageId: String): Unit = withContext(ioDispatcher) {
+        mutex.withLock {
+            memoryCache.remove(imageId)
+        }
+        Unit
+    }
+
     override suspend fun clearAll() = withContext(ioDispatcher) {
         mutex.withLock {
             memoryCache.clear()

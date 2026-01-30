@@ -40,6 +40,8 @@ import me.matsumo.travelog.core.ui.component.TileGridPlacementResult
 import me.matsumo.travelog.core.ui.component.TileGridPlacer
 import me.matsumo.travelog.core.ui.component.TileSpanSize
 import me.matsumo.travelog.core.ui.screen.ScreenState
+import me.matsumo.travelog.core.usecase.DeleteMapAreaImagesUseCase
+import me.matsumo.travelog.core.usecase.DeleteProgress
 import me.matsumo.travelog.core.usecase.GetMapRegionImagesUseCase
 import me.matsumo.travelog.core.usecase.UploadMapAreaImagesUseCase
 import me.matsumo.travelog.core.usecase.UploadProgress
@@ -54,6 +56,7 @@ class MapAreaDetailViewModel(
     private val mapRegionRepository: MapRegionRepository,
     private val getMapRegionImagesUseCase: GetMapRegionImagesUseCase,
     private val uploadMapAreaImagesUseCase: UploadMapAreaImagesUseCase,
+    private val deleteMapAreaImagesUseCase: DeleteMapAreaImagesUseCase,
     private val storageRepository: StorageRepository,
     private val imageRepository: ImageRepository,
 ) : ViewModel() {
@@ -66,6 +69,12 @@ class MapAreaDetailViewModel(
 
     private val _uploadState = MutableStateFlow<UploadState>(UploadState.Idle)
     val uploadState: StateFlow<UploadState> = _uploadState.asStateFlow()
+
+    private val _selectionState = MutableStateFlow(SelectionState())
+    val selectionState: StateFlow<SelectionState> = _selectionState.asStateFlow()
+
+    private val _deleteState = MutableStateFlow<DeleteState>(DeleteState.Idle)
+    val deleteState: StateFlow<DeleteState> = _deleteState.asStateFlow()
 
     private val gridConfig = TileGridConfig()
 
@@ -232,6 +241,72 @@ class MapAreaDetailViewModel(
             )
         }
     }
+
+    fun onItemLongClick(itemId: String) {
+        _selectionState.value = SelectionState(
+            isSelectionMode = true,
+            selectedIds = setOf(itemId),
+        )
+    }
+
+    fun onItemClickInSelectionMode(itemId: String) {
+        val currentState = _selectionState.value
+        if (!currentState.isSelectionMode) return
+
+        val newSelectedIds = if (currentState.selectedIds.contains(itemId)) {
+            currentState.selectedIds - itemId
+        } else {
+            currentState.selectedIds + itemId
+        }
+
+        if (newSelectedIds.isEmpty()) {
+            _selectionState.value = SelectionState()
+        } else {
+            _selectionState.value = currentState.copy(selectedIds = newSelectedIds)
+        }
+    }
+
+    fun exitSelectionMode() {
+        _selectionState.value = SelectionState()
+    }
+
+    fun requestDelete() {
+        val selectedCount = _selectionState.value.selectedIds.size
+        if (selectedCount > 0) {
+            _deleteState.value = DeleteState.Confirming(selectedCount)
+        }
+    }
+
+    fun dismissDeleteDialog() {
+        _deleteState.value = DeleteState.Idle
+    }
+
+    fun confirmDelete() {
+        val selectedIds = _selectionState.value.selectedIds.toList()
+        if (selectedIds.isEmpty()) {
+            _deleteState.value = DeleteState.Idle
+            return
+        }
+
+        viewModelScope.launch {
+            deleteMapAreaImagesUseCase(selectedIds).collect { progress ->
+                when (progress) {
+                    is DeleteProgress.Deleting -> {
+                        _deleteState.value = DeleteState.Deleting(
+                            totalCount = progress.totalCount,
+                            completedCount = progress.completedCount,
+                        )
+                    }
+
+                    is DeleteProgress.Completed -> {
+                        _deleteState.value = DeleteState.Idle
+                        _selectionState.value = SelectionState()
+                        refreshGrid()
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Stable
@@ -258,3 +333,21 @@ data class PhotoDetailNavigation(
     val imageId: String,
     val imageUrl: String?,
 )
+
+@Stable
+data class SelectionState(
+    val isSelectionMode: Boolean = false,
+    val selectedIds: Set<String> = emptySet(),
+)
+
+@Stable
+sealed interface DeleteState {
+    data object Idle : DeleteState
+
+    data class Confirming(val count: Int) : DeleteState
+
+    data class Deleting(
+        val totalCount: Int,
+        val completedCount: Int,
+    ) : DeleteState
+}

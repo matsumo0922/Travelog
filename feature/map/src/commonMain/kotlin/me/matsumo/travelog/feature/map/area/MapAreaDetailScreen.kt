@@ -30,10 +30,12 @@ import me.matsumo.travelog.core.ui.screen.Destination
 import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.core.ui.utils.plus
 import me.matsumo.travelog.core.usecase.TempFileStorage
+import me.matsumo.travelog.feature.map.area.components.DeleteConfirmDialog
+import me.matsumo.travelog.feature.map.area.components.DeleteProgressDialog
 import me.matsumo.travelog.feature.map.area.components.MapAreaDetailFab
 import me.matsumo.travelog.feature.map.area.components.MapAreaDetailHeader
 import me.matsumo.travelog.feature.map.area.components.MapAreaDetailTopAppBar
-import me.matsumo.travelog.feature.map.area.components.TilePhotoItem
+import me.matsumo.travelog.feature.map.area.components.SelectablePhotoItem
 import me.matsumo.travelog.feature.map.area.components.UploadProgressDialog
 import me.matsumo.travelog.feature.map.area.components.model.GridPhotoItem
 import org.koin.compose.koinInject
@@ -56,6 +58,8 @@ internal fun MapAreaDetailRoute(
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val uploadState by viewModel.uploadState.collectAsStateWithLifecycle()
+    val selectionState by viewModel.selectionState.collectAsStateWithLifecycle()
+    val deleteState by viewModel.deleteState.collectAsStateWithLifecycle()
     val navBackStack = LocalNavBackStack.current
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
@@ -92,6 +96,14 @@ internal fun MapAreaDetailRoute(
             tempFileStorage = tempFileStorage,
             onImagesPicked = viewModel::uploadImages,
             uploadState = uploadState,
+            selectionState = selectionState,
+            deleteState = deleteState,
+            onItemLongClick = viewModel::onItemLongClick,
+            onItemClickInSelectionMode = viewModel::onItemClickInSelectionMode,
+            onExitSelectionMode = viewModel::exitSelectionMode,
+            onRequestDelete = viewModel::requestDelete,
+            onConfirmDelete = viewModel::confirmDelete,
+            onDismissDeleteDialog = viewModel::dismissDeleteDialog,
         )
     }
 }
@@ -109,9 +121,18 @@ private fun MapAreaDetailScreen(
     tempFileStorage: TempFileStorage,
     onImagesPicked: (List<PlatformFile>) -> Unit,
     uploadState: UploadState,
+    selectionState: SelectionState,
+    deleteState: DeleteState,
+    onItemLongClick: (String) -> Unit,
+    onItemClickInSelectionMode: (String) -> Unit,
+    onExitSelectionMode: () -> Unit,
+    onRequestDelete: () -> Unit,
+    onConfirmDelete: () -> Unit,
+    onDismissDeleteDialog: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isUploading = uploadState is UploadState.Uploading
+    val isDeleting = deleteState is DeleteState.Deleting
     val navBackStack = LocalNavBackStack.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -124,11 +145,15 @@ private fun MapAreaDetailScreen(
             MapAreaDetailTopAppBar(
                 modifier = Modifier.fillMaxWidth(),
                 scrollBehavior = scrollBehavior,
+                isSelectionMode = selectionState.isSelectionMode,
+                selectedCount = selectionState.selectedIds.size,
                 onBackClicked = { navBackStack.removeLastOrNull() },
+                onDeleteClicked = onRequestDelete,
+                onCloseSelectionMode = onExitSelectionMode,
             )
         },
         floatingActionButton = {
-            if (!isUploading) {
+            if (!isUploading && !isDeleting && !selectionState.isSelectionMode) {
                 MapAreaDetailFab(
                     onImagesPicked = onImagesPicked,
                 )
@@ -144,6 +169,8 @@ private fun MapAreaDetailScreen(
             cornerRadius = 16.dp,
             cellSpacing = 6.dp,
             contentPadding = paddingValues + PaddingValues(8.dp),
+            isSelectionMode = selectionState.isSelectionMode,
+            selectedIds = selectionState.selectedIds,
             header = {
                 MapAreaDetailHeader(
                     modifier = Modifier
@@ -159,18 +186,45 @@ private fun MapAreaDetailScreen(
                 )
             },
             onItemClick = { item ->
-                navBackStack.add(
-                    Destination.PhotoDetail(
-                        imageId = item.id,
-                        imageUrl = item.imageUrl,
-                        regionName = geoArea.nameJa ?: geoArea.name,
-                    ),
-                )
+                if (selectionState.isSelectionMode) {
+                    onItemClickInSelectionMode(item.id)
+                } else {
+                    navBackStack.add(
+                        Destination.PhotoDetail(
+                            imageId = item.id,
+                            imageUrl = item.imageUrl,
+                            regionName = geoArea.nameJa ?: geoArea.name,
+                        ),
+                    )
+                }
             },
-        ) { item ->
-            TilePhotoItem(imageUrl = item.imageUrl)
+            onItemLongClick = { item ->
+                onItemLongClick(item.id)
+            },
+        ) { item, isSelected ->
+            SelectablePhotoItem(
+                imageUrl = item.imageUrl,
+                isSelectionMode = selectionState.isSelectionMode,
+                isSelected = isSelected,
+            )
         }
     }
 
     UploadProgressDialog(uploadState = uploadState)
+
+    when (val state = deleteState) {
+        is DeleteState.Confirming -> {
+            DeleteConfirmDialog(
+                count = state.count,
+                onConfirm = onConfirmDelete,
+                onDismiss = onDismissDeleteDialog,
+            )
+        }
+
+        is DeleteState.Deleting -> {
+            DeleteProgressDialog(deleteState = state)
+        }
+
+        DeleteState.Idle -> {}
+    }
 }

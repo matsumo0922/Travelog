@@ -58,5 +58,6 @@ class ImageRepository(
 
     suspend fun deleteImage(id: String) {
         imageApi.deleteImage(id)
+        imageCacheDataSource.delete(id)
     }
 }

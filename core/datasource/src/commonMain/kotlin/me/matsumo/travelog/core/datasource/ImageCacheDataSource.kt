@@ -9,5 +9,6 @@ interface ImageCacheDataSource {
     suspend fun saveAll(images: List<Image>)
     suspend fun load(imageId: String, maxAge: Duration = 1.hours): Image?
     suspend fun loadAll(imageIds: List<String>, maxAge: Duration = 1.hours): List<Image>
+    suspend fun delete(imageId: String)
     suspend fun clearAll()
 }
