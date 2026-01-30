@@ -6,10 +6,13 @@ import androidx.lifecycle.viewModelScope
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -245,7 +248,7 @@ class MapAreaDetailViewModel(
     fun onItemLongClick(itemId: String) {
         _selectionState.value = SelectionState(
             isSelectionMode = true,
-            selectedIds = setOf(itemId),
+            selectedIds = persistentSetOf(itemId),
         )
     }
 
@@ -254,9 +257,9 @@ class MapAreaDetailViewModel(
         if (!currentState.isSelectionMode) return
 
         val newSelectedIds = if (currentState.selectedIds.contains(itemId)) {
-            currentState.selectedIds - itemId
+            (currentState.selectedIds - itemId).toImmutableSet()
         } else {
-            currentState.selectedIds + itemId
+            (currentState.selectedIds + itemId).toImmutableSet()
         }
 
         if (newSelectedIds.isEmpty()) {
@@ -337,7 +340,7 @@ data class PhotoDetailNavigation(
 @Stable
 data class SelectionState(
     val isSelectionMode: Boolean = false,
-    val selectedIds: Set<String> = emptySet(),
+    val selectedIds: ImmutableSet<String> = persistentSetOf(),
 )
 
 @Stable

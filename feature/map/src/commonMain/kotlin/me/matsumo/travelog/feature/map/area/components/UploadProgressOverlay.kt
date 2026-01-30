@@ -46,7 +46,7 @@ internal fun UploadProgressDialog(
         onDismissRequest = { },
         properties = DialogProperties(
             dismissOnBackPress = false,
-            dismissOnClickOutside = false
+            dismissOnClickOutside = false,
         ),
         content = {
             Column(

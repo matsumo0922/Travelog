@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentSetOf
 import kotlin.math.roundToInt
 
 private const val HEADER_INDEX = -1
@@ -119,7 +121,7 @@ fun <T : TileGridItem> TileGrid(
     onItemClick: ((item: T) -> Unit)? = null,
     onItemLongClick: ((item: T) -> Unit)? = null,
     isSelectionMode: Boolean = false,
-    selectedIds: Set<String> = emptySet(),
+    selectedIds: ImmutableSet<String> = persistentSetOf(),
     itemContent: @Composable (item: T, isSelected: Boolean) -> Unit,
 ) {
     BoxWithConstraints(
