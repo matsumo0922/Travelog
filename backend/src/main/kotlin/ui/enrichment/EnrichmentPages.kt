@@ -239,7 +239,7 @@ private fun DIV.geoNamesAllCountriesCard(href: String) {
     a(
         href = href,
         classes = "bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 " +
-                "rounded-lg p-4 no-underline text-white transition-all flex items-center gap-3 shadow-lg",
+            "rounded-lg p-4 no-underline text-white transition-all flex items-center gap-3 shadow-lg",
     ) {
         div(classes = "w-12 h-8 flex items-center justify-center text-2xl") {
             +"🌍"
@@ -271,7 +271,7 @@ private fun DIV.enrichmentControlButtons(country: String, level: Int?) {
     div(classes = "flex gap-3 mb-5 items-center") {
         button(
             classes = "bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg " +
-                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+                "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
         ) {
             id = "startBtn"
             onClick = "startEnrichment('$country', $levelParam, false)"
@@ -279,7 +279,7 @@ private fun DIV.enrichmentControlButtons(country: String, level: Int?) {
         }
         button(
             classes = "bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg " +
-                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+                "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
         ) {
             id = "dryRunBtn"
             onClick = "startEnrichment('$country', $levelParam, true)"
@@ -287,7 +287,7 @@ private fun DIV.enrichmentControlButtons(country: String, level: Int?) {
         }
         button(
             classes = "bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg " +
-                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+                "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
         ) {
             id = "stopBtn"
             onClick = "stopEnrichment()"
@@ -579,7 +579,7 @@ private fun DIV.geoNamesAllCountriesControlButtons() {
     div(classes = "flex gap-3 mb-5 items-center flex-wrap") {
         button(
             classes = "bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg " +
-                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+                "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
         ) {
             id = "startBtn"
             onClick = "startAllCountriesProcessing('geo-names')"
@@ -587,7 +587,7 @@ private fun DIV.geoNamesAllCountriesControlButtons() {
         }
         button(
             classes = "bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg " +
-                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+                "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
         ) {
             id = "stopBtn"
             onClick = "stopAllCountriesProcessing()"

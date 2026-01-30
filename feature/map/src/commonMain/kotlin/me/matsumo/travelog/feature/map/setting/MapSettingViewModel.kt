@@ -171,7 +171,7 @@ class MapSettingViewModel(
 
                 is UpdateMapIconUseCase.Result.UserNotLoggedIn,
                 is UpdateMapIconUseCase.Result.UploadFailed,
-                    -> {
+                -> {
                     _dialogState.value = MapSettingDialogState.Error.UploadFailed
                 }
 

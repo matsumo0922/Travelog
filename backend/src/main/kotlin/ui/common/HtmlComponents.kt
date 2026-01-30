@@ -94,7 +94,7 @@ fun DIV.allCountriesCard(href: String, gradientClasses: String = "from-blue-500 
     a(
         href = href,
         classes = "bg-gradient-to-r $gradientClasses " +
-                "rounded-lg p-4 no-underline text-white transition-all flex items-center gap-3 shadow-lg",
+            "rounded-lg p-4 no-underline text-white transition-all flex items-center gap-3 shadow-lg",
     ) {
         div(classes = "w-12 h-9 flex items-center justify-center text-2xl") {
             +"🌍"

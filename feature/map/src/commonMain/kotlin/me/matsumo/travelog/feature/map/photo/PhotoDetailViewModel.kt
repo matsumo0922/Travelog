@@ -101,7 +101,7 @@ class PhotoDetailViewModel(
                     is CreateImageCommentUseCase.Result.InvalidBody,
                     is CreateImageCommentUseCase.Result.UserNotLoggedIn,
                     is CreateImageCommentUseCase.Result.Failed,
-                        -> {
+                    -> {
                         _uiEvent.emit(PhotoDetailUiEvent.CommentSaveFailed)
                     }
                 }

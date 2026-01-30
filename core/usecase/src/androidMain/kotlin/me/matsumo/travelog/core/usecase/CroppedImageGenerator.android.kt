@@ -67,9 +67,9 @@ actual suspend fun generateCroppedImage(
     Log.d(
         TAG,
         "Crop params: image=${bitmap.width}x${bitmap.height}, view=${viewWidth}x$viewHeight, " +
-                "fitScale=$fitScale, cropScale=$cropScale, zoomScaleFit=$zoomScaleFit, " +
-                "offsetFit=($offsetXFit,$offsetYFit), rotation=${cropData.rotation}, " +
-                "uiTransform=$uiTransform, outputTransform=$outputTransform, scaleRatio=$scaleRatio",
+            "fitScale=$fitScale, cropScale=$cropScale, zoomScaleFit=$zoomScaleFit, " +
+            "offsetFit=($offsetXFit,$offsetYFit), rotation=${cropData.rotation}, " +
+            "uiTransform=$uiTransform, outputTransform=$outputTransform, scaleRatio=$scaleRatio",
     )
 
     val outputBitmap = Bitmap.createBitmap(outputSize, outputSize, Bitmap.Config.ARGB_8888)
@@ -115,7 +115,7 @@ actual suspend fun generateCroppedImage(
     Log.d(
         TAG,
         "Output content rect: left=$cropLeft top=$cropTop width=$cropWidth height=$cropHeight " +
-                "outputSize=$outputSize",
+            "outputSize=$outputSize",
     )
 
     val croppedBitmap = try {

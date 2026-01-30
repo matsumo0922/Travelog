@@ -81,7 +81,7 @@ class IosTempFileStorage : TempFileStorage {
 
         // Ensure file is exactly within tempDir by checking with separator suffix
         return normalizedPath.startsWith("$normalizedTempDir/") ||
-                normalizedPath == normalizedTempDir
+            normalizedPath == normalizedTempDir
     }
 
     private fun getCacheDirectory(): String {

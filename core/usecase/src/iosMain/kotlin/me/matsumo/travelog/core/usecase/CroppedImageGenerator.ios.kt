@@ -123,9 +123,9 @@ actual suspend fun generateCroppedImage(
 
         println(
             "$TAG: Crop params: image=${imageWidth}x$imageHeight, view=${viewWidth}x$viewHeight, " +
-                    "fitScale=$fitScale, cropScale=$cropScale, zoomScaleFit=$zoomScaleFit, " +
-                    "offsetFit=($offsetXFit,$offsetYFit), rotation=${cropData.rotation}, " +
-                    "uiTransform=$uiTransform, outputTransform=$outputTransform, scaleRatio=$scaleRatio",
+                "fitScale=$fitScale, cropScale=$cropScale, zoomScaleFit=$zoomScaleFit, " +
+                "offsetFit=($offsetXFit,$offsetYFit), rotation=${cropData.rotation}, " +
+                "uiTransform=$uiTransform, outputTransform=$outputTransform, scaleRatio=$scaleRatio",
         )
 
         val colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -204,7 +204,7 @@ actual suspend fun generateCroppedImage(
 
         println(
             "$TAG: Output content rect: left=$cropLeft top=$cropTop width=$cropWidth height=$cropHeight " +
-                    "outputSize=$outputSize",
+                "outputSize=$outputSize",
         )
 
         val croppedImage = cropCGImage(outputImage, cropLeft, cropTop, cropWidth, cropHeight, outputSize)

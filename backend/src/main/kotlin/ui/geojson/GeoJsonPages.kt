@@ -238,7 +238,7 @@ private fun DIV.allCountriesCardForGeoJson(href: String) {
     a(
         href = href,
         classes = "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 " +
-                "rounded-lg p-4 no-underline text-white transition-all flex items-center gap-3 shadow-lg",
+            "rounded-lg p-4 no-underline text-white transition-all flex items-center gap-3 shadow-lg",
     ) {
         div(classes = "w-12 h-9 flex items-center justify-center text-2xl") {
             +"🌍"
@@ -271,7 +271,7 @@ private fun DIV.extendedControlButtons(country: String) {
     div(classes = "flex gap-3 mb-5 items-center flex-wrap") {
         button(
             classes = "bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg " +
-                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+                "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
         ) {
             id = "startBtn"
             onClick = "startProcessing('$country')"
@@ -279,7 +279,7 @@ private fun DIV.extendedControlButtons(country: String) {
         }
         button(
             classes = "bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg " +
-                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+                "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
         ) {
             id = "stopBtn"
             onClick = "stopProcessing()"
@@ -469,7 +469,7 @@ private fun DIV.allCountriesControlButtons(mode: String) {
     div(classes = "flex gap-3 mb-5 items-center flex-wrap") {
         button(
             classes = "bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg " +
-                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+                "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
         ) {
             id = "startBtn"
             onClick = "startAllCountriesProcessing('$mode')"
@@ -477,7 +477,7 @@ private fun DIV.allCountriesControlButtons(mode: String) {
         }
         button(
             classes = "bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg " +
-                    "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+                "transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
         ) {
             id = "stopBtn"
             onClick = "stopAllCountriesProcessing()"

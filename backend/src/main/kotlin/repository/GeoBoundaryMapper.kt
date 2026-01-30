@@ -97,7 +97,7 @@ class GeoBoundaryMapper {
         adm2Regions.forEach { adm2 ->
             val parent = adm1Regions.firstOrNull { adm1 ->
                 adm1.boundingBoxes.any { boundingBox -> boundingBox.contains(adm2.center) } &&
-                        adm1.polygons.any { polygon -> isPointInPolygonWithHoles(adm2.center, polygon) }
+                    adm1.polygons.any { polygon -> isPointInPolygonWithHoles(adm2.center, polygon) }
             }
 
             parent?.children?.add(adm2)
@@ -135,7 +135,7 @@ class GeoBoundaryMapper {
     ): Adm1Region? {
         return adm1Regions.find { adm1 ->
             adm1.name.contains("Saitama", ignoreCase = true) ||
-                    (query?.let { adm1.name.contains(it, ignoreCase = true) } == true)
+                (query?.let { adm1.name.contains(it, ignoreCase = true) } == true)
         }
     }
 

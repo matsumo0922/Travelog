@@ -128,7 +128,7 @@ class MapCreateViewModel(
 
                 is CreateMapWithIconUseCase.Result.UserNotLoggedIn,
                 is CreateMapWithIconUseCase.Result.UploadFailed,
-                    -> {
+                -> {
                     _dialogState.value = MapCreateDialogState.Error.UploadFailed
                 }
 

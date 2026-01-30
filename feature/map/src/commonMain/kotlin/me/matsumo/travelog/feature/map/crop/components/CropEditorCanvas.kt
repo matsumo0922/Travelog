@@ -201,7 +201,7 @@ internal fun CropEditorCanvas(
                 if (isIdle) {
                     Napier.d {
                         "CropEditorCanvas transform: scale=$cropScaleValue offset=($offsetXNormalized,$offsetYNormalized) " +
-                                "rotation=${snapshot.rotation} view=${snapshot.containerSize.width}x${snapshot.containerSize.height}"
+                            "rotation=${snapshot.rotation} view=${snapshot.containerSize.width}x${snapshot.containerSize.height}"
                     }
                 }
 

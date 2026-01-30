@@ -52,7 +52,7 @@ class AndroidTempFileStorage(
         val canonicalFile = file.canonicalPath
         // Ensure file is exactly within tempDir by checking with separator suffix
         return canonicalFile.startsWith(canonicalTempDir + File.separator) ||
-                canonicalFile == canonicalTempDir
+            canonicalFile == canonicalTempDir
     }
 
     companion object {

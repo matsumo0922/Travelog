@@ -150,7 +150,7 @@ class PhotoCropEditorViewModel(
                 is SaveMapRegionPhotoUseCase.Result.UserNotLoggedIn,
                 is SaveMapRegionPhotoUseCase.Result.UploadFailed,
                 is SaveMapRegionPhotoUseCase.Result.SaveFailed,
-                    -> {
+                -> {
                     Napier.e { "Failed to save photo crop: $result" }
                     _saveState.value = SaveState.Error
                 }

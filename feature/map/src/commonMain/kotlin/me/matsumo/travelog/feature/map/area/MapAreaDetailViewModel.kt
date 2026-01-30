@@ -147,7 +147,7 @@ class MapAreaDetailViewModel(
                     val imageId = image.id ?: return@async null
                     val imageUrl = resolveImageUrl(image) ?: return@async null
                     val useSpecialSize = gridConfig.specialSizeInterval > 0 &&
-                            (index + 1) % gridConfig.specialSizeInterval == 0
+                        (index + 1) % gridConfig.specialSizeInterval == 0
                     val span = if (useSpecialSize) resolveSpanSize(image) else TileSpanSize(1, 1)
                     GridPhotoItem(
                         id = imageId,

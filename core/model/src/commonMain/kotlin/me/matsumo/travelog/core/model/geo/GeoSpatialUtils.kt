@@ -35,7 +35,7 @@ private fun isPointInRing(point: OverpassResult.Element.Coordinate, ring: Polygo
         if (isPointOnSegment(point, pj, pi)) return true
 
         val intersects = ((pi.lat > point.lat) != (pj.lat > point.lat)) &&
-                (point.lon <= (pj.lon - pi.lon) * (point.lat - pi.lat) / (pj.lat - pi.lat) + pi.lon)
+            (point.lon <= (pj.lon - pi.lon) * (point.lat - pi.lat) / (pj.lat - pi.lat) + pi.lon)
 
         if (intersects) inside = !inside
 
