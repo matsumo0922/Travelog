@@ -2,6 +2,7 @@ package me.matsumo.travelog
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,12 +25,20 @@ class MainViewModel(
 
     init {
         viewModelScope.launch {
-            val hasSession = sessionRepository.hasValidSession()
+            // ストレージからセッションをロード
+            sessionRepository.hasValidSession()
+
+            // sessionStatus が Initializing 以外になるまで待機
+            val status = sessionRepository.sessionStatus.first {
+                it !is SessionStatus.Initializing
+            }
+
             val setting = settingRepository.setting.first()
+            val isAuthenticated = status is SessionStatus.Authenticated
 
             _startupState.value = AppStartupState.Ready(
                 setting = setting,
-                isAuthenticated = hasSession,
+                isAuthenticated = isAuthenticated,
             )
         }
 

@@ -14,8 +14,8 @@ fun EntryProviderScope<NavKey>.mapAreaDetailEntry() {
             modifier = Modifier.fillMaxSize(),
             mapId = it.mapId,
             geoAreaId = it.geoAreaId,
-            initialRegions = it.regions.toImmutableList(),
-            initialRegionImageUrls = it.regionImageUrls.toImmutableMap(),
+            initialRegions = it.regions?.toImmutableList(),
+            initialRegionImageUrls = it.regionImageUrls?.toImmutableMap(),
         )
     }
 }
