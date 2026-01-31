@@ -24,7 +24,6 @@ import me.matsumo.travelog.core.ui.theme.semiBold
 
 /**
  * Photo grid layout similar to Google Photos Moments.
- * Shows one large image on the left (~60%) and smaller images stacked on the right (~40%).
  * Displays "+X" overlay on the last visible image when there are more photos.
  */
 @Composable
@@ -40,14 +39,13 @@ internal fun MomentPhotoGrid(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(240.dp)
             .clip(MaterialTheme.shapes.large),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        // Large image on left (first image, ~60% width)
         AsyncImageWithPlaceholder(
             modifier = Modifier
-                .weight(0.6f)
+                .weight(1f)
                 .fillMaxHeight()
                 .clip(MaterialTheme.shapes.large),
             model = previewImages.first().url,
@@ -55,11 +53,10 @@ internal fun MomentPhotoGrid(
             contentDescription = null,
         )
 
-        // Right column with smaller images (~40% width)
         if (previewImages.size > 1) {
             RightColumn(
                 modifier = Modifier
-                    .weight(0.4f)
+                    .weight(1f)
                     .fillMaxHeight(),
                 images = previewImages.drop(1).take(3),
                 remainingCount = remainingCount,
@@ -94,7 +91,6 @@ private fun RightColumn(
                     contentDescription = null,
                 )
 
-                // "+X more" overlay on last visible image
                 if (isLastWithMore) {
                     MorePhotosOverlay(
                         count = remainingCount,

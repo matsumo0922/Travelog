@@ -42,11 +42,11 @@ internal fun MomentHeader(
             imageCount = imageCount,
         )
 
-        // Title - Headline Small, SemiBold
+        // Title - Headline Medium, SemiBold
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = geoArea.getLocalizedName(),
-            style = MaterialTheme.typography.headlineSmall.semiBold(),
+            style = MaterialTheme.typography.headlineMedium.semiBold(),
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
