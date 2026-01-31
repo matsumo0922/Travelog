@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -54,6 +55,7 @@ import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
 import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.map_region_add_photo
+import me.matsumo.travelog.core.resource.map_region_change_photo
 import me.matsumo.travelog.core.ui.component.ClippedRegionImage
 import me.matsumo.travelog.core.ui.component.GeoCanvasMap
 import me.matsumo.travelog.core.ui.screen.Destination
@@ -73,6 +75,7 @@ internal fun MapAreaDetailHeader(
     regionImageUrls: ImmutableMap<String, String>,
     existingRegionId: String?,
     tempFileStorage: TempFileStorage,
+    onDeleteRepresentativeImage: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -169,7 +172,9 @@ internal fun MapAreaDetailHeader(
                 },
             ) {
                 Text(
-                    text = stringResource(Res.string.map_region_add_photo),
+                    text = stringResource(
+                        if (canToggleImage) Res.string.map_region_change_photo else Res.string.map_region_add_photo,
+                    ),
                 )
             }
         }
@@ -218,27 +223,53 @@ internal fun MapAreaDetailHeader(
                 )
             }
 
-            // 切り替えボタン（元画像が存在する場合のみ表示）
+            // ボタン群（元画像が存在する場合のみ表示）
             if (canToggleImage) {
-                Box(
+                Row(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(12.dp)
-                        .size(40.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.3f),
-                            shape = CircleShape,
-                        )
-                        .clip(CircleShape)
-                        .clickable { showOriginalImage = !showOriginalImage },
-                    contentAlignment = Alignment.Center,
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Sync,
-                        contentDescription = "Toggle image",
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
+                    // 削除ボタン
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.3f),
+                                shape = CircleShape,
+                            )
+                            .clip(CircleShape)
+                            .clickable { onDeleteRepresentativeImage() },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete representative image",
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+
+                    // 切り替えボタン
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.3f),
+                                shape = CircleShape,
+                            )
+                            .clip(CircleShape)
+                            .clickable { showOriginalImage = !showOriginalImage },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Sync,
+                            contentDescription = "Toggle image",
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
                 }
             }
         }

@@ -33,6 +33,7 @@ import me.matsumo.travelog.feature.map.area.components.DeleteProgressDialog
 import me.matsumo.travelog.feature.map.area.components.MapAreaDetailFab
 import me.matsumo.travelog.feature.map.area.components.MapAreaDetailHeader
 import me.matsumo.travelog.feature.map.area.components.MapAreaDetailTopAppBar
+import me.matsumo.travelog.feature.map.area.components.RepresentativeImageDeleteConfirmDialog
 import me.matsumo.travelog.feature.map.area.components.SelectablePhotoItem
 import me.matsumo.travelog.feature.map.area.components.UploadProgressDialog
 import me.matsumo.travelog.feature.map.area.components.model.GridPhotoItem
@@ -58,6 +59,7 @@ internal fun MapAreaDetailRoute(
     val uploadState by viewModel.uploadState.collectAsStateWithLifecycle()
     val selectionState by viewModel.selectionState.collectAsStateWithLifecycle()
     val deleteState by viewModel.deleteState.collectAsStateWithLifecycle()
+    val representativeDeleteState by viewModel.representativeDeleteState.collectAsStateWithLifecycle()
     val navBackStack = LocalNavBackStack.current
 
     AsyncLoadContents(
@@ -92,12 +94,16 @@ internal fun MapAreaDetailRoute(
             uploadState = uploadState,
             selectionState = selectionState,
             deleteState = deleteState,
+            representativeDeleteState = representativeDeleteState,
             onItemLongClick = viewModel::onItemLongClick,
             onItemClickInSelectionMode = viewModel::onItemClickInSelectionMode,
             onExitSelectionMode = viewModel::exitSelectionMode,
             onRequestDelete = viewModel::requestDelete,
             onConfirmDelete = viewModel::confirmDelete,
             onDismissDeleteDialog = viewModel::dismissDeleteDialog,
+            onRequestDeleteRepresentativeImage = viewModel::requestDeleteRepresentativeImage,
+            onConfirmDeleteRepresentativeImage = viewModel::confirmDeleteRepresentativeImage,
+            onDismissRepresentativeDeleteDialog = viewModel::dismissRepresentativeDeleteDialog,
         )
     }
 }
@@ -117,12 +123,16 @@ private fun MapAreaDetailScreen(
     uploadState: UploadState,
     selectionState: SelectionState,
     deleteState: DeleteState,
+    representativeDeleteState: RepresentativeDeleteState,
     onItemLongClick: (String) -> Unit,
     onItemClickInSelectionMode: (String) -> Unit,
     onExitSelectionMode: () -> Unit,
     onRequestDelete: () -> Unit,
     onConfirmDelete: () -> Unit,
     onDismissDeleteDialog: () -> Unit,
+    onRequestDeleteRepresentativeImage: () -> Unit,
+    onConfirmDeleteRepresentativeImage: () -> Unit,
+    onDismissRepresentativeDeleteDialog: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isUploading = uploadState is UploadState.Uploading
@@ -177,6 +187,7 @@ private fun MapAreaDetailScreen(
                     regionImageUrls = regionImageUrls,
                     existingRegionId = existingRegion?.id,
                     tempFileStorage = tempFileStorage,
+                    onDeleteRepresentativeImage = onRequestDeleteRepresentativeImage,
                 )
             },
             onItemClick = { item ->
@@ -206,19 +217,32 @@ private fun MapAreaDetailScreen(
 
     UploadProgressDialog(uploadState = uploadState)
 
-    when (val state = deleteState) {
+    when (deleteState) {
         is DeleteState.Confirming -> {
             DeleteConfirmDialog(
-                count = state.count,
+                count = deleteState.count,
                 onConfirm = onConfirmDelete,
                 onDismiss = onDismissDeleteDialog,
             )
         }
 
         is DeleteState.Deleting -> {
-            DeleteProgressDialog(deleteState = state)
+            DeleteProgressDialog(deleteState = deleteState)
         }
 
         DeleteState.Idle -> {}
+    }
+
+    when (representativeDeleteState) {
+        RepresentativeDeleteState.Confirming -> {
+            RepresentativeImageDeleteConfirmDialog(
+                onConfirm = onConfirmDeleteRepresentativeImage,
+                onDismiss = onDismissRepresentativeDeleteDialog,
+            )
+        }
+
+        RepresentativeDeleteState.Deleting,
+        RepresentativeDeleteState.Idle,
+        -> {}
     }
 }

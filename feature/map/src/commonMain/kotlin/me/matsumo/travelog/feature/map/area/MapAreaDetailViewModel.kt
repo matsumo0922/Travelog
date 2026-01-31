@@ -45,6 +45,7 @@ import me.matsumo.travelog.core.ui.component.TileSpanSize
 import me.matsumo.travelog.core.ui.screen.ScreenState
 import me.matsumo.travelog.core.usecase.DeleteMapAreaImagesUseCase
 import me.matsumo.travelog.core.usecase.DeleteProgress
+import me.matsumo.travelog.core.usecase.DeleteRepresentativeImageUseCase
 import me.matsumo.travelog.core.usecase.GetMapRegionImagesUseCase
 import me.matsumo.travelog.core.usecase.UploadMapAreaImagesUseCase
 import me.matsumo.travelog.core.usecase.UploadProgress
@@ -60,6 +61,7 @@ class MapAreaDetailViewModel(
     private val getMapRegionImagesUseCase: GetMapRegionImagesUseCase,
     private val uploadMapAreaImagesUseCase: UploadMapAreaImagesUseCase,
     private val deleteMapAreaImagesUseCase: DeleteMapAreaImagesUseCase,
+    private val deleteRepresentativeImageUseCase: DeleteRepresentativeImageUseCase,
     private val storageRepository: StorageRepository,
     private val imageRepository: ImageRepository,
 ) : ViewModel() {
@@ -78,6 +80,9 @@ class MapAreaDetailViewModel(
 
     private val _deleteState = MutableStateFlow<DeleteState>(DeleteState.Idle)
     val deleteState: StateFlow<DeleteState> = _deleteState.asStateFlow()
+
+    private val _representativeDeleteState = MutableStateFlow<RepresentativeDeleteState>(RepresentativeDeleteState.Idle)
+    val representativeDeleteState: StateFlow<RepresentativeDeleteState> = _representativeDeleteState.asStateFlow()
 
     private val gridConfig = TileGridConfig()
 
@@ -340,6 +345,50 @@ class MapAreaDetailViewModel(
             }
         }
     }
+
+    fun requestDeleteRepresentativeImage() {
+        val currentState = _screenState.value
+        if (currentState is ScreenState.Idle) {
+            val region = currentState.data.mapRegions.firstOrNull()
+            if (region?.representativeImageId != null) {
+                _representativeDeleteState.value = RepresentativeDeleteState.Confirming
+            }
+        }
+    }
+
+    fun dismissRepresentativeDeleteDialog() {
+        _representativeDeleteState.value = RepresentativeDeleteState.Idle
+    }
+
+    fun confirmDeleteRepresentativeImage() {
+        val currentState = _screenState.value
+        if (currentState !is ScreenState.Idle) {
+            _representativeDeleteState.value = RepresentativeDeleteState.Idle
+            return
+        }
+
+        val region = currentState.data.mapRegions.firstOrNull()
+        if (region == null) {
+            _representativeDeleteState.value = RepresentativeDeleteState.Idle
+            return
+        }
+
+        viewModelScope.launch {
+            _representativeDeleteState.value = RepresentativeDeleteState.Deleting
+
+            when (deleteRepresentativeImageUseCase(region)) {
+                is DeleteRepresentativeImageUseCase.Result.Success -> {
+                    _representativeDeleteState.value = RepresentativeDeleteState.Idle
+                }
+
+                is DeleteRepresentativeImageUseCase.Result.InvalidRegion,
+                is DeleteRepresentativeImageUseCase.Result.Failed,
+                -> {
+                    _representativeDeleteState.value = RepresentativeDeleteState.Idle
+                }
+            }
+        }
+    }
 }
 
 @Stable
@@ -383,4 +432,11 @@ sealed interface DeleteState {
         val totalCount: Int,
         val completedCount: Int,
     ) : DeleteState
+}
+
+@Stable
+sealed interface RepresentativeDeleteState {
+    data object Idle : RepresentativeDeleteState
+    data object Confirming : RepresentativeDeleteState
+    data object Deleting : RepresentativeDeleteState
 }
