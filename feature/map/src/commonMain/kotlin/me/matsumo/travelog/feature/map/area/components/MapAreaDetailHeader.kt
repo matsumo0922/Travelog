@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,7 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil3.SingletonImageLoader
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
 import com.mohamedrejeb.calf.permissions.ExperimentalPermissionsApi
 import com.mohamedrejeb.calf.permissions.Permission
 import com.mohamedrejeb.calf.permissions.isDenied
@@ -128,6 +132,17 @@ internal fun MapAreaDetailHeader(
 
     // 切り替え可能かどうか（元画像が存在する場合）
     val canToggleImage = originalImageUrl != null
+
+    // 元画像をプリフェッチ
+    val context = LocalPlatformContext.current
+    LaunchedEffect(originalImageUrl) {
+        if (originalImageUrl != null) {
+            val request = ImageRequest.Builder(context)
+                .data(originalImageUrl)
+                .build()
+            SingletonImageLoader.get(context).enqueue(request)
+        }
+    }
 
     Column(
         modifier = modifier,
