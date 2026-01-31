@@ -1,6 +1,7 @@
 package me.matsumo.travelog.feature.map.area.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,17 +9,28 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.mohamedrejeb.calf.permissions.ExperimentalPermissionsApi
 import com.mohamedrejeb.calf.permissions.Permission
 import com.mohamedrejeb.calf.permissions.isDenied
@@ -103,6 +115,20 @@ internal fun MapAreaDetailHeader(
         }
     }
 
+    // 画像切り替え状態
+    var showOriginalImage by remember { mutableStateOf(false) }
+
+    // 元画像URLを取得（最初に見つかった地域の元画像）
+    val originalImageUrl = remember(areasToRender, regionMap, regionImageUrls) {
+        areasToRender.firstNotNullOfOrNull { area ->
+            val region = regionMap[area.id] ?: return@firstNotNullOfOrNull null
+            region.representativeImageId?.let { regionImageUrls[it] }
+        }
+    }
+
+    // 切り替え可能かどうか（元画像が存在する場合）
+    val canToggleImage = originalImageUrl != null
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -141,32 +167,65 @@ internal fun MapAreaDetailHeader(
                 .background(MaterialTheme.colorScheme.surfaceContainer),
             contentAlignment = Alignment.Center,
         ) {
-            GeoCanvasMap(
-                modifier = Modifier.fillMaxSize(),
-                areas = areasToRender,
-                overlay = { mapState ->
-                    areasToRender.forEach { area ->
-                        val areaId = area.id ?: return@forEach
-                        val region = regionMap[areaId] ?: return@forEach
+            if (showOriginalImage && originalImageUrl != null) {
+                AsyncImage(
+                    modifier = Modifier.fillMaxSize(),
+                    model = originalImageUrl,
+                    contentScale = ContentScale.Crop,
+                    contentDescription = null,
+                )
+            } else {
+                GeoCanvasMap(
+                    modifier = Modifier.fillMaxSize(),
+                    areas = areasToRender,
+                    overlay = { mapState ->
+                        areasToRender.forEach { area ->
+                            val areaId = area.id ?: return@forEach
+                            val region = regionMap[areaId] ?: return@forEach
 
-                        val croppedImageUrl = region.representativeCroppedImageId?.let { regionImageUrls[it] }
-                        val originalImageUrl = region.representativeImageId?.let { regionImageUrls[it] }
+                            val croppedImageUrl = region.representativeCroppedImageId?.let { regionImageUrls[it] }
+                            val areaOriginalImageUrl = region.representativeImageId?.let { regionImageUrls[it] }
 
-                        val usePreCropped = croppedImageUrl != null
-                        val imageUrl = croppedImageUrl ?: originalImageUrl ?: return@forEach
+                            val usePreCropped = croppedImageUrl != null
+                            val imageUrl = croppedImageUrl ?: areaOriginalImageUrl ?: return@forEach
 
-                        ClippedRegionImage(
-                            modifier = Modifier.matchParentSize(),
-                            imageUrl = imageUrl,
-                            geoArea = area,
-                            cropData = if (usePreCropped) null else region.cropData,
-                            isPreCropped = usePreCropped,
-                            parentBounds = mapState.bounds,
-                            parentTransform = mapState.transform,
+                            ClippedRegionImage(
+                                modifier = Modifier.matchParentSize(),
+                                imageUrl = imageUrl,
+                                geoArea = area,
+                                cropData = if (usePreCropped) null else region.cropData,
+                                isPreCropped = usePreCropped,
+                                parentBounds = mapState.bounds,
+                                parentTransform = mapState.transform,
+                            )
+                        }
+                    },
+                )
+            }
+
+            // 切り替えボタン（元画像が存在する場合のみ表示）
+            if (canToggleImage) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(12.dp)
+                        .size(40.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.3f),
+                            shape = CircleShape,
                         )
-                    }
-                },
-            )
+                        .clip(CircleShape)
+                        .clickable { showOriginalImage = !showOriginalImage },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Sync,
+                        contentDescription = "Toggle image",
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
         }
     }
 }
