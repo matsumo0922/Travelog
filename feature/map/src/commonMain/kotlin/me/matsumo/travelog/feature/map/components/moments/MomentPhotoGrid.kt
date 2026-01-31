@@ -1,6 +1,7 @@
 package me.matsumo.travelog.feature.map.components.moments
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import me.matsumo.travelog.core.ui.theme.semiBold
 internal fun MomentPhotoGrid(
     previewImages: List<PreviewImage>,
     totalCount: Int,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (previewImages.isEmpty()) return
@@ -47,7 +49,8 @@ internal fun MomentPhotoGrid(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clip(MaterialTheme.shapes.large),
+                .clip(MaterialTheme.shapes.large)
+                .clickable { onClick.invoke() },
             model = previewImages.first().url,
             contentScale = ContentScale.Crop,
             contentDescription = null,
@@ -60,6 +63,7 @@ internal fun MomentPhotoGrid(
                     .fillMaxHeight(),
                 images = previewImages.drop(1).take(3),
                 remainingCount = remainingCount,
+                onClick = onClick,
             )
         }
     }
@@ -69,6 +73,7 @@ internal fun MomentPhotoGrid(
 private fun RightColumn(
     images: List<PreviewImage>,
     remainingCount: Int,
+    onClick: () -> Unit ,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -78,32 +83,35 @@ private fun RightColumn(
         // Row 1: Single image
         if (images.isNotEmpty()) {
             SingleImageCell(
-                image = images[0],
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
+                image = images[0],
+                onClick = onClick,
             )
         }
 
         // Row 2: Single image
         if (images.size > 1) {
             SingleImageCell(
-                image = images[1],
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
+                image = images[1],
+                onClick = onClick,
             )
         }
 
         // Row 3: Two images side by side (left: normal, right: with overlay)
         if (images.size > 2) {
             BottomRow(
-                leftImage = images[2],
-                rightImage = images.getOrNull(3),
-                remainingCount = remainingCount,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
+                leftImage = images[2],
+                rightImage = images.getOrNull(3),
+                remainingCount = remainingCount,
+                onClick = onClick,
             )
         }
     }
@@ -112,10 +120,13 @@ private fun RightColumn(
 @Composable
 private fun SingleImageCell(
     image: PreviewImage,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AsyncImageWithPlaceholder(
-        modifier = modifier.clip(MaterialTheme.shapes.large),
+        modifier = modifier
+            .clip(MaterialTheme.shapes.large)
+            .clickable { onClick.invoke() },
         model = image.url,
         contentScale = ContentScale.Crop,
         contentDescription = null,
@@ -127,6 +138,7 @@ private fun BottomRow(
     leftImage: PreviewImage,
     rightImage: PreviewImage?,
     remainingCount: Int,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -138,7 +150,8 @@ private fun BottomRow(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clip(MaterialTheme.shapes.large),
+                .clip(MaterialTheme.shapes.large)
+                .clickable { onClick.invoke() },
             model = leftImage.url,
             contentScale = ContentScale.Crop,
             contentDescription = null,
@@ -149,7 +162,8 @@ private fun BottomRow(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clip(MaterialTheme.shapes.large),
+                .clip(MaterialTheme.shapes.large)
+                .clickable { onClick.invoke() },
         ) {
             AsyncImageWithPlaceholder(
                 modifier = Modifier.fillMaxSize(),
