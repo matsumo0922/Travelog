@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import me.matsumo.travelog.core.model.MomentItem
 
@@ -75,7 +76,7 @@ internal fun MomentCard(
 
             // Photo Grid
             MomentPhotoGrid(
-                previewImages = moment.previewImages,
+                previewImages = moment.previewImages.toImmutableList(),
                 totalCount = moment.totalImageCount,
                 onClick = onClick,
             )

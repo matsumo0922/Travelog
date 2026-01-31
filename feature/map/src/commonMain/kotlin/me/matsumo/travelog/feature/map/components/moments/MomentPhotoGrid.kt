@@ -19,6 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import me.matsumo.travelog.core.model.PreviewImage
 import me.matsumo.travelog.core.ui.component.AsyncImageWithPlaceholder
 import me.matsumo.travelog.core.ui.theme.semiBold
@@ -29,7 +31,7 @@ import me.matsumo.travelog.core.ui.theme.semiBold
  */
 @Composable
 internal fun MomentPhotoGrid(
-    previewImages: List<PreviewImage>,
+    previewImages: ImmutableList<PreviewImage>,
     totalCount: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -61,7 +63,7 @@ internal fun MomentPhotoGrid(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                images = previewImages.drop(1).take(3),
+                images = previewImages.drop(1).take(3).toImmutableList(),
                 remainingCount = remainingCount,
                 onClick = onClick,
             )
@@ -71,9 +73,9 @@ internal fun MomentPhotoGrid(
 
 @Composable
 private fun RightColumn(
-    images: List<PreviewImage>,
+    images: ImmutableList<PreviewImage>,
     remainingCount: Int,
-    onClick: () -> Unit ,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
