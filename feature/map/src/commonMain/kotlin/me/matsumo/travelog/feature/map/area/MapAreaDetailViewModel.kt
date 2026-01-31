@@ -82,7 +82,7 @@ class MapAreaDetailViewModel(
     private val gridConfig = TileGridConfig()
 
     init {
-        fetch()
+        initializeWithInitialData()
         observeMapRegions()
     }
 
@@ -107,7 +107,12 @@ class MapAreaDetailViewModel(
         }
     }
 
-    fun fetch() {
+    /**
+     * 初期データを使用して画面を初期化する。
+     * Navigation パラメータから受け取った初期データで高速表示を行う。
+     * 以降の更新は observeMapRegions() が担当する。
+     */
+    private fun initializeWithInitialData() {
         viewModelScope.launch {
             _screenState.value = suspendRunCatching {
                 val geoArea = geoAreaRepository.getAreaByIdWithChildren(geoAreaId)
@@ -117,6 +122,31 @@ class MapAreaDetailViewModel(
                 // 初期データがあればそれを優先使用、なければUseCaseから取得
                 val imageUrlMap = initialRegionImageUrls ?: getMapRegionImagesUseCase(mapRegions)
 
+                val placementResult = buildPlacedItems(mapRegions)
+
+                MapAreaDetailUiState(
+                    geoArea = geoArea!!,
+                    mapRegions = mapRegions.toImmutableList(),
+                    regionImageUrls = imageUrlMap.toImmutableMap(),
+                    placedItems = placementResult.placedItems.toImmutableList(),
+                    rowCount = placementResult.rowCount,
+                )
+            }.fold(
+                onSuccess = { ScreenState.Idle(it) },
+                onFailure = { ScreenState.Error(Res.string.error_network) },
+            )
+        }
+    }
+
+    /**
+     * エラー時のリトライ用に最新データを取得し直す。
+     */
+    fun refetch() {
+        viewModelScope.launch {
+            _screenState.value = suspendRunCatching {
+                val geoArea = geoAreaRepository.getAreaByIdWithChildren(geoAreaId)
+                val mapRegions = mapRegionRepository.getMapRegionsByMapIdAndGeoAreaId(mapId, geoAreaId)
+                val imageUrlMap = getMapRegionImagesUseCase(mapRegions)
                 val placementResult = buildPlacedItems(mapRegions)
 
                 MapAreaDetailUiState(
