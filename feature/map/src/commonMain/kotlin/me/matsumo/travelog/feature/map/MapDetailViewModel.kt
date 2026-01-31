@@ -42,6 +42,7 @@ class MapDetailViewModel(
 
     init {
         observeMapRegions()
+        fetch()
     }
 
     private fun observeMapRegions() {

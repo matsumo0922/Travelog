@@ -3,26 +3,30 @@ package me.matsumo.travelog.core.datasource.api
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.storage.storage
 import io.ktor.http.ContentType
+import me.matsumo.travelog.core.datasource.SessionStatusProvider
+import kotlin.time.Duration
 
 class StorageApi internal constructor(
-    private val supabaseClient: SupabaseClient,
-) {
+    supabaseClient: SupabaseClient,
+    sessionStatusProvider: SessionStatusProvider,
+) : SupabaseApi(supabaseClient, sessionStatusProvider) {
+
     suspend fun uploadImage(
         bucketName: String,
         path: String,
         data: ByteArray,
         contentType: String,
-    ): String {
+    ): String = withValidSession {
         val bucket = supabaseClient.storage.from(bucketName)
         val ktorContentType = ContentType.parse(contentType)
         bucket.upload(path, data) {
             this.contentType = ktorContentType
             upsert = true
         }
-        return bucket.publicUrl(path)
+        bucket.publicUrl(path)
     }
 
-    suspend fun deleteImage(bucket: String, path: String) {
+    suspend fun deleteImage(bucket: String, path: String) = withValidSession {
         supabaseClient.storage.from(bucket).delete(path)
     }
 
@@ -30,8 +34,8 @@ class StorageApi internal constructor(
         return supabaseClient.storage.from(bucket).publicUrl(path)
     }
 
-    suspend fun createSignedUrl(bucket: String, path: String, expiresIn: kotlin.time.Duration): String {
-        return supabaseClient.storage.from(bucket).createSignedUrl(path, expiresIn)
+    suspend fun createSignedUrl(bucket: String, path: String, expiresIn: Duration): String = withValidSession {
+        supabaseClient.storage.from(bucket).createSignedUrl(path, expiresIn)
     }
 
     companion object {

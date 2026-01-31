@@ -7,11 +7,12 @@ import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.auth.user.UserInfo
 import kotlinx.coroutines.flow.Flow
+import me.matsumo.travelog.core.datasource.SessionStatusProvider
 
 class SessionRepository(
     private val supabaseClient: SupabaseClient,
-) {
-    val sessionStatus: Flow<SessionStatus> = supabaseClient.auth.sessionStatus
+) : SessionStatusProvider {
+    override val sessionStatus: Flow<SessionStatus> = supabaseClient.auth.sessionStatus
 
     fun getCurrentUserInfo(): UserInfo? {
         return supabaseClient.auth.currentUserOrNull()

@@ -57,13 +57,13 @@ val dataSourceModule = module {
         get<SupabaseClient>().composeAuth
     }
 
-    single { UserApi(get()) }
-    single { MapApi(get()) }
-    single { MapRegionApi(get()) }
-    single { ImageApi(get()) }
-    single { ImageCommentApi(get()) }
+    single { UserApi(get(), get()) }
+    single { MapApi(get(), get()) }
+    single { MapRegionApi(get(), get()) }
+    single { ImageApi(get(), get()) }
+    single { ImageCommentApi(get(), get()) }
     single { GeoAreaApi(get()) }
-    single { StorageApi(get()) }
+    single { StorageApi(get(), get()) }
 
     singleOf(::AppSettingDataSource)
     singleOf(::GeoAreaMapper)

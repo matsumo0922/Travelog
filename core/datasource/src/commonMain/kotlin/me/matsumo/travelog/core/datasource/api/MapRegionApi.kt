@@ -2,22 +2,25 @@ package me.matsumo.travelog.core.datasource.api
 
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import me.matsumo.travelog.core.datasource.SessionStatusProvider
 import me.matsumo.travelog.core.model.db.MapRegion
 
 class MapRegionApi internal constructor(
-    private val supabaseClient: SupabaseClient,
-) {
-    suspend fun createMapRegion(mapRegion: MapRegion): MapRegion {
-        return supabaseClient.from(TABLE_NAME)
+    supabaseClient: SupabaseClient,
+    sessionStatusProvider: SessionStatusProvider,
+) : SupabaseApi(supabaseClient, sessionStatusProvider) {
+
+    suspend fun createMapRegion(mapRegion: MapRegion): MapRegion = withValidSession {
+        supabaseClient.from(TABLE_NAME)
             .insert(mapRegion) { select() }
             .decodeSingle()
     }
 
-    suspend fun updateMapRegion(mapRegion: MapRegion): MapRegion {
+    suspend fun updateMapRegion(mapRegion: MapRegion): MapRegion = withValidSession {
         val id = mapRegion.id
             ?: throw IllegalArgumentException("Cannot update MapRegion without id")
 
-        return supabaseClient.from(TABLE_NAME)
+        supabaseClient.from(TABLE_NAME)
             .update(mapRegion) {
                 filter { MapRegion::id eq id }
                 select()
@@ -25,16 +28,16 @@ class MapRegionApi internal constructor(
             .decodeSingle()
     }
 
-    suspend fun getMapRegion(id: String): MapRegion? {
-        return supabaseClient.from(TABLE_NAME)
+    suspend fun getMapRegion(id: String): MapRegion? = withValidSession {
+        supabaseClient.from(TABLE_NAME)
             .select {
                 filter { MapRegion::id eq id }
             }
             .decodeSingleOrNull()
     }
 
-    suspend fun getMapRegionsByMapId(mapId: String): List<MapRegion> {
-        return supabaseClient.from(TABLE_NAME)
+    suspend fun getMapRegionsByMapId(mapId: String): List<MapRegion> = withValidSession {
+        supabaseClient.from(TABLE_NAME)
             .select {
                 filter { MapRegion::mapId eq mapId }
             }
@@ -44,8 +47,8 @@ class MapRegionApi internal constructor(
     suspend fun getMapRegionsByMapIdAndGeoAreaId(
         mapId: String,
         geoAreaId: String,
-    ): List<MapRegion> {
-        return supabaseClient.from(TABLE_NAME)
+    ): List<MapRegion> = withValidSession {
+        supabaseClient.from(TABLE_NAME)
             .select {
                 filter {
                     MapRegion::mapId eq mapId
@@ -55,7 +58,7 @@ class MapRegionApi internal constructor(
             .decodeList()
     }
 
-    suspend fun deleteMapRegion(id: String) {
+    suspend fun deleteMapRegion(id: String) = withValidSession {
         supabaseClient.from(TABLE_NAME)
             .delete {
                 filter { MapRegion::id eq id }

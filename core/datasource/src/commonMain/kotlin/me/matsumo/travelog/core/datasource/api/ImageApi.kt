@@ -3,53 +3,56 @@ package me.matsumo.travelog.core.datasource.api
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Order
+import me.matsumo.travelog.core.datasource.SessionStatusProvider
 import me.matsumo.travelog.core.model.db.Image
 
 class ImageApi internal constructor(
-    private val supabaseClient: SupabaseClient,
-) {
-    suspend fun createImage(image: Image): Image {
-        return supabaseClient.from(TABLE_NAME)
+    supabaseClient: SupabaseClient,
+    sessionStatusProvider: SessionStatusProvider,
+) : SupabaseApi(supabaseClient, sessionStatusProvider) {
+
+    suspend fun createImage(image: Image): Image = withValidSession {
+        supabaseClient.from(TABLE_NAME)
             .insert(image) {
                 select()
             }
             .decodeSingle()
     }
 
-    suspend fun getImage(id: String): Image? {
-        return supabaseClient.from(TABLE_NAME)
+    suspend fun getImage(id: String): Image? = withValidSession {
+        supabaseClient.from(TABLE_NAME)
             .select {
                 filter { Image::id eq id }
             }
             .decodeSingleOrNull()
     }
 
-    suspend fun getImagesByIds(ids: List<String>): List<Image> {
-        if (ids.isEmpty()) return emptyList()
-        return supabaseClient.from(TABLE_NAME)
+    suspend fun getImagesByIds(ids: List<String>): List<Image> = withValidSession {
+        if (ids.isEmpty()) return@withValidSession emptyList()
+        supabaseClient.from(TABLE_NAME)
             .select {
                 filter { Image::id isIn ids }
             }
             .decodeList()
     }
 
-    suspend fun getImagesByMapRegionId(mapRegionId: String): List<Image> {
-        return supabaseClient.from(TABLE_NAME)
+    suspend fun getImagesByMapRegionId(mapRegionId: String): List<Image> = withValidSession {
+        supabaseClient.from(TABLE_NAME)
             .select {
                 filter { Image::mapRegionId eq mapRegionId }
             }
             .decodeList()
     }
 
-    suspend fun getImagesByUploaderUserId(userId: String): List<Image> {
-        return supabaseClient.from(TABLE_NAME)
+    suspend fun getImagesByUploaderUserId(userId: String): List<Image> = withValidSession {
+        supabaseClient.from(TABLE_NAME)
             .select {
                 filter { Image::uploaderUserId eq userId }
             }
             .decodeList()
     }
 
-    suspend fun deleteImage(id: String) {
+    suspend fun deleteImage(id: String) = withValidSession {
         supabaseClient.from(TABLE_NAME)
             .delete {
                 filter { Image::id eq id }
@@ -63,8 +66,8 @@ class ImageApi internal constructor(
     suspend fun getPreviewImagesByMapRegionId(
         mapRegionId: String,
         limit: Int,
-    ): List<Image> {
-        return supabaseClient.from(TABLE_NAME)
+    ): List<Image> = withValidSession {
+        supabaseClient.from(TABLE_NAME)
             .select {
                 filter { Image::mapRegionId eq mapRegionId }
                 order(column = "taken_at", order = Order.DESCENDING, nullsFirst = false)
@@ -76,8 +79,8 @@ class ImageApi internal constructor(
     /**
      * Get the count of images for a map region.
      */
-    suspend fun getImageCountByMapRegionId(mapRegionId: String): Long {
-        return supabaseClient.from(TABLE_NAME)
+    suspend fun getImageCountByMapRegionId(mapRegionId: String): Long = withValidSession {
+        supabaseClient.from(TABLE_NAME)
             .select {
                 filter { Image::mapRegionId eq mapRegionId }
             }
