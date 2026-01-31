@@ -220,6 +220,9 @@
     <string name="setting_other_developer_mode_dialog_title">Developer Mode</string>
     <string name="setting_other_developer_mode_dialog_description">You are trying to turn on this mode.Please enter the developer's PIN.\n\n[Warning] When this mode is turned on, you will not be able to receive any support.</string>
 
+    <!-- Moments -->
+    <string name="moment_photo_count">%1$d枚の写真</string>
+
     <!-- Map Setting -->
     <string name="map_setting_title">マップ設定</string>
 

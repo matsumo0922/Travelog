@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import me.matsumo.travelog.core.model.MomentItem
 import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
@@ -31,6 +32,7 @@ import me.matsumo.travelog.core.ui.theme.LocalNavBackStack
 import me.matsumo.travelog.feature.map.components.MapDetailCanvasSection
 import me.matsumo.travelog.feature.map.components.MapDetailTopAppBar
 import me.matsumo.travelog.feature.map.components.MapDetailTopSection
+import me.matsumo.travelog.feature.map.components.moments.MomentsSection
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -61,6 +63,7 @@ internal fun MapDetailRoute(
             geoArea = it.geoArea,
             regions = it.regions,
             regionImageUrls = it.regionImageUrls,
+            moments = it.moments,
         )
     }
 }
@@ -72,6 +75,7 @@ private fun MapDetailScreen(
     geoArea: GeoArea,
     regions: ImmutableList<MapRegion>,
     regionImageUrls: ImmutableMap<String, String>,
+    moments: ImmutableList<MomentItem>,
     modifier: Modifier = Modifier,
 ) {
     val navBackStack = LocalNavBackStack.current
@@ -147,6 +151,30 @@ private fun MapDetailScreen(
                     regions = regions,
                     regionImageUrls = regionImageUrls,
                 )
+            }
+
+            // Moments section - Google Photos style region list
+            if (moments.isNotEmpty()) {
+                item {
+                    MomentsSection(
+                        modifier = Modifier.fillMaxWidth(),
+                        moments = moments,
+                        onMomentClick = { moment ->
+                            val currentMapId = map.id
+                            val momentGeoAreaId = moment.geoArea.id
+                            if (currentMapId != null && momentGeoAreaId != null) {
+                                navBackStack.add(
+                                    Destination.MapAreaDetail(
+                                        mapId = currentMapId,
+                                        geoAreaId = momentGeoAreaId,
+                                        regions = regions.toList(),
+                                        regionImageUrls = regionImageUrls.toMap(),
+                                    ),
+                                )
+                            }
+                        },
+                    )
+                }
             }
         }
     }

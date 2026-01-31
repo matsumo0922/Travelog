@@ -2,6 +2,7 @@ package me.matsumo.travelog.core.datasource.api
 
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Order
 import me.matsumo.travelog.core.model.db.Image
 
 class ImageApi internal constructor(
@@ -53,6 +54,36 @@ class ImageApi internal constructor(
             .delete {
                 filter { Image::id eq id }
             }
+    }
+
+    /**
+     * Get preview images for a map region, sorted by taken_at descending.
+     * Falls back to created_at if taken_at is null.
+     */
+    suspend fun getPreviewImagesByMapRegionId(
+        mapRegionId: String,
+        limit: Int,
+    ): List<Image> {
+        return supabaseClient.from(TABLE_NAME)
+            .select {
+                filter { Image::mapRegionId eq mapRegionId }
+                order(column = "taken_at", order = Order.DESCENDING, nullsFirst = false)
+                limit(count = limit.toLong())
+            }
+            .decodeList()
+    }
+
+    /**
+     * Get the count of images for a map region.
+     */
+    suspend fun getImageCountByMapRegionId(mapRegionId: String): Long {
+        return supabaseClient.from(TABLE_NAME)
+            .select {
+                filter { Image::mapRegionId eq mapRegionId }
+            }
+            .decodeList<Image>()
+            .size
+            .toLong()
     }
 
     companion object {

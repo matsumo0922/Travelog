@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.async
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.matsumo.travelog.core.common.suspendRunCatching
+import me.matsumo.travelog.core.model.MomentItem
 import me.matsumo.travelog.core.model.db.Map
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.model.geo.GeoArea
@@ -24,6 +26,7 @@ import me.matsumo.travelog.core.resource.Res
 import me.matsumo.travelog.core.resource.error_network
 import me.matsumo.travelog.core.ui.screen.ScreenState
 import me.matsumo.travelog.core.usecase.GetMapRegionImagesUseCase
+import me.matsumo.travelog.core.usecase.GetMomentsForMapUseCase
 
 class MapDetailViewModel(
     private val mapId: String,
@@ -31,6 +34,7 @@ class MapDetailViewModel(
     private val mapRegionRepository: MapRegionRepository,
     private val geoAreaRepository: GeoAreaRepository,
     private val getMapRegionImagesUseCase: GetMapRegionImagesUseCase,
+    private val getMomentsForMapUseCase: GetMomentsForMapUseCase,
 ) : ViewModel() {
 
     private val _screenState = MutableStateFlow<ScreenState<MapDetailUiState>>(ScreenState.Loading())
@@ -46,11 +50,16 @@ class MapDetailViewModel(
                 .collectLatest { regions ->
                     val currentState = _screenState.value
                     if (currentState is ScreenState.Idle) {
-                        val imageUrlMap = getMapRegionImagesUseCase(regions)
+                        val (imageUrlMap, moments) = coroutineScope {
+                            val imageUrlMapDeferred = async { getMapRegionImagesUseCase(regions) }
+                            val momentsDeferred = async { getMomentsForMapUseCase(regions) }
+                            imageUrlMapDeferred.await() to momentsDeferred.await()
+                        }
                         _screenState.value = ScreenState.Idle(
                             currentState.data.copy(
                                 regions = regions.toImmutableList(),
                                 regionImageUrls = imageUrlMap.toImmutableMap(),
+                                moments = moments.toImmutableList(),
                             ),
                         )
                     }
@@ -70,11 +79,16 @@ class MapDetailViewModel(
 
                 val validMap = map ?: error("Map not found")
 
-                val (geoArea, imageUrlMap) = coroutineScope {
+                val (geoArea, imageUrlMap, moments) = coroutineScope {
                     val geoAreaDeferred = async { geoAreaRepository.getAreaByIdWithChildren(validMap.rootGeoAreaId) }
                     val imageUrlMapDeferred = async { getMapRegionImagesUseCase(regions) }
+                    val momentsDeferred = async { getMomentsForMapUseCase(regions) }
 
-                    geoAreaDeferred.await() to imageUrlMapDeferred.await()
+                    Triple(
+                        geoAreaDeferred.await(),
+                        imageUrlMapDeferred.await(),
+                        momentsDeferred.await(),
+                    )
                 }
 
                 val validGeoArea = geoArea ?: error("Geo area not found")
@@ -84,6 +98,7 @@ class MapDetailViewModel(
                     geoArea = validGeoArea,
                     regions = regions.toImmutableList(),
                     regionImageUrls = imageUrlMap.toImmutableMap(),
+                    moments = moments.toImmutableList(),
                 )
             }.fold(
                 onSuccess = { ScreenState.Idle(it) },
@@ -99,4 +114,5 @@ data class MapDetailUiState(
     val geoArea: GeoArea,
     val regions: ImmutableList<MapRegion>,
     val regionImageUrls: ImmutableMap<String, String>,
+    val moments: ImmutableList<MomentItem> = persistentListOf(),
 )

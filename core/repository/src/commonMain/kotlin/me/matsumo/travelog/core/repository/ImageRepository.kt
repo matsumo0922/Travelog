@@ -60,4 +60,24 @@ class ImageRepository(
         imageApi.deleteImage(id)
         imageCacheDataSource.delete(id)
     }
+
+    /**
+     * Get preview images for a map region, sorted by taken_at descending.
+     * Used for moments UI preview grid.
+     */
+    suspend fun getPreviewImagesByMapRegionId(
+        mapRegionId: String,
+        limit: Int = 5,
+    ): List<Image> {
+        return imageApi.getPreviewImagesByMapRegionId(mapRegionId, limit).also {
+            imageCacheDataSource.saveAll(it)
+        }
+    }
+
+    /**
+     * Get the count of images for a map region.
+     */
+    suspend fun getImageCountByMapRegionId(mapRegionId: String): Int {
+        return imageApi.getImageCountByMapRegionId(mapRegionId).toInt()
+    }
 }
