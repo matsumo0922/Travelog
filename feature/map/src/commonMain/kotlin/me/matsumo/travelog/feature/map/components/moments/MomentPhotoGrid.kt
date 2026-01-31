@@ -39,7 +39,7 @@ internal fun MomentPhotoGrid(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(240.dp)
+            .height(320.dp)
             .clip(MaterialTheme.shapes.large),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -75,28 +75,94 @@ private fun RightColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        images.forEachIndexed { index, image ->
-            val isLastWithMore = index == images.lastIndex && remainingCount > 0
-
-            Box(
+        // Row 1: Single image
+        if (images.isNotEmpty()) {
+            SingleImageCell(
+                image = images[0],
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.large),
-            ) {
-                AsyncImageWithPlaceholder(
-                    modifier = Modifier.fillMaxSize(),
-                    model = image.url,
-                    contentScale = ContentScale.Crop,
-                    contentDescription = null,
-                )
+                    .fillMaxWidth(),
+            )
+        }
 
-                if (isLastWithMore) {
-                    MorePhotosOverlay(
-                        count = remainingCount,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
+        // Row 2: Single image
+        if (images.size > 1) {
+            SingleImageCell(
+                image = images[1],
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+            )
+        }
+
+        // Row 3: Two images side by side (left: normal, right: with overlay)
+        if (images.size > 2) {
+            BottomRow(
+                leftImage = images[2],
+                rightImage = images.getOrNull(3),
+                remainingCount = remainingCount,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun SingleImageCell(
+    image: PreviewImage,
+    modifier: Modifier = Modifier,
+) {
+    AsyncImageWithPlaceholder(
+        modifier = modifier.clip(MaterialTheme.shapes.large),
+        model = image.url,
+        contentScale = ContentScale.Crop,
+        contentDescription = null,
+    )
+}
+
+@Composable
+private fun BottomRow(
+    leftImage: PreviewImage,
+    rightImage: PreviewImage?,
+    remainingCount: Int,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        // Left image (normal)
+        AsyncImageWithPlaceholder(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clip(MaterialTheme.shapes.large),
+            model = leftImage.url,
+            contentScale = ContentScale.Crop,
+            contentDescription = null,
+        )
+
+        // Right image (with overlay if there are more photos)
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clip(MaterialTheme.shapes.large),
+        ) {
+            AsyncImageWithPlaceholder(
+                modifier = Modifier.fillMaxSize(),
+                model = rightImage?.url ?: leftImage.url,
+                contentScale = ContentScale.Crop,
+                contentDescription = null,
+            )
+
+            if (remainingCount > 0) {
+                MorePhotosOverlay(
+                    count = remainingCount,
+                    modifier = Modifier.fillMaxSize(),
+                )
             }
         }
     }
