@@ -1,5 +1,6 @@
 package me.matsumo.travelog.core.usecase
 
+import io.github.aakira.napier.Napier
 import me.matsumo.travelog.core.model.db.MapRegion
 import me.matsumo.travelog.core.repository.ImageRepository
 import me.matsumo.travelog.core.repository.MapRegionRepository
@@ -23,16 +24,11 @@ class DeleteRepresentativeImageUseCase(
             }
 
             // 3. Update MapRegion (clear representative image fields)
-            mapRegionRepository.updateMapRegion(
-                mapRegion.copy(
-                    representativeImageId = null,
-                    representativeCroppedImageId = null,
-                    cropData = null,
-                ),
-            )
+            mapRegionRepository.clearRepresentativeImage(regionId)
 
             Result.Success
         }.getOrElse { e ->
+            Napier.e(e) { "Failed to delete representative image" }
             Result.Failed(e)
         }
     }

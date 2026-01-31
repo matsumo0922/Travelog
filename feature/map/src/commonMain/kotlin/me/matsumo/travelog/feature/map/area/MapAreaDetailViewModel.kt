@@ -267,12 +267,14 @@ class MapAreaDetailViewModel(
 
     private suspend fun refreshGrid() {
         val latestRegions = mapRegionRepository.getMapRegionsByMapIdAndGeoAreaId(mapId, geoAreaId)
+        val imageUrlMap = getMapRegionImagesUseCase(latestRegions)
         val placementResult = buildPlacedItems(latestRegions)
         val currentState = _screenState.value
         if (currentState is ScreenState.Idle) {
             _screenState.value = ScreenState.Idle(
                 currentState.data.copy(
                     mapRegions = latestRegions.toImmutableList(),
+                    regionImageUrls = imageUrlMap.toImmutableMap(),
                     placedItems = placementResult.placedItems.toImmutableList(),
                     rowCount = placementResult.rowCount,
                 ),
@@ -378,6 +380,7 @@ class MapAreaDetailViewModel(
 
             when (deleteRepresentativeImageUseCase(region)) {
                 is DeleteRepresentativeImageUseCase.Result.Success -> {
+                    refreshGrid()
                     _representativeDeleteState.value = RepresentativeDeleteState.Idle
                 }
 

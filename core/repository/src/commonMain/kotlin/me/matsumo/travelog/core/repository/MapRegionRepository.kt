@@ -79,4 +79,10 @@ class MapRegionRepository(
         mapRegionApi.deleteMapRegion(id)
         cacheDataSource.delete(id)
     }
+
+    suspend fun clearRepresentativeImage(id: String): MapRegion {
+        val updated = mapRegionApi.clearRepresentativeImage(id)
+        cacheDataSource.upsert(updated)
+        return updated
+    }
 }

@@ -65,6 +65,19 @@ class MapRegionApi internal constructor(
             }
     }
 
+    suspend fun clearRepresentativeImage(id: String): MapRegion = withValidSession {
+        supabaseClient.from(TABLE_NAME)
+            .update({
+                set("representative_image_id", null as String?)
+                set("representative_cropped_image_id", null as String?)
+                set("crop_data", null as String?)
+            }) {
+                filter { MapRegion::id eq id }
+                select()
+            }
+            .decodeSingle()
+    }
+
     companion object {
         private const val TABLE_NAME = "map_regions"
     }
